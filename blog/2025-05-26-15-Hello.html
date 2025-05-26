@@ -1,0 +1,23 @@
+<!doctype html>
+<base href="https://alganet.dev/">
+<link rel=stylesheet href=style.css?1>
+<title>alganet.dev</title>
+<h1><a href=index.html>alganet.dev</a></h1>
+
+<h2>Hello Blog</h2>
+<p class=info><em>Alexandre Gomes Gaigalas</em> – <em>2025-05-26</em> <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/">Licensed under CC BY-NC-ND 4.0 <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg"><img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg"><img src="https://mirrors.creativecommons.org/presskit/icons/nd.svg"></a></p>
+
+<p>For a while now, I've been wanting to start a technical blog. I decided to transform this simple, hand-crafted HTML website into a platform for it.</p>
+
+<p>It is as close as pure HTML as you can get. I create posts by writing the HTML by hand, and there is a 80-line (at the time of writing) <a href=build.sh>shell script</a> that manages the content.</p>
+
+<p>I decided not to use any form of markdown or any form of templating for the solution. However, my solution has some nice tricks on its sleeve:</p>
+
+<ul>
+<li>If I change the index.html header, the shell script updates all the post pages for me.</li>
+<li>The script automatically selects the last five posts to highlight on index.html.</li>
+</ul>
+
+<p>There is no manual, no repository project, no way of sharing the solution (for now). That's by design. As I (hopefully) write more often, more tools
+and functionality will be needed.</p>
+<hr class=end><p></p>
