@@ -53,16 +53,16 @@ a:visited {
 h1 { 
   font-size: 2em;
   border-bottom: 0.06em solid #DDD;
-  background-image: url("logo.svg");
-  background-repeat: no-repeat;
-  background-size: contain;
 }
 
 h1 a {
+  font-family: serif;
+  color: #b75946;
+  text-decoration: none;
+  letter-spacing: -0.1em;
   display: block;
   white-space: nowrap;
   overflow: hidden;
-  text-indent: 100%;
 }
 
 hr {
