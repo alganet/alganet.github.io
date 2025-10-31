@@ -93,6 +93,8 @@ h2 {
 
 p, ul {
   font-size: 1.1em;
+  text-align: justify;
+  word-spacing: -0.03em;
 }
 
 .cc a {
