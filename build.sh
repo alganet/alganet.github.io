@@ -40,7 +40,7 @@ do
                 title="${title%'</h2>'*}"
                 ;;
             '<p class=info'*)
-                line="<p class=info><em>Alexandre Gomes Gaigalas</em> – <em>$date</em>"' <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/">Licensed under CC BY-NC-ND 4.0 <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg"><img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg"><img src="https://mirrors.creativecommons.org/presskit/icons/nd.svg"></a></p>'
+                line="<p class=info><em>Alexandre Gomes Gaigalas</em> – <em>$date</em>"'</p>'
                 content="$_EOL<h2>$title</h2>"
                 ;;
             '<hr class=end'*)
@@ -51,7 +51,7 @@ do
     done < $entry
     cat $(echo *'_Header_section.html') > ${entry}
     echo "$content" >> ${entry}
-    echo "<hr class=end><p></p>" >> ${entry}
+    echo "<hr class=end><p class=cc><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></p>" >> ${entry}
     echo "<li><a href=\"${entry}\">$title</a> — <em>$date</em></li>" >> $blog_all
 done
 

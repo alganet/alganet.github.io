@@ -1,11 +1,10 @@
 /*! normalize.css v8.0.1 | MIT License | github.com/necolas/normalize.css */html{line-height:1.15;-webkit-text-size-adjust:100%}body{margin:0}main{display:block}h1{font-size:2em;margin:.67em 0}hr{box-sizing:content-box;height:0;overflow:visible}pre{font-family:monospace,monospace;font-size:1em}a{background-color:transparent}abbr[title]{border-bottom:none;text-decoration:underline;text-decoration:underline dotted}b,strong{font-weight:bolder}code,kbd,samp{font-family:monospace,monospace;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}img{border-style:none}button,input,optgroup,select,textarea{font-family:inherit;font-size:100%;line-height:1.15;margin:0}button,input{overflow:visible}button,select{text-transform:none}[type=button],[type=reset],[type=submit],button{-webkit-appearance:button}[type=button]::-moz-focus-inner,[type=reset]::-moz-focus-inner,[type=submit]::-moz-focus-inner,button::-moz-focus-inner{border-style:none;padding:0}[type=button]:-moz-focusring,[type=reset]:-moz-focusring,[type=submit]:-moz-focusring,button:-moz-focusring{outline:1px dotted ButtonText}fieldset{padding:.35em .75em .625em}legend{box-sizing:border-box;color:inherit;display:table;max-width:100%;padding:0;white-space:normal}progress{vertical-align:baseline}textarea{overflow:auto}[type=checkbox],[type=radio]{box-sizing:border-box;padding:0}[type=number]::-webkit-inner-spin-button,[type=number]::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}[type=search]::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}details{display:block}summary{display:list-item}template{display:none}[hidden]{display:none}
 
 body {
-  background: #FFF;
+  background: #EEE;
   color: #555;
-  margin: 0 auto;
-  width: 40em;
-  padding: 0;
+  width: auto;
+  margin: 0 0.5em 0 0.5em;
   font-family: sans-serif;
   letter-spacing: -0.025em;
   font-weight: 400;
@@ -15,29 +14,27 @@ strong {
   font-weight: 600;
 }
 
-h1, h2 {
+h1,
+h2 {
   letter-spacing: -0.06em;
   font-weight: normal;
-  margin: 0.5em 0;
   color: #b75946;
   padding: 0;
 }
 
 .info {
-  font-size: 0.85em;
-  color: #777;
-  border-bottom: 0.06em solid #DDD;
+  color: #999;
+  border-bottom: 0.06em solid #CCC;
   padding-bottom: 1em;
+  margin-top: -0.5em;
 }
 
-.info a {
-  padding-top: 0.3em;
+.cc a {
   float: right;
   text-decoration: none;
-  color: #000;
-  opacity: 0.4;
-  font-size: 0.7em;
+  color: #999;
 }
+
 .info img {
   height: 1.2em;
   vertical-align: text-bottom;
@@ -46,16 +43,18 @@ h1, h2 {
 a {
   color: #449;
 }
+
 a:visited {
   color: #66A;
 }
 
-h1 { 
-  font-size: 2em;
-  border-bottom: 0.06em solid #DDD;
+h1 {
+  border-bottom: 0.06em solid #CCC;
+  height: 0.9em;
 }
 
-h1 a {
+h1 a,
+h1 a:visited {
   font-family: serif;
   color: #b75946;
   text-decoration: none;
@@ -66,31 +65,77 @@ h1 a {
 }
 
 hr {
-  height: 0;
-  color: transparent;
-  border-bottom: 0.06em solid #DDD;
-}
-
-h2 { font-size: 1.5em; }
-
-ul {
-  list-style-type: disc;
-  font-size: 0.9em;
+  border: none;
+  border-bottom: 0.06em solid #CCC;
 }
 
 li {
   margin: 0.7em 0;
 }
 
-@media (max-width: 40em) {
-  body { width: auto; padding: 0.5em;}
+li::marker {
+  color: #999;
 }
+
+h1 {
+  font-size: 3em;
+  margin: 0;
+}
+
+h2 {
+  font-size: 2em;
+  margin: 0.5em 0;
+}
+
+.info {
+  font-size: 1em;
+}
+
+p, ul {
+  font-size: 1.1em;
+}
+
+.cc a {
+  font-size: 0.8em;
+}
+
 @media (min-width: 40em) {
-  body { font-size: 1.1em; }
+  body {
+    font-size: 1.3em;
+    width: 30em;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 3em;
+    margin-bottom: 0.5em;
+  }
+
+  h2 {
+    font-size: 1.5em;
+    margin: 0.7em 0;
+  }
+
+  .info {
+    font-size: 0.75em;
+  }
+
+  p, ul {
+    font-size: 0.9em;
+  }
+
+  .cc a {
+    font-size: 0.5em;
+  }
 }
+
 @media (min-width: 50em) {
-  body { font-size: 1.25em; }
+  body {
+    font-size: 1.4m;
+  }
 }
+
 @media (min-width: 60em) {
-  body { font-size: 1.5em; }
+  body {
+    font-size: 1.5em;
+  }
 }
