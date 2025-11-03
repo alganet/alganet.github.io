@@ -4,7 +4,7 @@ body {
   background: #EEE;
   color: #555;
   width: auto;
-  margin: 0 0.5em 0 0.5em;
+  margin: 0 0.5em;
   font-family: sans-serif;
   letter-spacing: -0.025em;
   font-weight: 400;
@@ -14,8 +14,20 @@ strong {
   font-weight: 600;
 }
 
-h1,
+h1 {
+  font-size: 3em;
+  margin: 0;
+  letter-spacing: -0.06em;
+  font-weight: normal;
+  color: #b75946;
+  padding: 0;
+  border-bottom: 0.06em solid #CCC;
+  height: 0.9em;
+}
+
 h2 {
+  font-size: 2em;
+  margin: 0.5em 0;
   letter-spacing: -0.06em;
   font-weight: normal;
   color: #b75946;
@@ -27,12 +39,14 @@ h2 {
   border-bottom: 0.06em solid #CCC;
   padding-bottom: 1em;
   margin-top: -0.5em;
+  font-size: 1em;
 }
 
 .cc a {
   float: right;
   text-decoration: none;
   color: #999;
+  font-size: 0.8em;
 }
 
 .info img {
@@ -46,11 +60,6 @@ a {
 
 a:visited {
   color: #66A;
-}
-
-h1 {
-  border-bottom: 0.06em solid #CCC;
-  height: 0.9em;
 }
 
 h1 a,
@@ -77,28 +86,10 @@ li::marker {
   color: #999;
 }
 
-h1 {
-  font-size: 3em;
-  margin: 0;
-}
-
-h2 {
-  font-size: 2em;
-  margin: 0.5em 0;
-}
-
-.info {
-  font-size: 1em;
-}
-
 p, ul {
   font-size: 1.1em;
   text-align: justify;
   word-spacing: -0.03em;
-}
-
-.cc a {
-  font-size: 0.8em;
 }
 
 @media (min-width: 40em) {
@@ -130,14 +121,46 @@ p, ul {
   }
 }
 
-@media (min-width: 50em) {
-  body {
-    font-size: 1.4m;
-  }
-}
-
 @media (min-width: 60em) {
   body {
     font-size: 1.5em;
+  }
+}
+
+@media (min-width: 80em) {
+  body {
+    font-size: 1.6em;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #222;
+    color: #AAA;
+  }
+  h1, h2 {
+    color: #d66652;
+  }
+  h1 {
+    border-color: #555;
+  }
+  .info {
+    color: #666;
+    border-color: #333;
+  }
+  .cc a {
+    color: #666;
+  }
+  a {
+    color: #69c;
+  }
+  a:visited {
+    color: #69c;
+  }
+  hr {
+    border-color: #333;
+  }
+  li::marker {
+    color: #666;
   }
 }
