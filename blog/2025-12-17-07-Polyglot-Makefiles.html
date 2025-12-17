@@ -1,0 +1,113 @@
+<!doctype html>
+<link rel=stylesheet href=/style.css?5>
+<title>alganet</title>
+<h1><a href=/>alganet</a></h1>
+
+<h2>Polyglot Makefiles</h2>
+<p class=info><em>Alexandre Gomes Gaigalas</em> – <em>December 17, 2025</em></p>
+
+<p>
+While Unix-like systems typically use <strong>GNU make</strong>, Windows environments based on Microsoft toolchains,
+traditionally use <strong>nmake</strong>. Although alternatives
+like GNU make on Windows exist (MSYS2, MinGW, WSL), many projects still need to support native
+<strong>nmake</strong> workflows.
+</p>
+
+<p>
+Unfortunately, GNU make and nmake are similar tools with <strong>different syntax and features</strong>.
+This often leads to duplicated makefiles or forcing contributors to install a non-native tool.
+Here we explore a technique to create a single <code>Makefile</code> that works for both.
+</p>
+
+<h3>Why this is useful</h3>
+<ul>
+<li><strong>One source of truth:</strong> Common variables, targets and documentation live in a single
+<code>Makefile</code>.</li>
+<li><strong>Platform delegation:</strong> Tool or platform-specific rules live in small, focused include files.
+</li>
+<li><strong>Controlled complexity:</strong> The polyglot logic is isolated to a tiny, well-documented block.</li>
+</ul>
+
+<h3>The key bit</h3>
+<p>The polyglot solution for the unified <code>Makefile</code> looks like this:</p>
+
+<pre class=codeblock><code><span style="color:#24292e">SHARED_VAR</span> <span style="color:#6f42c1">=</span> <span style="color:#032f62">some_value</span>
+
+<span style="color:#795548">shared_target:</span>
+<span style="color:#005cc5">	echo 123</span>
+
+<span style="color:#929d00"># --- POLYGLOT MAGIC BEGINS</span>
+<span style="color:#929d00"># \</span>
+<span style="color:#929d00">!ifndef 0 # \</span>
+<span style="color:#929d00">!include "nmake-specific.mk" # \</span>
+<span style="color:#929d00">!else</span>
+<span style="color:#929d00">include gnu-specific.mk</span>
+<span style="color:#929d00"># \</span>
+<span style="color:#929d00">!endif</span>
+<span style="color:#929d00"># --- POLYGLOT MAGIC ENDS</span></code></pre>
+
+<p>
+This single block allows each tool to include its own implementation file while sharing the same
+variables and targets.
+</p>
+
+<h3>How it works</h3>
+<p>This snippet relies on subtle but well-defined differences between GNU make and nmake parsing rules.</p>
+
+<p><strong>What GNU make sees:</strong></p>
+<p>
+GNU make supports line continuation (<code>\</code>) inside comments. Because of this, the
+<code>!</code>-prefixed nmake directives become part of a multi-line comment and are ignored.
+</p>
+
+<pre class=codeblock><code><span style="color:#22863a"># --- POLYGLOT MAGIC BEGINS</span>
+<span style="color:#22863a"># \</span>
+<span style="color:#22863a">!ifndef 0 # \</span>
+<span style="color:#22863a">!include "nmake-specific.mk" # \</span>
+<span style="color:#22863a">!else</span>
+<span style="color:#24292e">include</span> <span style="color:#6f42c1">gnu-specific.mk</span>
+<span style="color:#22863a"># \</span>
+<span style="color:#22863a">!endif</span>
+<span style="color:#22863a"># --- POLYGLOT MAGIC ENDS</span></code></pre>
+
+<p><strong>What nmake sees:</strong></p>
+<p>
+nmake does not support multi-line comments. It recognizes the <code>!ifndef</code>,
+<code>!include</code>, <code>!else</code>, and <code>!endif</code> directives and evaluates the first branch.
+</p>
+
+<p>
+The condition <code>!ifndef 0</code> is intentionally chosen: <code>0</code> is not a predefined macro in
+nmake, so the condition is always true. This reliably selects the nmake-specific branch without
+depending on environment variables.
+</p>
+
+<pre class=codeblock><code><span style="color:#22863a"># --- POLYGLOT MAGIC BEGINS</span>
+<span style="color:#22863a"># \</span>
+<span style="color:#b31d28">!ifndef</span> <span style="color:#032f62">0</span> <span style="color:#22863a"># \</span>
+<span style="color:#b31d28">!include</span> <span style="color:#6f42c1">"nmake-specific.mk"</span> <span style="color:#22863a"># \</span>
+<span style="color:#b31d28">!else</span>
+<span style="color:#24292e">include</span> <span style="color:#6f42c1">gnu-specific.mk</span>
+<span style="color:#22863a"># \</span>
+<span style="color:#b31d28">!endif</span>
+<span style="color:#22863a"># --- POLYGLOT MAGIC ENDS</span></code></pre>
+
+<h3>Typical file layout</h3>
+<pre class=codeblock><code>Makefile
+gnu-specific.mk
+nmake-specific.mk</code></pre>
+
+<h3>Caveats and limitations</h3>
+<ul>
+<li>This relies on GNU make’s handling of line continuation inside comments.</li>
+<li>The polyglot block should remain small and self-contained.</li>
+<li>Editors or formatters that alter trailing backslashes may silently break this construct.</li>
+</ul>
+
+<h3>Final thoughts</h3>
+<p>
+Polyglot Makefiles are a powerful technique when used sparingly. They allow a single shared build
+definition while preserving native workflows on each platform.
+</p>
+
+<hr class=end><p class=cc><a href=https://creativecommons.org/licenses/by-nc-sa/4.0/>CC BY-NC-SA 4.0</a></p>
