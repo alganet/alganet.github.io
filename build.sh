@@ -30,8 +30,13 @@ entries="$(find blog -type f | sort -rn)"
 entry= title= date= content= max_latest=5
 for entry in $entries
 do
-    date="${entry#blog/}"
-    date="${date%${date#??????????}}"
+    iso_date="${entry#blog/}"
+    iso_date="${iso_date%${iso_date#??????????}}"
+    if date_long=$(date -d "$iso_date" '+%B %-d, %Y' 2>/dev/null); then
+        date="$date_long"
+    else
+        date="$iso_date"
+    fi
     while get_line
     do
         case $line in
