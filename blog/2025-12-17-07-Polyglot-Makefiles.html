@@ -22,7 +22,8 @@ Here we explore a technique to create a single <code>Makefile</code> that works 
 <h3>Why this is useful</h3>
 <ul>
 <li><strong>One source of truth:</strong> Common variables, targets and documentation live in a single
-<code>Makefile</code>.</li>
+<code>Makefile</code>.
+</li>
 <li><strong>Platform delegation:</strong> Tool or platform-specific rules live in small, focused include files.
 </li>
 <li><strong>Controlled complexity:</strong> The polyglot logic is isolated to a tiny, well-documented block.</li>
@@ -109,5 +110,9 @@ nmake-specific.mk</code></pre>
 Polyglot Makefiles are a powerful technique when used sparingly. They allow a single shared build
 definition while preserving native workflows on each platform.
 </p>
+
+<p>This technique was used in the <a href="https://github.com/alganet/PHL">PHL</a> repository to
+simplify the build process. Both Unix and Windows builds share a lot of variables and targets, leveraging a single
+source of truth for the built objects, dependencies and more.</p>
 
 <hr class=end><p class=cc><a href=https://creativecommons.org/licenses/by-nc-sa/4.0/>CC BY-NC-SA 4.0</a></p>
