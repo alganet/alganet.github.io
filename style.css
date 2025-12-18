@@ -4,16 +4,43 @@ body {
   background: #EEE;
   color: #555;
   width: auto;
-  margin: 0 0.5em;
+  max-width: 40em;
+  margin: 0 auto;
+  padding: 0 0.5em;
   font-family: sans-serif;
   letter-spacing: -0.025em;
   font-weight: 400;
   line-height: 1.3;
+  position: relative;
+  font-size: 1.1em;
+}
+
+nav.lang {
+  font-size: 0.8em;
+  position: absolute;
+  right: 1em;
+  top: 2em;
+}
+
+nav.lang a {
+  color: #b75946;
+  padding: 0.2em;
+  display: inline-block;
+  width: 6em;
+  text-align: right;
+}
+
+nav.lang a.selected {
+  font-weight: bold;
+}
+
+*[lang] {
+  font-style: italic;
 }
 
 pre.codeblock {
   font-family: monospace;
-  font-size: 0.7em;
+  font-size: 0.8em;
   padding: 1em;
   background: #FFF;
 }
@@ -28,6 +55,23 @@ pre code {
   border: none;
   padding: 0;
   background: none;
+  color #DDD;
+}
+
+pre .code-statement {
+  color: #b75946;
+}
+
+pre .code-argument {
+  color: #666;
+}
+
+pre .code-comment {
+  color: #18943bff;
+}
+
+pre .code-number {
+  color: #666;
 }
 
 strong {
@@ -35,14 +79,14 @@ strong {
 }
 
 h1 {
-  font-size: 3em;
+  font-size: 3.8em;
   margin: 0;
   letter-spacing: -0.06em;
   font-weight: normal;
   color: #b75946;
   padding: 0;
   border-bottom: 0.06em solid #CCC;
-  height: 0.9em;
+  height: 0.99em;
 }
 
 h2 {
@@ -113,47 +157,6 @@ p, ul {
   word-spacing: -0.03em;
 }
 
-@media (min-width: 40em) {
-  body {
-    font-size: 1.3em;
-    width: 30em;
-    margin: 0 auto;
-  }
-  h1 {
-    font-size: 3em;
-    margin-bottom: 0.5em;
-  }
-
-  h2 {
-    font-size: 1.5em;
-    margin: 0.7em 0;
-  }
-
-  .info {
-    font-size: 0.75em;
-  }
-
-  p, ul {
-    font-size: 0.9em;
-  }
-
-  .cc a {
-    font-size: 0.5em;
-  }
-}
-
-@media (min-width: 60em) {
-  body {
-    font-size: 1.5em;
-  }
-}
-
-@media (min-width: 80em) {
-  body {
-    font-size: 1.6em;
-  }
-}
-
 @media (prefers-color-scheme: dark) {
   body {
     background: #222;
@@ -184,4 +187,30 @@ p, ul {
   li::marker {
     color: #666;
   }
+  
+  pre.codeblock {
+    background: #333;
+  }
+
+  code {
+    background: #333;
+    border: 0.01em solid #CCC;
+  }
+  
+  pre .code-statement {
+    color: #e17c68;
+  }
+
+  pre .code-argument {
+    color: #b4b4b4
+  }
+
+  pre .code-comment {
+    color: #3cd868;
+  }
+
+  pre .code-number {
+    color: #9a9a9a;
+  }
+
 }

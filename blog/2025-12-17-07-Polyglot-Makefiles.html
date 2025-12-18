@@ -1,7 +1,8 @@
 <!doctype html>
-<link rel=stylesheet href=/style.css?5>
+<link rel=stylesheet href=/style.css?6>
 <title>alganet</title>
-<h1><a href=/>alganet</a></h1>
+<h1><a href= />alganet</a></h1>
+<nav class=lang><a href="/blog/2025-12-17-07-Polyglot-Makefiles.html" class=selected>English</a> <a href="/blog/2025-12-17-07-Makefiles-Poliglotas.pt.html">Português</a></nav>
 
 <h2>Polyglot Makefiles</h2>
 <p class=info><em>Alexandre Gomes Gaigalas</em> – <em>December 17, 2025</em></p>
@@ -32,20 +33,20 @@ Here we explore a technique to create a single <code>Makefile</code> that works 
 <h3>The key bit</h3>
 <p>The polyglot solution for the unified <code>Makefile</code> looks like this:</p>
 
-<pre class=codeblock><code><span style="color:#24292e">SHARED_VAR</span> <span style="color:#6f42c1">=</span> <span style="color:#032f62">some_value</span>
+<pre class=codeblock><code><span class="code-statement">SHARED_VAR</span> <span class="code-argument">=</span> <span class="code-number">some_value</span>
 
-<span style="color:#795548">shared_target:</span>
-<span style="color:#005cc5">	echo 123</span>
+<span class="code-statement">shared_target:</span>
+<span class="code-argument">	echo 123</span>
 
-<span style="color:#929d00"># --- POLYGLOT MAGIC BEGINS</span>
-<span style="color:#929d00"># \</span>
-<span style="color:#929d00">!ifndef 0 # \</span>
-<span style="color:#929d00">!include "nmake-specific.mk" # \</span>
-<span style="color:#929d00">!else</span>
-<span style="color:#929d00">include gnu-specific.mk</span>
-<span style="color:#929d00"># \</span>
-<span style="color:#929d00">!endif</span>
-<span style="color:#929d00"># --- POLYGLOT MAGIC ENDS</span></code></pre>
+<span class="code-comment"># --- POLYGLOT MAGIC BEGINS</span>
+<span class="code-comment"># \</span>
+<span class="code-comment">!ifndef 0 # \</span>
+<span class="code-comment">!include "nmake-specific.mk" # \</span>
+<span class="code-comment">!else</span>
+<span class="code-comment">include gnu-specific.mk</span>
+<span class="code-comment"># \</span>
+<span class="code-comment">!endif</span>
+<span class="code-comment"># --- POLYGLOT MAGIC ENDS</span></code></pre>
 
 <p>
 This single block allows each tool to include its own implementation file while sharing the same
@@ -61,15 +62,15 @@ GNU make supports line continuation (<code>\</code>) inside comments. Because of
 <code>!</code>-prefixed nmake directives become part of a multi-line comment and are ignored.
 </p>
 
-<pre class=codeblock><code><span style="color:#22863a"># --- POLYGLOT MAGIC BEGINS</span>
-<span style="color:#22863a"># \</span>
-<span style="color:#22863a">!ifndef 0 # \</span>
-<span style="color:#22863a">!include "nmake-specific.mk" # \</span>
-<span style="color:#22863a">!else</span>
-<span style="color:#24292e">include</span> <span style="color:#6f42c1">gnu-specific.mk</span>
-<span style="color:#22863a"># \</span>
-<span style="color:#22863a">!endif</span>
-<span style="color:#22863a"># --- POLYGLOT MAGIC ENDS</span></code></pre>
+<pre class=codeblock><code><span class="code-comment"># --- POLYGLOT MAGIC BEGINS</span>
+<span class="code-comment"># \</span>
+<span class="code-comment">!ifndef 0 # \</span>
+<span class="code-comment">!include "nmake-specific.mk" # \</span>
+<span class="code-comment">!else</span>
+<span class="code-statement">include</span> <span class="code-argument">gnu-specific.mk</span>
+<span class="code-comment"># \</span>
+<span class="code-comment">!endif</span>
+<span class="code-comment"># --- POLYGLOT MAGIC ENDS</span></code></pre>
 
 <p><strong>What nmake sees:</strong></p>
 <p>
@@ -83,15 +84,15 @@ nmake, so the condition is always true. This reliably selects the nmake-specific
 depending on environment variables.
 </p>
 
-<pre class=codeblock><code><span style="color:#22863a"># --- POLYGLOT MAGIC BEGINS</span>
-<span style="color:#22863a"># \</span>
-<span style="color:#b31d28">!ifndef</span> <span style="color:#032f62">0</span> <span style="color:#22863a"># \</span>
-<span style="color:#b31d28">!include</span> <span style="color:#6f42c1">"nmake-specific.mk"</span> <span style="color:#22863a"># \</span>
-<span style="color:#b31d28">!else</span>
-<span style="color:#24292e">include</span> <span style="color:#6f42c1">gnu-specific.mk</span>
-<span style="color:#22863a"># \</span>
-<span style="color:#b31d28">!endif</span>
-<span style="color:#22863a"># --- POLYGLOT MAGIC ENDS</span></code></pre>
+<pre class=codeblock><code><span class="code-comment"># --- POLYGLOT MAGIC BEGINS</span>
+<span class="code-comment"># \</span>
+<span class="code-statement">!ifndef</span> <span class="code-number">0</span> <span class="code-comment"># \</span>
+<span class="code-statement">!include</span> <span class="code-argument">"nmake-specific.mk"</span> <span class="code-comment"># \</span>
+<span class="code-statement">!else</span>
+<span class="code-statement">include</span> <span class="code-argument">gnu-specific.mk</span>
+<span class="code-comment"># \</span>
+<span class="code-statement">!endif</span>
+<span class="code-comment"># --- POLYGLOT MAGIC ENDS</span></code></pre>
 
 <h3>Typical file layout</h3>
 <pre class=codeblock><code>Makefile
@@ -115,4 +116,4 @@ definition while preserving native workflows on each platform.
 simplify the build process. Both Unix and Windows builds share a lot of variables and targets, leveraging a single
 source of truth for the built objects, dependencies and more.</p>
 
-<hr class=end><p class=cc><a href=https://creativecommons.org/licenses/by-nc-sa/4.0/>CC BY-NC-SA 4.0</a></p>
+<hr class=end><p class=cc><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></p>

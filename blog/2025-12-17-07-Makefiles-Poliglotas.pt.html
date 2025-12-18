@@ -1,0 +1,126 @@
+<!doctype html>
+<link rel=stylesheet href=/style.css?6>
+<title>alganet</title>
+<h1><a href=/index.pt.html>alganet</a></h1>
+<nav class=lang><a href="/blog/2025-12-17-07-Polyglot-Makefiles.html">English</a> <a href="/blog/2025-12-17-07-Makefiles-Poliglotas.pt.html" class=selected>Português</a></nav>
+
+<h2>Makefiles Poliglotas</h2>
+<p class=info><em>Alexandre Gomes Gaigalas</em> – <em>17 de Dezembro de 2025</em></p>
+
+<p>
+Enquanto sistemas do tipo Unix normalmente usam <strong>GNU make</strong>, ambientes Windows baseados nas
+ferramentas da Microsoft tradicionalmente usam o <strong>nmake</strong>. Embora existam alternativas como o GNU make
+no Windows (MSYS2, MinGW, WSL), muitos projetos ainda precisam suportar fluxos de trabalho nativos com o
+<strong>nmake</strong>.
+</p>
+
+<p>
+Infelizmente, o GNU make e o nmake são ferramentas semelhantes com <strong>sintaxe e recursos diferentes</strong>.
+Isso geralmente leva a makefiles duplicados ou força os contribuidores a instalar uma ferramenta não nativa. Aqui
+exploramos uma técnica para criar um único <code>Makefile</code> que funciona para ambos.
+</p>
+
+<h3>Por que isso é útil</h3>
+<ul>
+<li><strong>Uma única fonte da verdade:</strong> Variáveis comuns, <span lang=en>targets</span> e documentação vivem
+em
+um único
+<code>Makefile</code>.
+</li>
+<li><strong>Delegação de plataforma:</strong> Regras específicas de ferramentas ou plataformas vivem em arquivos de
+inclusão pequenos e focados.</li>
+<li><strong>Complexidade controlada:</strong> A lógica poliglota é isolada em um bloco minúsculo e bem documentado.
+</li>
+</ul>
+
+<h3>A parte principal</h3>
+<p>A solução poliglota para o <code>Makefile</code> unificado é mais ou menos assim:</p>
+
+<pre class=codeblock><code><span class="code-statement">SHARED_VAR</span> <span class="code-argument">=</span> <span class="code-number">some_value</span>
+
+<span class="code-statement">shared_target:</span>
+<span class="code-argument">	echo 123</span>
+
+<span class="code-comment"># --- COMEÇO DA MÁGICA POLIGLOTA</span>
+<span class="code-comment"># \</span>
+<span class="code-comment">!ifndef 0 # \</span>
+<span class="code-comment">!include "nmake-specific.mk" # \</span>
+<span class="code-comment">!else</span>
+<span class="code-comment">include gnu-specific.mk</span>
+<span class="code-comment"># \</span>
+<span class="code-comment">!endif</span>
+<span class="code-comment"># --- FIM DA MÁGICA POLIGLOTA</span></code></pre>
+
+<p>
+Este bloco permite que cada ferramenta inclua seu próprio arquivo de implementação, compartilhando as mesmas
+variáveis e <span lang=en>targets</span>.
+</p>
+
+<h3>Como funciona</h3>
+<p>Este trecho baseia-se em diferenças sutis, mas bem definidas, entre as regras de processamento do GNU make e do
+nmake.</p>
+
+<p><strong>O que o GNU make vê:</strong></p>
+<p>
+O GNU make suporta continuação de linha (<code>\</code>) dentro de comentários. Por causa disso, as diretivas nmake
+prefixadas com <code>!</code> tornam-se parte de um comentário de várias linhas e são ignoradas.
+</p>
+
+<pre class=codeblock><code><span class="code-comment"># --- COMEÇO DA MÁGICA POLIGLOTA</span>
+<span class="code-comment"># \</span>
+<span class="code-comment">!ifndef 0 # \</span>
+<span class="code-comment">!include "nmake-specific.mk" # \</span>
+<span class="code-comment">!else</span>
+<span class="code-statement">include</span> <span class="code-argument">gnu-specific.mk</span>
+<span class="code-comment"># \</span>
+<span class="code-comment">!endif</span>
+<span class="code-comment"># --- FIM DA MÁGICA POLIGLOTA</span></code></pre>
+
+<p><strong>O que o nmake vê:</strong></p>
+<p>
+O nmake não suporta comentários de várias linhas. Ele reconhece as diretivas <code>!ifndef</code>,
+<code>!include</code>, <code>!else</code> e <code>!endif</code> e avalia o primeiro ramo.
+</p>
+
+<p>
+A condição <code>!ifndef 0</code> é escolhida intencionalmente: <code>0</code> não é uma macro predefinida no nmake,
+então a condição é sempre verdadeira. Isso seleciona de forma confiável o ramo específico do nmake sem depender de
+variáveis de ambiente.
+</p>
+
+<pre class=codeblock><code><span class="code-comment"># --- COMEÇO DA MÁGICA POLIGLOTA</span>
+<span class="code-comment"># \</span>
+<span class="code-statement">!ifndef</span> <span class="code-number">0</span> <span class="code-comment"># \</span>
+<span class="code-statement">!include</span> <span class="code-argument">"nmake-specific.mk"</span> <span class="code-comment"># \</span>
+<span class="code-statement">!else</span>
+<span class="code-statement">include</span> <span class="code-argument">gnu-specific.mk</span>
+<span class="code-comment"># \</span>
+<span class="code-statement">!endif</span>
+<span class="code-comment"># --- FIM DA MÁGICA POLIGLOTA</span></code></pre>
+
+<h3>Layout típico de arquivos</h3>
+<pre class=codeblock><code>Makefile
+gnu-specific.mk
+nmake-specific.mk</code></pre>
+
+<h3>Ressalvas e limitações</h3>
+<ul>
+<li>Isso depende da forma como o GNU make lida com a continuação de linha dentro de comentários.</li>
+<li>O bloco poliglota deve permanecer pequeno e contido.</li>
+<li>Editores ou formatadores que alteram barras invertidas finais podem quebrar silenciosamente essa construção.
+</li>
+</ul>
+
+<h3>Considerações finais</h3>
+<p>
+Makefiles Poliglotas são uma técnica poderosa quando usada com moderação. Eles permitem uma única definição de build
+compartilhada, preservando os fluxos de trabalho nativos em cada plataforma.
+</p>
+
+<p>Esta técnica foi usada no repositório <a href="https://github.com/alganet/PHL">PHL</a> para simplificar o processo de
+<span lang=en>build</span>. Tanto os <span lang=en>builds</span> Unix quanto Windows compartilham muitas variáveis e
+<span lang=en>targets</span>, aproveitando uma única fonte da verdade para os objetos construídos, dependências e
+outros.
+</p>
+
+<hr class=end><p class=cc><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></p>
