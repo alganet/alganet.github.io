@@ -1,0 +1,57 @@
+<!doctype html>
+<link rel=stylesheet href=/style.css?7>
+<title>Como Desenvolvedores Roubaram "Dry Run" De Metalúrgicos</title>
+<h1><a href=/index.pt.html>alganet</a></h1>
+<nav class=lang><a href="/blog/2025-12-22-09-How-Developers-Stole-Dry-Runs-From-Machinists.html">English</a> <a href="/blog/2025-12-22-09-Como-Desenvolvedores-Roubaram-Dry-Run-De-Metalurgicos.pt.html" class=selected>Português</a></nav>
+
+<h2>Como Desenvolvedores Roubaram "Dry Run" De Metalúrgicos</h2>
+<p class=info><em>Alexandre Gomes Gaigalas</em> – <em>22 de Dezembro de 2025</em></p>
+<p>Se você já executou um comando com a flag <code>--dry-run</code>, provavelmente sabia o que ela fazia. O comando era
+executado, mas
+não <em>a coisa toda</em>.</p>
+<p>Mais especificamente, um <span lang=en>dry run</span> executa <strong>todas as partes, exceto as
+irreversíveis</strong> de uma operação.
+</p>
+<h3>Um Exemplo Rápido</h3>
+<p>Por exemplo, digamos que você tenha um programa de linha de comando chamado <code>cleanup-database</code>:</p>
+<pre class=codeblock><code>$ <span class="code-statement">cleanup-database --help</span>
+usage: cleanup-database [options]
+Removes old data from the database.
+
+Options:
+--dry-run     Show what would be deleted, but don't actually delete anything
+--force       Actually delete the data
+</code></pre>
+<p>Quando você executa esse programa passando a flag <code>--dry-run</code>, ele mostra o que faria sem realizar
+nenhuma alteração:</p>
+<pre class=codeblock><code>$ <span class="code-statement">cleanup-database --dry-run</span>
+The following records would be deleted:
+- Record ID 12345
+- Record ID 67890
+No changes have been made.
+</code></pre>
+<p>Isso é particularmente útil para comandos que executam ações destrutivas, como excluir arquivos ou modificar
+bancos de dados.</p>
+<p>Dry runs não se limitam a ferramentas de linha de comando. Eles também podem ser encontrados em diversas bibliotecas
+e frameworks de programação, onde permitem que desenvolvedores simulem operações sem realizar alterações
+permanentes.</p>
+<h3>Mas Por Que "Dry Run"?</h3>
+<p>Quero dizer, por que não <code>--simulate</code> ou <code>--preview</code>? De onde vem afinal o termo "<span
+lang=en>dry run</span>"?</p>
+<p><strong>Ele vem do mundo da usinagem.</strong></p>
+<p>Primeiro, deixe-me mostrar o que realmente é um <span lang=en>"wet run"</span>:</p>
+<figure><img src=/images/wet-run.jpg alt="Uma operação de wet run de uma máquina">
+<figcaption>Uma máquina realizando uma operação <span lang=en>wet run</span>, com fluidos de lubrificação reais
+sendo aplicados à
+peça.
+</figcaption>
+</figure>
+<p>Essas operações são chamadas de "<span lang=en>wet</span>" porque um fluxo constante de fluido de lubrificação é
+necessário para que a
+operação ocorra suavemente.</p>
+<p>Quando você está testando apenas os movimentos sem realizar nenhuma alteração de fato, não há atrito nem geração de
+calor,
+portanto o fluido de lubrificação não é necessário. Isso é um <strong lang=en>dry run</strong>, e é daí que o termo
+vem.</p>
+
+<hr class=end><p class=cc><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></p>

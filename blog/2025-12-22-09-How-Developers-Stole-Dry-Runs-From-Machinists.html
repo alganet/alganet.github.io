@@ -1,0 +1,46 @@
+<!doctype html>
+<link rel=stylesheet href=/style.css?7>
+<title>How Developers Stole "Dry Runs" From Machinists</title>
+<h1><a href= />alganet</a></h1>
+<nav class=lang><a href="/blog/2025-12-22-09-How-Developers-Stole-Dry-Runs-From-Machinists.html" class=selected>English</a> <a href="/blog/2025-12-22-09-Como-Desenvolvedores-Roubaram-Dry-Run-De-Metalurgicos.pt.html">Português</a></nav>
+
+<h2>How Developers Stole "Dry Runs" From Machinists</h2>
+<p class=info><em>Alexandre Gomes Gaigalas</em> – <em>December 22, 2025</em></p>
+<p>If you’ve ever run a command with a <code>--dry-run</code> flag, you probably knew what it did. It ran the thing, but
+not <em>the whole thing</em>.</p>
+<p>More specifically, a dry run runs <strong>all but the irreversible parts</strong> of an operation.</p>
+<h3>A Quick Example</h3>
+<p>For example, let's say you have a command-line program called <code>cleanup-database</code>:</p>
+<pre class=codeblock><code>$ <span class="code-statement">cleanup-database --help</span>
+usage: cleanup-database [options]
+Removes old data from the database.
+
+Options:
+--dry-run     Show what would be deleted, but don't actually delete anything
+--force       Actually delete the data
+</code></pre>
+<p>When you run such program passing the <code>--dry-run</code> flag, it will show you what it would do without making
+any changes:</p>
+<pre class=codeblock><code>$ <span class="code-statement">cleanup-database --dry-run</span>
+The following records would be deleted:
+- Record ID 12345
+- Record ID 67890
+No changes have been made.
+</code></pre>
+<p>This is particularly useful for commands that perform destructive actions, such as deleting files or modifying
+databases.</p>
+<p>Dry runs are not limited to command-line tools. They can also be found in various programming libraries and
+frameworks, where they allow developers to simulate operations without making permanent changes.</p>
+<h3>But Why "Dry Run"?</h3>
+<p>I mean, why not <code>--simulate</code> or <code>--preview</code>? Where does the term "dry run" even come from?</p>
+<p><strong>It comes from the world of machining.</strong></p>
+<p>First, let me show you what a "wet run" actually is:</p>
+<figure><img src=/images/wet-run.jpg alt="A wet run of a machine">
+<figcaption>A machine performing a "wet" run operation, with actual lubrication fluids being applied to the piece.
+</figcaption>
+</figure>
+<p>These operations are "wet" in the sense that a constant flow of lubrication fluid is needed to run the operation
+smoothly.</p>
+<p>When you are testing the motions without actually performing any change, there is no friction or heat, so the
+lubrication fluid is not needed. This is a <strong>dry run</strong>, and that's where the term comes from.</p>
+<hr class=end><p class=cc><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></p>

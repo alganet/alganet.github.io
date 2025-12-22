@@ -13,6 +13,7 @@ rm -f tmp_*.html
 write_header() {
     _target_file=$1
     _lang_suffix=$2
+    _page_title=${3-}
     _header_file=$(ls tmp_${_lang_suffix}_*'_Header_section.html' | head -n 1)
     
     _en_url=""
@@ -47,7 +48,13 @@ write_header() {
     _home_url="/"
     if [ "$_lang_suffix" = ".pt" ]; then _home_url="/index.pt.html"; fi
 
-    cat "$_header_file" | sed "s|<h1><a href=/>|<h1><a href=$_home_url>|g"
+    if [ -n "$_page_title" ]; then
+        # escape backslashes, pipes and ampersands for safe sed replacement
+        _escaped_title=$(printf '%s' "$_page_title" | sed -e 's/\\/\\\\/g' -e 's/|/\\|/g' -e 's/&/\\\&/g')
+        cat "$_header_file" | sed "s|<h1><a href=/>|<h1><a href=$_home_url>|g" | sed "s|<title>.*</title>|<title>$_escaped_title</title>|g"
+    else
+        cat "$_header_file" | sed "s|<h1><a href=/>|<h1><a href=$_home_url>|g"
+    fi
     
     _link_en="English"
     if [ -n "$_en_url" ]; then
@@ -175,7 +182,7 @@ do
             content="$content$_EOL$line"
         done < "$entry"
         
-        write_header "$entry" "$LANG_SUFFIX" > "tmp_entry.html"
+        write_header "$entry" "$LANG_SUFFIX" "$title" > "tmp_entry.html"
         cat tmp_entry.html > "${entry}"
         echo "$content" >> "${entry}"
         echo "<hr class=end><p class=cc><a href=\"https://creativecommons.org/licenses/by-nc-sa/4.0/\">CC BY-NC-SA 4.0</a></p>" >> "${entry}"
