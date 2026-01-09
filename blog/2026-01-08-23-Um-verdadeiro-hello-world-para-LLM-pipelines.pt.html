@@ -1,0 +1,82 @@
+<!doctype html>
+<link rel=stylesheet href=/style.css?8>
+<title>Um verdadeiro 'hello world' para LLM pipelines</title>
+<h1><a href=/index.pt.html>alganet</a></h1>
+<nav class=lang><a href="/blog/2026-01-08-23-A-true-hello-world-LLM-pipeline.html">English</a> <a href="/blog/2026-01-08-23-Um-verdadeiro-hello-world-para-LLM-pipelines.pt.html" class=selected>Português</a></nav>
+
+<h2>Um verdadeiro 'hello world' para LLM pipelines</h2>
+<p class=info><em>Alexandre Gomes Gaigalas</em> – <em>8 de Janeiro de 2026</em></p>
+<p>Já faz algum tempo que venho procurando o exemplo mais simples e, ao mesmo tempo, <em>útil</em> de pipeline para
+LLMs. Algo como um <strong>hello world</strong> que iniciantes possam entender rapidamente e sobre o qual possam
+iterar.</p>
+<p>Quero também algo pensado para engenheiros de software, não para cientistas de dados. Engenheiros de software são um
+perfil diferente e, embora eventualmente precisem aprender os fundamentos de machine learning para avançar na área,
+muitas vezes preferem começar por exemplos práticos e mãos na massa.</p>
+<p>Portanto, um verdadeiro 'hello world' de pipeline para LLMs deve ser simples, prático e acessível. Honestamente, não dá pra pedir pra um engenheiro alugar uma máquina ou gastar créditos na nuvem para rodar um simples hello
+world. <strong>Tem de haver um jeito melhor</strong>.</p>
+<h3>E quanto a X ou Z?</h3>
+<p>Existem muitos exemplos de pipelines "pequenos" por aí, mas elas não são um 'hello world' propriamente dito.</p>
+<p>Por exemplo, <a href="https://github.com/karpathy/nanochat">o nanochat do Karpathy</a> afirma ser muito pequeno, mas
+isso é relativo. Para alguém já imerso na indústria, de fato é bem pequeno. No entanto, para um completo iniciante,
+é um enorme esforço que exige hardware especializado, dinheiro e considerável tempo e dedicação.</p>
+<p>Para rodar o nanochat é preciso uma GPU comercial muito poderosa. Em 2025 essas GPUs não são algo que você
+normalmente compra. Você, de fato, só pode alugá-las.</p>
+<p>O próprio Karpathy diz que você pode rodar o nanochat por $100. Você pagaria $100 por um hello world?</p>
+<h3>Procurando bons exemplos</h3>
+<p>Um dos desafios de criar um pipeline super 'hello world' é que é muito difícil gerar output de qualidade com recursos
+limitados.</p>
+<p>Isso fica claro quando você segue algum tutorial, como o popular exemplo <a
+href="https://github.com/karpathy/char-rnn">tiny Shakespeare</a>. Os primeiros checkpoints de treinamento
+demoram e produzem uma saída completamente incompreensível. Eles melhoram com o tempo, e isso é esperado nesse tipo de
+trabalho, mas certamente não causam uma boa primeira impressão para iniciantes.</p>
+<p>Para conseguir um ciclo de execução, modificação e entendimento mais rápido e iterável para fins educacionais,
+precisamos pensar fora da caixa.</p>
+<h3>A solução: reduzir o escopo de geração</h3>
+<p>Enquanto grandes LLMs geram textos inteiros, cheios de sentenças, na verdade não precisamos disso para entender como
+elas funcionam. Em vez disso, podemos focar em unidades de geração bem menores, como <em>uma única palavra</em>.</p>
+<p>Gerar uma única palavra é suficiente para exercitar ideias importantes:</p>
+<ul>
+<li>Tokenização: entender como o texto é quebrado em tokens.</li>
+<li>Arquitetura do modelo: captar o básico de como LLMs são estruturados.</li>
+<li>Processo de treinamento: aprender como modelos são treinados com dados.</li>
+<li>Avaliação: avaliar o desempenho do modelo em uma tarefa simples.</li>
+</ul>
+<h3>O repositório wordgen</h3>
+<p>Com isso em mente, eu criei o <strong>wordgen</strong>.</p>
+<p>O <a href="https://github.com/alganet/wordgen">repositório wordgen</a> contém o código e exemplos para essa abordagem
+de pipeline completo focada em palavras únicas.</p>
+<p>Você pode rodá-lo em minutos na CPU, ou até em segundos se tiver uma GPU de jogos decente.</p>
+<p>É simples assim:</p>
+<pre class=codeblock><code>python train.py</code></pre>
+<p>Rode e você verá as etapas de treinamento, obtendo algumas palavras no final:</p>
+<pre class=codeblock><code>...
+Generating samples...
+Generated word 1: coales
+Generated word 2: tereed
+Generated word 3: healable
+Generated word 4: thines
+Generated word 5: unitlerable
+Generated word 6: loteroformated
+Generated word 7: rearmaz
+Generated word 8: Debrowing
+Generated word 9: unpatates
+Generated word 10: unatined</code></pre>
+<p>O mais importante é que essa primeira execução não produz um Shakespeare meio estranho e sem sentido. Ela gera, em vez
+disso, palavras parecidas com inglês plausível.</p>
+<h3>O que você pode fazer com isso</h3>
+<p>Primeiro, você deve rodar do jeito que está. Ele fará tudo, desde baixar os dados até gerar palavras, em questão de
+minutos, e você verá os resultados imediatamente.</p>
+<p>O próximo passo provavelmente é <strong>brincar com os hiperparâmetros</strong>. Eu poderia ter deixado exemplos
+prontos para você testar, mas acredito que a experimentação é a melhor forma de aprender. Com um pipeline que roda
+tão rápido, incentivar você a experimentar é mais valioso do que fornecer exemplos enlatados.</p>
+<p>Depois disso, você pode tentar <strong>tokenizar com BPE</strong>. Foi uma das primeiras coisas que fiz, e quase
+incluí no repositório, mas quero que os engenheiros experimentem a descoberta de como a tokenização impacta o
+desempenho do modelo e a qualidade da saída por conta própria.</p>
+<p>Na verdade, você pode expandir essa abordagem inicial como quiser. Você pode introduzir <strong>safetensors</strong>,
+ajustar a geração de samples, ou aumentar o tamanho do modelo. Com alguns ajustes, é possível fazê-lo gerar
+sentenças em vez de palavras.</p>
+<h3>É isso</h3>
+<p>Não dá para dizer muito sobre um hello world. Agora ele existe. Está lá, simples e rápido. Se você é um engenheiro
+backend ou frontend querendo experimentar LLMs, este é um ótimo ponto de partida. Você pode rapidamente entender
+conceitos importantes e depois partir para projetos mais robustos.</p>
+<hr class=end><p class=cc><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></p>

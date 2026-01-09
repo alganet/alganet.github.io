@@ -1,0 +1,66 @@
+<!doctype html>
+<link rel=stylesheet href=/style.css?8>
+<title>A true 'hello world' LLM pipeline</title>
+<h1><a href= />alganet</a></h1>
+<nav class=lang><a href="/blog/2026-01-08-23-A-true-hello-world-LLM-pipeline.html" class=selected>English</a> <a href="/blog/2026-01-08-23-Um-verdadeiro-hello-world-para-LLM-pipelines.pt.html">Português</a></nav>
+
+<h2>A true 'hello world' LLM pipeline</h2>
+<p class=info><em>Alexandre Gomes Gaigalas</em> – <em>January 8, 2026</em></p>
+<p>For a while now, I've been searching for the simplest, <em>useful</em> LLM pipeline example. Some kind of
+<strong>hello world</strong> that beginners can quickly understand and iterate upon.
+</p>
+<p>I also want something for software engineers, not data scientists. Software engineers are a different breed, and
+although they need to eventually learn the machine learning fundamentals involved if they want to move forward in
+this area, they often prefer to start with practical, hands-on examples.</p>
+<p>Therefore, a true 'hello world' LLM pipeline should be simple, practical, and accessible. I can't honestly ask
+engineers to rent a machine or spend cloud credits running a simple hello world. <strong>There must be a better
+way</strong>.</p>
+<h3>What about X or Z?</h3>
+<p>There are many existing claims of "small" pipelines out there, but they don't qualify as true 'hello world' stuff.
+</p>
+<p>For example, <a href="https://github.com/karpathy/nanochat">Karpathy's nanochat</a> claims to be very small, but that
+is quite relative. For someone already immersed in the industry, it is indeed very small. However, for a complete
+beginner, it is a huge undertaking requiring specialized hardware, money, and considerable time and effort.</p>
+<p>To run nanochat, you need a very powerful commercial GPU. You cannot buy those (in 2025) unless you're a company. All you can do is rent them.</p>
+<p>Karpathy himself claims you can run nanochat for $100. Would you pay $100 for a hello world?</p>
+<h3>Hunting For Good Examples</h3>
+<p>One of the challenges of making a super 'hello world'-size LLM pipeline is that it's very difficult to generate good stuff with limited resources.</p>
+<p>This becomes very clear when you follow some tutorial, like the popular <a href="https://github.com/karpathy/char-rnn">tiny Shakespeare</a> example. The very first training checkpoints take a long time, and produce completely garbled output. They do get better, and that's the nature of this kind of work, but it's definitely not a good first impression for beginners.</p>
+<p>To achieve a faster run-modify-understand iterable loop for educational purposes, we need to think outside the box.</p>
+<h3>The Solution: Shrink the Generation Scope</h3>
+<p>While large LLMs generate complete text, full of sentences, we don't actually need that to understand how they work. Instead, we can focus on much smaller units of text generation, such as <em>a single word</em>.</p>
+<p>Generating a single word is enough to exercise some important ideas:</p>
+<ul>
+<li>Tokenization: Understanding how text is broken down into tokens.</li>
+<li>Model Architecture: Grasping the basics of how LLMs are structured.</li>
+<li>Training Process: Learning how models are trained on data.</li>
+<li>Evaluation: Assessing model performance on a simple task.</li>
+</ul>
+<h3>The wordgen Repository</h3>
+<p>With that in mind, I made <strong>wordgen</strong>.</p>
+<p>The <a href="https://github.com/alganet/wordgen">wordgen repository</a> contains the code and examples for this single-word, full pipeline approach.</p>
+<p>You can run it in minutes on CPU, or even seconds if you have a decent gaming GPU.</p>
+<p>It's as simple as this:</p>
+<pre class=codeblock><code>python train.py</code></pre>
+<p>Run it and you'll see the training steps, getting some words in the end:</p>
+<pre class=codeblock><code>...
+Generating samples...
+Generated word 1: coales
+Generated word 2: tereed
+Generated word 3: healable
+Generated word 4: thines
+Generated word 5: unitlerable
+Generated word 6: loteroformated
+Generated word 7: rearmaz
+Generated word 8: Debrowing
+Generated word 9: unpatates
+Generated word 10: unatined</code></pre>
+<p>Most importantly, this first run doesn't generate a completely garbled Shakespeare. It instead generates plausible English-like words.</p>
+<h3>Stuff You Can Do With It</h3>
+<p>First, you should run it as it is. It will do the whole thing from downloading the data to generating words in a matter of minutes, and you'll see the results immediately.</p>
+<p>The next thing is probably to <strong>play with the hyperparameters</strong>. I could have left examples for you to try, but I believe experimentation is the best way to learn. With a pipeline that runs this fast, encouraging you to dig is better than providing canned examples.</p>
+<p>After that, you can try <strong>tokenizing with BPE</strong>. This was one of the first things I did, and I almost included it as part of the repository, but I want engineers to experience the realization of how tokenization impacts model performance and output quality for themselves.</p>
+<p>In fact, you can grow that initial approach however you like. You can introduce <strong>safetensors</strong>, tweak sample generation, or make the model larger. With a few tweaks, you can make it generate sentences instead of words.</p>
+<h3>That's It</h3>
+<p>You can't really say much of a hello world. It exists now. It's there, and it's simple and fast. If you are a backend or frontend engineer wanting to dip your toes into LLMs, this is a great place to start. You can quickly grasp important concepts, then move on to more robust projects.</p>
+<hr class=end><p class=cc><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></p>
