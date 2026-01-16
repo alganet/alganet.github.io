@@ -100,7 +100,7 @@ do
     
     if [ "$LANG_SUFFIX" = ".pt" ]; then
         BLOG_TITLE="Blog"
-        MORE_ENTRIES="Mais entradas..."
+        MORE_ENTRIES="Mais posts..."
     else
         BLOG_TITLE="Blog"
         MORE_ENTRIES="More entries..."
