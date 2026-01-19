@@ -1,0 +1,186 @@
+<!doctype html>
+<link rel=stylesheet href=/style.css?9>
+<title>Como Fazer Bons Code Reviews</title>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-087KLX3WP7"></script><script>window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', 'G-087KLX3WP7');</script>
+<h1><a href=/index.pt.html>alganet</a></h1>
+<nav class=lang><a href="/blog/2026-01-19-14-How-To-Make-Good-Code-Reviews.html">English</a> <a href="/blog/2026-01-19-14-Como-Fazer-Bons-Code-Reviews.pt.html" class=selected>Português</a></nav>
+
+<h2>Como Fazer Bons Code Reviews</h2>
+<p class=info><em>Alexandre Gomes Gaigalas</em> – <em>19 de Janeiro de 2026</em></p>
+<p><strong>Bons code reviews são uma arte.</strong> Leva anos, e às vezes décadas, para aprender a fazer direito.</p>
+<p>A coisa mais importante, nossa <em>diretiva principal</em>, é ser <strong>gentil e construtivo.</strong> Habilidades
+interpessoais são um dos ingredientes-chave para sustentar uma boa prática de revisão de código ao longo do tempo.</p>
+<p>Os outros ingredientes são conhecimento técnico e atenção aos detalhes.</p>
+<p>A seguir estão algumas das dicas mais importantes que englobam esses princípios:</p>
+
+<h3>Não Reclame, Ensine</h3>
+<p>Ao encontrar um problema, em vez de apenas apontar o erro, proponha uma solução e explique por que ela é melhor.</p>
+<p>Vamos usar esta mudança de código como exemplo:</p>
+<pre class=codeblock><code><del>function ($foo, $bar = null);</del>
+<ins>function ($foo, $bar = null, $baz);</ins>
+</code></pre>
+
+<p>❌ Review não construtivo:</p>
+<blockquote class="review">
+<p>Isso está errado porque adiciona um novo parâmetro sem valor padrão.</p>
+</blockquote>
+
+<p>Esse tipo de review aponta um problema, mas não oferece orientação sobre como corrigir. Ou assume que o autor sabe
+como resolver, mas não quis, ou presume que o autor não sabe e o deixa sem direção.</p>
+
+<p>✅ Momento de aprendizado:</p>
+<blockquote class="review">
+<p>Adicionar um novo parâmetro sem valor padrão pode quebrar chamadas existentes para essa função.</p>
+<p>Você deve fornecer um valor padrão para o novo parâmetro ou atualizar todas as chamadas existentes para incluir o
+novo argumento.</p>
+</blockquote>
+
+<p>Esse tipo de review não apenas aponta o problema, como também fornece uma orientação clara de como resolvê-lo,
+facilitando para o autor entender e aplicar as mudanças necessárias.</p>
+
+<h3>Saiba Quando Você Está Fazendo Nitpicking</h3>
+
+<p><em>Nitpicking</em> é apontar problemas pequenos que não impactam de forma relevante a funcionalidade, a
+legibilidade ou a manutenibilidade do código. Atenção aos detalhes é importante, mas nitpicking em excesso gera
+frustração e desmotivação para quem escreveu a mudança.</p>
+
+<p>Vamos usar esta mudança de código como exemplo:</p>
+<pre class=codeblock><code><ins>$firstPiece = 'square';</ins>
+<ins>$middlePiece = 'circle';</ins>
+<ins>$lastPiece = 'triangle';</ins>
+</code></pre>
+
+<p>❌ Nitpicking excessivo:</p>
+<blockquote class="review">
+<p>Use <code>$intermediatePiece</code> em vez de <code>$middlePiece</code>.</p>
+</blockquote>
+
+<p>Embora essa sugestão seja válida, ela pode não ser significativa a ponto de justificar uma alteração. O nome
+original da variável ainda é claro e compreensível.</p>
+
+<p>Nitpicks frequentemente se resumem a preferências pessoais que não cabem (ou não valem) ser formalizadas em checks
+automáticos ou em um guia de estilo. É, no fim, sobre a preferência do revisor.</p>
+
+<p>Se essas preferências acabam desacelerando o processo de revisão ou frustrando autores, a revisão deixa de ser útil
+e passa a ser um ponto de atrito.</p>
+
+<p>✅ Sugestão amigável:</p>
+<blockquote class="review">
+<p>Nitpick: eu prefiro <code>$intermediatePiece</code> em vez de <code>$middlePiece</code>.</p>
+</blockquote>
+
+<p>Ao enquadrar a sugestão como preferência pessoal, e não como uma regra rígida, você mantém um tom positivo e
+colaborativo. Nitpicks não devem bloquear um code review e, por padrão, deveriam ser opcionais (o autor pode optar por
+não aplicar a mudança sugerida).</p>
+
+<h3>Use Referências</h3>
+
+<p>Links, números de linha e referências de documentação ajudam a dar contexto e embasar seu feedback.</p>
+
+<p>Vamos usar esta mudança de código como exemplo:</p>
+<pre class=codeblock><code><ins>if (isValid($input)) {</ins>
+<ins>    process($input);</ins>
+<ins>} else {</ins>
+<ins>    error_log('Invalid input');</ins>
+<ins>}</ins>
+</code></pre>
+
+<p>❌ Feedback vago:</p>
+<blockquote class="review">
+<p>Nossas diretrizes exigem <code>ErrorLog::create</code> em vez de <code>error_log</code>.</p>
+</blockquote>
+
+<p>Esse feedback carece de contexto e não fornece uma referência clara à diretriz específica que está sendo violada.</p>
+<p>✅ Feedback com referência:</p>
+<blockquote class="review">
+<p>De acordo com nossos <u>padrões de codificação</u>, devemos usar <code>ErrorLog::create</code> em vez de
+<code>error_log</code> para maior consistência e manutenibilidade (veja a linha 42).</p>
+</blockquote>
+
+<p>Esse feedback aponta a diretriz relevante e explica o motivo da sugestão.</p>
+
+<h3>Não Seja Repetitivo</h3>
+
+<p>Às vezes, a mesma sugestão se aplica a várias partes do mesmo pull request (PR). Em vez de repetir o mesmo feedback
+diversas vezes, considere resumir uma única vez e referenciar onde for aplicável.</p>
+
+<p>Considere esta série de mudanças:</p>
+<pre class=codeblock><code><span class="code-comment">// File: parks.php</span>
+<ins>functionA($param1, $param2);</ins>
+</code></pre>
+
+<pre class=codeblock><code><span class="code-comment">// File: stores.php</span>
+<ins>functionA($param1, $param2);</ins>
+</code></pre>
+
+<pre class=codeblock><code><span class="code-comment">// File: houses.php</span>
+<ins>functionA($param1, $param2);</ins>
+</code></pre>
+
+<p>❌ Feedback repetitivo:</p>
+<blockquote class="review">
+<p>Em <code>functionA</code>, use parâmetros nomeados para melhor legibilidade.</p>
+</blockquote>
+
+<blockquote class="review">
+<p>Em <code>functionB</code>, use parâmetros nomeados para melhor legibilidade.</p>
+</blockquote>
+
+<blockquote class="review">
+<p>Em <code>functionC</code>, use parâmetros nomeados para melhor legibilidade.</p>
+</blockquote>
+
+<p>Feedback repetitivo cria ruído e faz o autor sentir que está sendo soterrado pela mesma sugestão várias vezes.</p>
+
+<p>Também pode ser interpretado como o revisor não tendo dedicado tempo para olhar o PR como um todo, o que indica um
+processo de revisão ruim: copiar e colar comentários, em vez de ser mais cuidadoso e intencional.</p>
+
+<p>✅ Feedback consolidado:</p>
+<blockquote class="review">
+<p>Para melhor legibilidade, considere usar parâmetros nomeados em <code>functionA</code>.
+O mesmo vale para <code>functionB</code> (arquivo: stores.php) e <code>functionC</code> (arquivo: houses.php).</p>
+</blockquote>
+
+<p>Consolidar o feedback em um único ponto, a partir de uma das ocorrências, costuma ser bem mais eficaz e respeitoso
+com o tempo do autor.</p>
+
+<h3>Não Chute: Tenha Certeza de que Funciona</h3>
+
+<p>Não há nada mais frustrante do que receber uma sugestão que, na prática, não funciona ou que introduz novos
+problemas.</p>
+
+<p>Vamos usar esta mudança de código como exemplo:</p>
+<pre class=codeblock><code><ins>"image-reader-dependency": 1.0</ins>
+</code></pre>
+
+<p>❌ Sugestão no chute:</p>
+<blockquote class="review">
+<p>Você pode simplesmente trocar para 2.0, que é mais recente!</p>
+</blockquote>
+
+<p>Nesse cenário, o revisor sugeriu 2.0 sem validar se realmente funciona. Isso pode quebrar builds ou causar
+comportamentos inesperados, o que no fim desperdiça tempo tanto do autor quanto do revisor.</p>
+
+<p>✅ Sugestão verificada:</p>
+
+<blockquote class="review">
+<p>Testei atualizar a dependência para 2.0, e funciona bem com nosso setup atual. Além disso, traz melhorias de
+performance e novas funcionalidades que podemos aproveitar.</p>
+</blockquote>
+
+<p>Ao testar a sugestão e dizer isso explicitamente, você transmite confiança de que o conselho é confiável e não vai
+introduzir novos problemas.</p>
+
+<p>Se você não consegue testar, talvez a melhor decisão seja simplesmente não fazer a sugestão.</p>
+
+<h3>Conclusão</h3>
+
+<p>Bons code reviews são essenciais para manter software de alta qualidade e promover um ambiente colaborativo de
+desenvolvimento. Ao oferecer feedback claro, conciso e bem testado, revisores ajudam autores a melhorar o código de
+forma eficaz, respeitando tempo e esforço.</p>
+
+<p>No fim, é uma habilidade interpessoal que exige paciência, empatia e comunicação efetiva.</p>
+
+<p>Provavelmente existem muitas outras dicas e boas práticas que poderiam entrar nessa lista. Estas, no entanto,
+fornecem uma base inicial sólida para quem quer evoluir sua capacidade de fazer code reviews.</p>
+<hr class=end><p class=cc><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></p>
