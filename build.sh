@@ -6,6 +6,7 @@ get_line () { read -r line || test -n "$line"; }
 
 _EOL="
 "
+IFS=$_EOL
 
 # Clean up any leftover temporary files
 rm -f tmp_*.html

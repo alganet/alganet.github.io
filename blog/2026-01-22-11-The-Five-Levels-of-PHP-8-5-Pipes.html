@@ -1,0 +1,175 @@
+<!doctype html>
+<link rel=stylesheet href=/style.css?11>
+<title>The Five Levels of PHP 8.5 Pipes</title>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-087KLX3WP7"></script><script>window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', 'G-087KLX3WP7');</script>
+<h1><a href= />alganet</a></h1>
+<nav class=lang><a href="/blog/2026-01-22-11-The-Five-Levels-of-PHP-8-5-Pipes.html" class=selected>English</a> <a href="/blog/2026-01-22-11-Os-Cinco-Niveis-de-Pipes-no-PHP-8-5.pt.html">Português</a></nav>
+
+<h2>The Five Levels of PHP 8.5 Pipes</h2>
+<p class=info><em>Alexandre Gomes Gaigalas</em> – <em>January 22, 2026</em></p>
+<figure class="header"><img src=/images/production-pipeline.png alt="An illustrative image of a production pipeline"></figure>
+<p><a href="https://www.php.net/pipe">PHP's pipe operator</a> unlocks a very readable, functional style. Below I walk through five conceptual "levels" of using
+pipes: from the simple production line to composed functor objects.</p>
+
+<p>You can use these as templates that you can extend upon in your own projects.</p>
+
+<h3>Level 1: The Production Line</h3>
+<p>Each step transforms the value in sequence, like a factory conveyor belt.</p>
+
+<pre class="codeblock"><code><span class="code-argument">$input</span> = <span class="code-argument">'   pipes &amp; fun   '</span>;
+<span class="code-argument">$output</span> = <span class="code-argument">$input</span>
+    |> <span class="code-statement">html_entity_decode</span>(<span class="code-argument">...</span>)
+    |> <span class="code-statement">ucwords</span>(<span class="code-argument">...</span>)
+    |> <span class="code-statement">trim</span>(<span class="code-argument">...</span>);
+
+<span class="code-statement">var_dump</span>(<span class="code-argument">$output</span>); <span class="code-comment">// string(<span class="code-number">11</span>) "Pipes &amp; Fun"</span>
+</code></pre>
+
+<h3>Level 2: Closure Wrappers</h3>
+<p>Wrap operations in closures so you can parameterize behavior and reuse steps.</p>
+
+<pre class="codeblock"><code><span class="code-statement">function</span> <span class="code-statement">add</span>(<span class="code-argument">int $x</span>): <span class="code-statement">Closure</span> {
+    <span class="code-statement">return</span> <span class="code-statement">static</span> fn (<span class="code-argument">int $v</span>): <span class="code-argument">int</span> => $v + $x;
+}
+<span class="code-statement">function</span> <span class="code-statement">multiply</span>(<span class="code-argument">int $x</span>): <span class="code-statement">Closure</span> {
+    <span class="code-statement">return</span> <span class="code-statement">static</span> fn (<span class="code-argument">int $v</span>): <span class="code-argument">int</span> => $v * $x;
+}
+
+<span class="code-argument">$input</span> = <span class="code-number">42</span>;
+<span class="code-argument">$output</span> = <span class="code-argument">$input</span>
+    |> <span class="code-statement">add</span>(<span class="code-number">5</span>)
+    |> <span class="code-statement">multiply</span>(<span class="code-number">2</span>);
+
+<span class="code-statement">var_dump</span>(<span class="code-argument">$output</span>); <span class="code-comment">// int(<span class="code-number">94</span>)</span>
+</code></pre>
+
+<h3>Level 3: Closure Composition</h3>
+<p>Compose steps into a pipeline and run it later against inputs.</p>
+
+<p>This technique allows you to put the input <em>last</em> and compose the steps first, which opens
+opportunities for reusability.</p>
+
+<pre class="codeblock"><code><span class="code-statement">function</span> <span class="code-statement">with</span>(<span class="code-statement">Closure</span> <span class="code-argument">$step</span>): <span class="code-statement">Closure</span> {
+    <span class="code-statement">return</span> <span class="code-statement">static</span> fn (<span class="code-statement">Closure</span> <span class="code-argument">$acc</span>): <span class="code-statement">Closure</span> => <span class="code-statement">static</span> fn (<span class="code-argument">$v</span>) => $step($acc($v));
+}
+
+<span class="code-statement">function</span> <span class="code-statement">run</span>(<span class="code-argument">$input</span>): <span class="code-statement">Closure</span> {
+    <span class="code-statement">return</span> <span class="code-statement">static</span> fn (<span class="code-argument">Closure $pipeline</span>) => $pipeline($input);
+}
+
+<span class="code-statement">function</span> <span class="code-statement">begin</span>(): <span class="code-statement">Closure</span> {
+    <span class="code-statement">return</span> <span class="code-statement">static</span> fn (<span class="code-argument">$v</span>) => $v;
+}
+
+<span class="code-argument">$input</span> = <span class="code-number">42</span>;
+<span class="code-argument">$output</span> = <span class="code-statement">begin</span>()
+    |> <span class="code-statement">with</span>(<span class="code-statement">add</span>(<span class="code-number">10</span>))
+    |> <span class="code-statement">with</span>(<span class="code-statement">multiply</span>(<span class="code-number">2</span>))
+    |> <span class="code-statement">run</span>(<span class="code-argument">$input</span>);
+
+<span class="code-statement">var_dump</span>(<span class="code-argument">$output</span>); <span class="code-comment">// int(<span class="code-number">104</span>)</span>
+</code></pre>
+
+<h3>Level 4: Generators as Pipelines</h3>
+<p>Generators let you define flexible steps, collect messages, or short-circuit validations.</p>
+
+<pre class="codeblock"><code><span class="code-statement">function</span> <span class="code-statement">stream</span>(): <span class="code-statement">Generator</span> {
+    <span class="code-statement">yield</span> <span class="code-statement">from</span> [];
+}
+
+<span class="code-statement">function</span> <span class="code-statement">check</span>(<span class="code-statement">Closure</span> <span class="code-argument">$fn</span>, <span class="code-argument">string $message</span>): <span class="code-statement">Closure</span> {
+    <span class="code-statement">return</span> <span class="code-statement">static</span> fn (<span class="code-statement">Generator</span> <span class="code-argument">$it</span>): <span class="code-statement">Generator</span> => <span class="code-statement">yield</span> <span class="code-statement">from</span> [
+        ...<span class="code-argument">$it</span>,
+        <span class="code-statement">static</span> fn (<span class="code-argument">$v</span>) => $fn($v) ? <span class="code-argument">null</span> : $message
+    ];
+}
+
+<span class="code-statement">function</span> <span class="code-statement">collect</span>(): <span class="code-statement">Closure</span> {
+    <span class="code-statement">return</span> <span class="code-statement">static</span> fn (<span class="code-statement">Generator</span> <span class="code-argument">$it</span>): <span class="code-statement">Closure</span> => <span class="code-statement">static</span> function (<span class="code-argument">$v</span>) use (<span class="code-argument">$it</span>) {
+        <span class="code-argument">$messages</span> = [];
+        <span class="code-statement">foreach</span> (<span class="code-argument">$it</span> as <span class="code-argument">$fn</span>) {
+            <span class="code-argument">$m</span> = $fn($v);
+            <span class="code-statement">if</span> (<span class="code-argument">$m</span> !== <span class="code-argument">null</span>) {
+                <span class="code-argument">$messages</span>[] = <span class="code-argument">$m</span>;
+            }
+        }
+        <span class="code-statement">return</span> (<span class="code-statement">static</span> fn () => <span class="code-statement">yield</span> <span class="code-statement">from</span> <span class="code-argument">$messages</span>)();
+    };
+}
+</code></pre>
+
+<p>This version not only allows you to set the input last, but also obtain a stream of responses from the pipeline.</p>
+
+<pre class="codeblock"><code><span class="code-argument">$input</span> = <span class="code-number">-3.14</span>;
+<span class="code-argument">$output</span> = <span class="code-statement">stream</span>()
+    |> <span class="code-statement">check</span>(<span class="code-statement">is_int</span>(<span class="code-argument">...</span>), <span class="code-argument">'must be an integer'</span>)
+    |> <span class="code-statement">check</span>(<span class="code-statement">fn</span> (<span class="code-argument">$v</span>) => $v > <span class="code-number">0</span>, <span class="code-argument">'must be positive'</span>)
+    |> <span class="code-statement">collect</span>();
+
+<span class="code-statement">foreach</span> (<span class="code-argument">$output</span>(<span class="code-argument">$input</span>) as <span class="code-argument">$message</span>) {
+    <span class="code-statement">var_dump</span>(<span class="code-argument">$message</span>);
+}
+</code></pre>
+
+<h3>Level 5: Functor Objects (OOP + Functional)</h3>
+<p>Wrap behavior in objects with <code>__invoke</code> for a smooth composer-friendly API.</p>
+
+<pre class="codeblock"><code><span class="code-statement">class</span> <span class="code-statement">Check</span>
+{
+    <span class="code-statement">public</span> <span class="code-statement">function</span> <span class="code-statement">__construct</span>(
+        <span class="code-statement">private</span> <span class="code-statement">Closure</span> <span class="code-argument">$fn</span>,
+        <span class="code-statement">private</span> <span class="code-argument">string $message</span>,
+    ) {}
+
+    <span class="code-statement">public</span> <span class="code-statement">function</span> <span class="code-statement">__invoke</span>(<span class="code-statement">Generator</span> <span class="code-argument">$it</span>): <span class="code-statement">Generator</span>
+    {
+        <span class="code-statement">yield</span> <span class="code-statement">from</span> [
+            ...<span class="code-argument">$it</span>,
+            <span class="code-statement">fn</span> (<span class="code-argument">$v</span>) => (<span class="code-argument">$this</span>-&gt;<span class="code-argument">fn</span>)(<span class="code-argument">$v</span>) ? <span class="code-argument">null</span> : $this-&gt;<span class="code-argument">message</span>
+        ];
+    }
+}
+</code></pre>
+
+<p>PHP is great for combining OOP and functional programming. The class we defined here is simple, however, you can go as far as you like with inheritance, interfaces, and traits to build a rich library of reusable pipeline components.
+</p>
+
+<pre class="codeblock"><code><span class="code-argument">$input</span> = [<span class="code-argument">'arr'</span>];
+<span class="code-argument">$output</span> = <span class="code-statement">stream</span>()
+    |> <span class="code-statement">new</span> <span class="code-statement">Check</span>(<span class="code-statement">is_int</span>(<span class="code-argument">...</span>), <span class="code-argument">'must be an integer'</span>)
+    |> <span class="code-statement">new</span> <span class="code-statement">Check</span>(<span class="code-statement">is_scalar</span>(<span class="code-argument">...</span>), <span class="code-argument">'must be scalar'</span>)
+    |> <span class="code-statement">collect</span>();
+
+<span class="code-statement">foreach</span> (<span class="code-argument">$output</span>(<span class="code-argument">$input</span>) as <span class="code-argument">$message</span>) {
+    <span class="code-statement">var_dump</span>(<span class="code-argument">$message</span>);
+}
+</code></pre>
+
+<h3>Bonus: Static Helpers for Syntactic Sugar</h3>
+<p>Use magic to make the API feel like static function calls.</p>
+
+<pre class="codeblock"><code><span class="code-statement">class</span> <span class="code-statement">Func</span> <span class="code-statement">extends</span> <span class="code-statement">Check</span>
+{
+    <span class="code-statement">public static function</span> <span class="code-statement">__callStatic</span>(<span class="code-argument">string $name</span>, <span class="code-argument">array $arguments</span>): <span class="code-statement">static</span>
+    {
+        <span class="code-statement">return</span> <span class="code-statement">new</span> <span class="code-statement">static</span>($name(...), ...$arguments);
+    }
+}
+
+<span class="code-argument">$input</span> = [<span class="code-argument">'arr'</span>];
+<span class="code-argument">$output</span> = <span class="code-statement">stream</span>()
+    |> <span class="code-statement">Func</span>::<span class="code-statement">is_int</span>(<span class="code-argument">'must be an integer'</span>)
+    |> <span class="code-statement">Func</span>::<span class="code-statement">is_scalar</span>(<span class="code-argument">'must be scalar'</span>)
+    |> <span class="code-statement">collect</span>();
+
+<span class="code-statement">foreach</span> (<span class="code-argument">$output</span>(<span class="code-argument">$input</span>) as <span class="code-argument">$message</span>) {
+    <span class="code-statement">var_dump</span>(<span class="code-argument">$message</span>);
+}
+</code></pre>
+
+<p>With every new PHP feature, there's a great opportunity to make simpler APIs that are more expressive
+and reusable. The pipe operator is a great example of that, enabling a functional style that
+integrates well with OOP. Enjoy experimenting with these levels of pipes in your own projects!
+</p>
+
+<hr class=end><p class=cc><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></p>

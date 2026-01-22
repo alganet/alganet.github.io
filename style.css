@@ -108,6 +108,12 @@ blockquote.review {
   color: #777;
 }
 
+figure.header {
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
 strong {
   font-weight: 600;
 }
