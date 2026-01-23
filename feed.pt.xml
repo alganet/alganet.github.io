@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Blog — alganet</title>
+  <subtitle>Artigos técnicos sobre desenvolvimento de software</subtitle>
+  <id>tag:alganet.github.io,2025:feed.pt</id>
+  <link href="https://alganet.github.io/" />
+  <link href="https://alganet.github.io/feed.pt.xml" rel="self" />
+  <updated>2026-01-22T11:00:00Z</updated>
+  <entry>
+    <title>Os Cinco Níveis de Pipes no PHP 8.5</title>
+    <id>tag:alganet.github.io,2025:2026-01-22-11-Os-Cinco-Niveis-de-Pipes-no-PHP-8-5.pt</id>
+    <link href="https://alganet.github.io/blog/2026-01-22-11-Os-Cinco-Niveis-de-Pipes-no-PHP-8-5.pt.html" />
+    <updated>2026-01-22T11:00:00Z</updated>
+    <summary> O operador pipe do PHP possibilita um estilo funcional muito legível. Abaixo descrevo cinco &quot;níveis&quot; conceituais de uso de pipes: da simples &quot;linha de produção&quot; até functors compostos. Você pode usar estes exemplos como modelos e estendê-los em seus próprios...</summary>
+    <author>
+      <name>Alexandre Gomes Gaigalas</name>
+    </author>
+  </entry>
+  <entry>
+    <title>Como Fazer Bons Code Reviews</title>
+    <id>tag:alganet.github.io,2025:2026-01-19-14-Como-Fazer-Bons-Code-Reviews.pt</id>
+    <link href="https://alganet.github.io/blog/2026-01-19-14-Como-Fazer-Bons-Code-Reviews.pt.html" />
+    <updated>2026-01-19T14:00:00Z</updated>
+    <summary> Bons code reviews são uma arte. Leva anos, e às vezes décadas, para aprender a fazer direito. A coisa mais importante, nossa diretiva principal, é ser gentil e construtivo. Habilidades Os outros ingredientes são conhecimento técnico e atenção aos...</summary>
+    <author>
+      <name>Alexandre Gomes Gaigalas</name>
+    </author>
+  </entry>
+  <entry>
+    <title>Um verdadeiro &apos;hello world&apos; para LLM pipelines</title>
+    <id>tag:alganet.github.io,2025:2026-01-08-23-Um-verdadeiro-hello-world-para-LLM-pipelines.pt</id>
+    <link href="https://alganet.github.io/blog/2026-01-08-23-Um-verdadeiro-hello-world-para-LLM-pipelines.pt.html" />
+    <updated>2026-01-08T23:00:00Z</updated>
+    <summary> Já faz algum tempo que venho procurando o exemplo mais simples e, ao mesmo tempo, útil de pipeline para Quero também algo pensado para engenheiros de software, não para cientistas de dados. Engenheiros de software são um Portanto, um verdadeiro &apos;hello world&apos; de pipeline para LLMs deve ser simples, prático e acessível. Honestamente, não dá pra pedir pra um engenheiro alugar uma máquina ou gastar créditos na nuvem para rodar um simples...</summary>
+    <author>
+      <name>Alexandre Gomes Gaigalas</name>
+    </author>
+  </entry>
+  <entry>
+    <title>Como Desenvolvedores Roubaram &quot;Dry Run&quot; De Metalúrgicos</title>
+    <id>tag:alganet.github.io,2025:2025-12-22-09-Como-Desenvolvedores-Roubaram-Dry-Run-De-Metalurgicos.pt</id>
+    <link href="https://alganet.github.io/blog/2025-12-22-09-Como-Desenvolvedores-Roubaram-Dry-Run-De-Metalurgicos.pt.html" />
+    <updated>2025-12-22T09:00:00Z</updated>
+    <summary> Se você já executou um comando com a flag --dry-run, provavelmente sabia o que ela fazia. O comando era Mais especificamente, um dry run executa todas as partes, exceto as Por exemplo, digamos que você tenha um programa de linha de comando chamado...</summary>
+    <author>
+      <name>Alexandre Gomes Gaigalas</name>
+    </author>
+  </entry>
+  <entry>
+    <title>Makefiles Poliglotas</title>
+    <id>tag:alganet.github.io,2025:2025-12-17-07-Makefiles-Poliglotas.pt</id>
+    <link href="https://alganet.github.io/blog/2025-12-17-07-Makefiles-Poliglotas.pt.html" />
+    <updated>2025-12-17T07:00:00Z</updated>
+    <summary>   A solução poliglota para o Makefile unificado é mais ou menos assim:  Este trecho baseia-se em diferenças sutis, mas bem definidas, entre as regras de processamento do GNU make e do O que o GNU make vê:  O que o nmake vê:    Esta técnica foi usada no repositório PHL para simplificar o processo...</summary>
+    <author>
+      <name>Alexandre Gomes Gaigalas</name>
+    </author>
+  </entry>
+  <entry>
+    <title>Olá Blog</title>
+    <id>tag:alganet.github.io,2025:2025-05-26-15-Ola.pt</id>
+    <link href="https://alganet.github.io/blog/2025-05-26-15-Ola.pt.html" />
+    <updated>2025-05-26T15:00:00Z</updated>
+    <summary> Já faz algum tempo que eu queria começar um blog técnico. Decidi transformar este site HTML simples e feito à mão em É o mais próximo de HTML puro possível. Crio as postagens escrevendo o HTML na mão, e há um script Decidi não usar nenhuma forma de markdown ou templates para a solução. No entanto, minha solução...</summary>
+    <author>
+      <name>Alexandre Gomes Gaigalas</name>
+    </author>
+  </entry>
+</feed>

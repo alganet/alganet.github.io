@@ -11,14 +11,38 @@ IFS=$_EOL
 # Clean up any leftover temporary files
 rm -f tmp_*.html
 
+xml_escape() {
+    printf '%s' "$1" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -e 's/"/\&quot;/g' -e "s/'/\&apos;/g"
+}
+
+html_to_text() {
+    # Remove HTML tags for excerpts
+    printf '%s' "$1" | sed -e 's/<[^>]*>//g' -e 's/&amp;/\&/g' -e 's/&lt;/</g' -e 's/&gt;/>/g' -e 's/&quot;/"/g' -e "s/&apos;/'/g"
+}
+
+clean_header() {
+    _strip_rss=$1
+    if [ "$_strip_rss" -eq 1 ]; then
+        sed '/href="feed/d'
+    else
+        cat -
+    fi
+}
+
 write_header() {
     _target_file=$1
     _lang_suffix=$2
     _page_title=${3-}
+    _strip_rss=1
     _header_file=$(ls tmp_${_lang_suffix}_*'_Header_section.html' | head -n 1)
     
     _en_url=""
     _pt_url=""
+
+    case $_target_file in
+        *index.*) _strip_rss=0 ;;
+        *blog.*) _strip_rss=0 ;;
+    esac
 
     case $_target_file in
         blog/*)
@@ -52,9 +76,14 @@ write_header() {
     if [ -n "$_page_title" ]; then
         # escape backslashes, pipes and ampersands for safe sed replacement
         _escaped_title=$(printf '%s' "$_page_title" | sed -e 's/\\/\\\\/g' -e 's/|/\\|/g' -e 's/&/\\\&/g')
-        cat "$_header_file" | sed "s|<h1><a href=/>|<h1><a href=$_home_url>|g" | sed "s|<title>.*</title>|<title>$_escaped_title</title>|g"
+        cat "$_header_file" |
+            sed "s|<h1><a href=/>|<h1><a href=$_home_url>|g" |
+            sed "s|<title>.*</title>|<title>$_escaped_title</title>|g" |
+            clean_header $_strip_rss
     else
-        cat "$_header_file" | sed "s|<h1><a href=/>|<h1><a href=$_home_url>|g"
+        cat "$_header_file" |
+            sed "s|<h1><a href=/>|<h1><a href=$_home_url>|g" |
+            clean_header $_strip_rss
     fi
     
     _link_en="English"
@@ -219,4 +248,114 @@ do
         rm "$filename"
         part=$((part + 1))
     done
+
+    # Generate Atom feed
+    FEED_FILE="feed${LANG_SUFFIX}.xml"
+
+    if [ "$LANG_SUFFIX" = ".pt" ]; then
+        FEED_TITLE="Blog — alganet"
+        FEED_SUBTITLE="Artigos técnicos sobre desenvolvimento de software"
+    else
+        FEED_TITLE="Blog — alganet"
+        FEED_SUBTITLE="Technical articles on software development"
+    fi
+
+    # XML header
+    cat > "$FEED_FILE" << 'ATOM_EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+ATOM_EOF
+
+    # Calculate updated time (latest post date)
+    _latest_entry=$(find blog -maxdepth 1 -type f -name "*${LANG_SUFFIX}.html" | sort -rn | head -n 1)
+    if [ -n "$_latest_entry" ]; then
+        _updated="${_latest_entry#blog/}"
+        _updated_year=$(echo "$_updated" | cut -c 1-4)
+        _updated_month=$(echo "$_updated" | cut -c 6-7)
+        _updated_day=$(echo "$_updated" | cut -c 9-10)
+        _updated_hour=$(echo "$_updated" | cut -c 12-13)
+        _updated_iso="${_updated_year}-${_updated_month}-${_updated_day}T${_updated_hour}:00:00Z"
+    else
+        _updated_iso="2025-01-23T00:00:00Z"
+    fi
+
+    # Feed metadata
+    {
+        echo "  <title>$(xml_escape "$FEED_TITLE")</title>"
+        echo "  <subtitle>$(xml_escape "$FEED_SUBTITLE")</subtitle>"
+        echo "  <id>tag:alganet.github.io,2025:feed${LANG_SUFFIX}</id>"
+        echo "  <link href=\"https://alganet.github.io/\" />"
+        echo "  <link href=\"https://alganet.github.io/feed${LANG_SUFFIX}.xml\" rel=\"self\" />"
+        echo "  <updated>$_updated_iso</updated>"
+    } >> "$FEED_FILE"
+
+    # Feed entries
+    entry= title= excerpt=
+    for entry in $entries
+    do
+        iso_date="${entry#blog/}"
+        year=$(echo "$iso_date" | cut -c 1-4)
+        month=$(echo "$iso_date" | cut -c 6-7)
+        day=$(echo "$iso_date" | cut -c 9-10)
+        hour=$(echo "$iso_date" | cut -c 12-13)
+        iso_timestamp="${year}-${month}-${day}T${hour}:00:00Z"
+
+        title=
+        excerpt=
+        in_excerpt=0
+
+        while get_line
+        do
+            case $line in
+                '<nav'*) continue ;;
+                '<h2>'*)
+                    title="${line#'<h2>'}"
+                    title="${title%'</h2>'*}"
+                    ;;
+                '<p class=info'*)
+                    in_excerpt=1
+                    continue
+                    ;;
+                '<hr class=end'*)
+                    break
+                    ;;
+                *)
+                    if [ "$in_excerpt" -eq 1 ]; then
+                        case $line in
+                            '<p>'*|'<p '*)
+                                _raw="${line#'<p'}"
+                                _raw="${_raw#*'>'}"
+                                _raw="${_raw%'</p>'*}"
+                                excerpt="$excerpt $_raw"
+                                if test ${#excerpt} -gt 300; then
+                                    excerpt="$(html_to_text "$excerpt")"
+                                    excerpt="${excerpt% *}..."
+                                    in_excerpt=0
+                                fi
+                                ;;
+                        esac
+                    fi
+                    ;;
+            esac
+        done < "$entry"
+
+        _entry_url="https://alganet.github.io/${entry}"
+        _entry_id="tag:alganet.github.io,2025:${iso_date%.*}"
+
+        {
+            echo "  <entry>"
+            echo "    <title>$(xml_escape "$title")</title>"
+            echo "    <id>$_entry_id</id>"
+            echo "    <link href=\"$_entry_url\" />"
+            echo "    <updated>$iso_timestamp</updated>"
+            echo "    <summary>$(xml_escape "$excerpt")</summary>"
+            echo "    <author>"
+            echo "      <name>Alexandre Gomes Gaigalas</name>"
+            echo "    </author>"
+            echo "  </entry>"
+        } >> "$FEED_FILE"
+    done
+
+    echo '</feed>' >> "$FEED_FILE"
+
 done

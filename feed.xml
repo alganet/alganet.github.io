@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Blog — alganet</title>
+  <subtitle>Technical articles on software development</subtitle>
+  <id>tag:alganet.github.io,2025:feed</id>
+  <link href="https://alganet.github.io/" />
+  <link href="https://alganet.github.io/feed.xml" rel="self" />
+  <updated>2026-01-22T11:00:00Z</updated>
+  <entry>
+    <title>The Five Levels of PHP 8.5 Pipes</title>
+    <id>tag:alganet.github.io,2025:2026-01-22-11-The-Five-Levels-of-PHP-8-5-Pipes</id>
+    <link href="https://alganet.github.io/blog/2026-01-22-11-The-Five-Levels-of-PHP-8-5-Pipes.html" />
+    <updated>2026-01-22T11:00:00Z</updated>
+    <summary> PHP&apos;s pipe operator unlocks a very readable, functional style. Below I walk through five conceptual &quot;levels&quot; of using You can use these as templates that you can extend upon in your own projects. Each step transforms the value in sequence, like a factory conveyor...</summary>
+    <author>
+      <name>Alexandre Gomes Gaigalas</name>
+    </author>
+  </entry>
+  <entry>
+    <title>How To Make Good Code Reviews</title>
+    <id>tag:alganet.github.io,2025:2026-01-19-14-How-To-Make-Good-Code-Reviews</id>
+    <link href="https://alganet.github.io/blog/2026-01-19-14-How-To-Make-Good-Code-Reviews.html" />
+    <updated>2026-01-19T14:00:00Z</updated>
+    <summary> Good code reviews are an art. It takes years or sometimes decades to learn how to do them well. The most important thing, our prime directive, is to be kind and constructive. Soft skills The other ingredients are technical knowledge and attention to...</summary>
+    <author>
+      <name>Alexandre Gomes Gaigalas</name>
+    </author>
+  </entry>
+  <entry>
+    <title>A true &apos;hello world&apos; LLM pipeline</title>
+    <id>tag:alganet.github.io,2025:2026-01-08-23-A-true-hello-world-LLM-pipeline</id>
+    <link href="https://alganet.github.io/blog/2026-01-08-23-A-true-hello-world-LLM-pipeline.html" />
+    <updated>2026-01-08T23:00:00Z</updated>
+    <summary> For a while now, I&apos;ve been searching for the simplest, useful LLM pipeline example. Some kind of I also want something for software engineers, not data scientists. Software engineers are a different breed, and Therefore, a true &apos;hello world&apos; LLM pipeline should be simple, practical, and accessible. I can&apos;t honestly...</summary>
+    <author>
+      <name>Alexandre Gomes Gaigalas</name>
+    </author>
+  </entry>
+  <entry>
+    <title>How Developers Stole &quot;Dry Runs&quot; From Machinists</title>
+    <id>tag:alganet.github.io,2025:2025-12-22-09-How-Developers-Stole-Dry-Runs-From-Machinists</id>
+    <link href="https://alganet.github.io/blog/2025-12-22-09-How-Developers-Stole-Dry-Runs-From-Machinists.html" />
+    <updated>2025-12-22T09:00:00Z</updated>
+    <summary> If you’ve ever run a command with a --dry-run flag, you probably knew what it did. It ran the thing, but More specifically, a dry run runs all but the irreversible parts of an operation. For example, let&apos;s say you have a command-line program called...</summary>
+    <author>
+      <name>Alexandre Gomes Gaigalas</name>
+    </author>
+  </entry>
+  <entry>
+    <title>Polyglot Makefiles</title>
+    <id>tag:alganet.github.io,2025:2025-12-17-07-Polyglot-Makefiles</id>
+    <link href="https://alganet.github.io/blog/2025-12-17-07-Polyglot-Makefiles.html" />
+    <updated>2025-12-17T07:00:00Z</updated>
+    <summary>   The polyglot solution for the unified Makefile looks like this:  This snippet relies on subtle but well-defined differences between GNU make and nmake parsing rules. What GNU make sees:  What nmake sees:    This technique was used in the PHL repository...</summary>
+    <author>
+      <name>Alexandre Gomes Gaigalas</name>
+    </author>
+  </entry>
+  <entry>
+    <title>Hello Blog</title>
+    <id>tag:alganet.github.io,2025:2025-05-26-15-Hello</id>
+    <link href="https://alganet.github.io/blog/2025-05-26-15-Hello.html" />
+    <updated>2025-05-26T15:00:00Z</updated>
+    <summary> For a while now, I&apos;ve been wanting to start a technical blog. I decided to transform this simple, hand-crafted HTML It is as close as pure HTML as you can get. I create posts by writing the HTML by hand, and there is a 80-line (at I decided not to use any form of markdown or any form of templating for the solution. However, my solution has...</summary>
+    <author>
+      <name>Alexandre Gomes Gaigalas</name>
+    </author>
+  </entry>
+</feed>
