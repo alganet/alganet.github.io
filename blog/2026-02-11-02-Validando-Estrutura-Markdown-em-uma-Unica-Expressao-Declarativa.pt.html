@@ -1,0 +1,220 @@
+<!doctype html>
+<link rel=stylesheet href=/style.css?12>
+<title>Validando Estrutura Markdown em uma Única Expressão Declarativa</title>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-087KLX3WP7"></script><script>window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', 'G-087KLX3WP7');</script>
+<h1><a href=/index.pt.html>alganet</a></h1>
+<nav class=lang><a href="/blog/2026-02-11-02-Validating-Markdown-Structure-in-a-Single-Declarative-Expression.html">English</a> <a href="/blog/2026-02-11-02-Validando-Estrutura-Markdown-em-uma-Unica-Expressao-Declarativa.pt.html" class=selected>Português</a></nav>
+
+<h2>Validando Estrutura Markdown em uma Única Expressão Declarativa</h2>
+<p class=info><em>Alexandre Gomes Gaigalas</em> – <em>11 de Fevereiro de 2026</em></p>
+<p>Em 2010, comecei um pequeno projeto chamado <a href="http://github.com/Respect/Validation">Respect\Validation</a>.</p>
+<p>À primeira vista, é uma biblioteca simpática que usa interfaces fluentes para validar valores simples:</p>
+
+<pre class="codeblock"><code><span class="code-comment">// Valida que $something é um inteiro entre 1 e 10</span>
+
+<span class="code-class">v</span>::<span class="code-function">intVal</span>()-><span class="code-function">positive</span>()-><span class="code-function">between</span>(<span class="code-number">1</span>, <span class="code-number">10</span>)-><span class="code-function">assert</span>(<span class="code-argument">$something</span>);
+</code></pre>
+
+<p>No entanto, isso é <strong>apenas a ponta do iceberg</strong> do que esta biblioteca é capaz de fazer.</p>
+
+<p>Ao longo dos anos, a usei não só para validar coisas, mas para construir sistemas declarativos de regras inteiros, e quase nunca compartilhei esse aspecto. Até agora!</p>
+
+<h3>Criando um Exemplo Incrível</h3>
+
+<p>Vamos validar, em uma única expressão declarativa, um documento Markdown completo.</p>
+
+<p><ul>
+    <li><strong>Estrutura de Cabeçalhos</strong>: Vamos verificar se um arquivo possui certos cabeçalhos esperados, na ordem e nível corretos.</li>
+    <li><strong>Blocos de Código</strong>: Vamos garantir que os blocos de código sejam código PHP válido que execute sem erro e produza alguma saída. Também validaremos cada saída produzida pelos trechos de código.</li>
+</ul></p>
+
+<p>Acredito que este exemplo pode dar uma boa perspectiva sobre o poder e a flexibilidade da validação declarativa.</p>
+
+<p>Como fica na prática? A estrutura geral é algo assim:</p>
+
+<pre class="codeblock"><code><span class="code-keyword">try</span> {
+    <span class="code-comment">// Aqui está a expressão que construiremos</span>
+    <span class="code-argument">$validator</span> = <span class="code-class">v</span>::<span class="code-function">something</span>()-><span class="code-function">somethingElse</span>()-><span class="code-function">somethingMore</span>();
+    <span class="code-comment">// Aqui a chamamos para validar o arquivo</span>
+    <span class="code-argument">$validator</span>-><span class="code-function">assert</span>(<span class="code-string">'example.md'</span>);
+} <span class="code-keyword">catch</span> (<span class="code-class">ValidationException</span> <span class="code-argument">$e</span>) {
+    <span class="code-comment">// Imprime uma mensagem com todos os erros encontrados no arquivo</span>
+    <span class="code-builtin">echo</span> <span class="code-argument">$e</span>-><span class="code-function">getFullMessage</span>() . <span class="code-string">"
+"</span>;
+}
+</code></pre>
+
+<p>Ótimo. E que tipo de mensagens podemos esperar? Quero construir algo mais ou menos assim:</p>
+
+<pre class="codeblock"><code>- A estrutura Markdown deve passar por todas as regras
+  - A estrutura de cabeçalhos deve passar por todas as regras
+    - `.0.literal` (<- Cabeçalho na linha 1) deve ser igual a "Hello World"
+    - `.1.level` (<- Cabeçalho na linha 7) deve ser igual a 2
+    - `.2.literal` (<- Cabeçalho na linha 13) deve ser igual a "Examples"
+  - Blocos de código devem passar por todas as regras
+    - `.1` (<- Bloco de código na linha 9) deve passar nas regras
+      - "sd" não é uma saída de código válida
+    - `.2` (<- Bloco de código na linha 15) deve passar nas regras
+      - "asd" não é uma saída de código válida
+</code></pre>
+
+<p>Portanto, há muita complexidade aqui:</p>
+    
+<p><ul>
+    <li>O validador não para no primeiro erro e deve continuar, eventualmente exibindo todos os erros encontrados.</li>
+    <li>Os erros são coletados e exibidos de forma estruturada, mostrando exatamente onde cada problema ocorreu.</li>
+    <li>Números de linha para cada elemento são incluídos para ajudar a localizar os problemas rapidamente.</li>
+</ul></p>
+
+<h3>Construindo o Validador</h3>
+
+<p>Começaremos da ponta pro começo, descrevendo a estrutura geral e depois nos aprofundando nas regras específicas.</p>
+
+<pre class="codeblock"><code><span class="code-argument">$validator</span> = <span class="code-class">v</span>::<span class="code-function">after</span>(
+    <span class="code-function">get_ast_children</span>(...),
+    <span class="code-class">v</span>::<span class="code-function">allOf</span>(<span class="code-argument">$headingsValidator</span>, <span class="code-argument">$codeBlocksValidator</span>)
+);
+</code></pre>
+
+<p>A função <code>get_ast_children(...)</code> analisa o arquivo Markdown e retorna os filhos da sua AST (Abstract Syntax Tree). Vamos usar o validador <a href="https://github.com/Respect/Validation/blob/305a7d15dbc6264619f7c0a6a51d5b872ee723af/docs/validators/After.md">v::after</a> para validar <em>o resultado desse pré-processamento</em>. Nosso objetivo é inspecionar a árvore de sintaxe.</p>
+
+<p>O <code>v::after()</code> é, na verdade, uma joia escondida. Ele brilha quando você precisa validar e produzir mensagens, mas a entrada não está exatamente no formato que você espera.</p>
+
+<p>Separamos nossos dois objetivos em mais dois validadores, <code>$headingsValidator</code> e <code>$codeBlocksValidator</code>, para lidar com cada aspecto do arquivo Markdown de forma independente.</p>
+
+<p>Esta é outra característica útil do Respect\Validation: <strong>você pode compor a cadeia</strong> combinando múltiplos validadores em uma única expressão.</p>
+
+<h3>Validando os Cabeçalhos</h3>
+
+<p>Vamos trabalhar primeiro em <code>$headingsValidator</code>:</p>
+
+<pre class="codeblock"><code><span class="code-argument">$headingsValidator</span> = <span class="code-class">v</span>::<span class="code-function">after</span>(
+    <span class="code-function">filter_headings</span>(...),
+    <span class="code-class">v</span>::<span class="code-function">allOf</span>(
+        <span class="code-class">v</span>::<span class="code-function">key</span>(<span class="code-number">0</span>, <span class="code-function">make_heading_validator</span>(level: <span class="code-number">1</span>, text: <span class="code-string">'Hello World'</span>)),
+        <span class="code-class">v</span>::<span class="code-function">key</span>(<span class="code-number">1</span>, <span class="code-function">make_heading_validator</span>(level: <span class="code-number">2</span>, text: <span class="code-string">'Description'</span>)),
+        <span class="code-class">v</span>::<span class="code-function">key</span>(<span class="code-number">2</span>, <span class="code-function">make_heading_validator</span>(level: <span class="code-number">2</span>, text: <span class="code-string">'Examples'</span>)),
+    )
+);
+</code></pre>
+
+<p>Estamos usando <code>v::after()</code> novamente! Desta vez, para filtrar a AST usando a função <code>filter_headings(...)</code>. Essa função recebe uma AST completa e retorna apenas os elementos de cabeçalho.</p>
+
+<p>Além disso, estamos abraçando totalmente a composição, e usando <code>make_heading_validator</code> para criar validadores individuais para cada cabeçalho na estrutura que esperamos. A função fica assim:</p>
+
+<pre class="codeblock"><code><span class="code-keyword">function</span> <span class="code-function">make_heading_validator</span>(<span class="code-argument">$level</span>, <span class="code-argument">$text</span>): <span class="code-class">Validator</span>
+{
+    <span class="code-keyword">return</span> <span class="code-class">v</span>::<span class="code-function">shortCircuit</span>(
+        <span class="code-class">v</span>::<span class="code-function">property</span>(<span class="code-string">'level'</span>, <span class="code-class">v</span>::<span class="code-function">equals</span>(<span class="code-argument">$level</span>)),
+        <span class="code-class">v</span>::<span class="code-function">property</span>(<span class="code-string">'firstChild'</span>, <span class="code-class">v</span>::<span class="code-function">property</span>(<span class="code-string">'literal'</span>, <span class="code-class">v</span>::<span class="code-function">equals</span>(<span class="code-argument">$text</span>))),
+    );
+}
+</code></pre>
+
+<p>Isso valida duas propriedades do nó da AST. A propriedade <code>level</code> garante que o nível do cabeçalho está correto, e a propriedade <code>firstChild.literal</code> garante que o texto do cabeçalho corresponde ao valor esperado.</p>
+
+<p>O validador <a href="https://github.com/Respect/Validation/blob/305a7d15dbc6264619f7c0a6a51d5b872ee723af/docs/validators/ShortCircuit.md">v::shortCircuit</a> interrompe a validação assim que uma das regras falha, apenas para aquele nó na cadeia, o que pode melhorar a performance e fornecer mensagens de erro mais claras.</p>
+
+<h3>Validando os Blocos de Código</h3>
+
+<p>Agora, vamos passar para o <code>$codeBlocksValidator</code>:</p>
+
+<pre class="codeblock"><code><span class="code-argument">$codeBlocksValidator</span> = <span class="code-class">v</span>::<span class="code-function">after</span>(
+    <span class="code-function">filter_code_blocks</span>(...),
+    <span class="code-class">v</span>::<span class="code-function">each</span>(<span class="code-class">v</span>::<span class="code-function">allOf</span>(
+        <span class="code-class">v</span>::<span class="code-function">property</span>(<span class="code-string">'info'</span>, <span class="code-class">v</span>::<span class="code-function">equals</span>(<span class="code-string">'php'</span>)),
+        <span class="code-class">v</span>::<span class="code-function">property</span>(<span class="code-string">'literal'</span>, <span class="code-class">v</span>::<span class="code-function">after</span>(
+            <span class="code-function">run_and_capture_output</span>(...),
+            <span class="code-class">v</span>::<span class="code-function">intVal</span>()
+        ))
+    ))
+);</code></pre>
+
+<p>Aqui estamos usando outro dos meus favoritos, <a href="https://github.com/Respect/Validation/blob/305a7d15dbc6264619f7c0a6a51d5b872ee723af/docs/validators/Each.md">v::each</a>. Ele aplica o validador fornecido a cada elemento de um array. Neste caso, garantindo que todos os nós de blocos de código da AST tenham a estrutura e o conteúdo corretos.</p>
+
+<p>Também estamos usando outra função, <code>run_and_capture_output(...)</code>, para executar os blocos de código e capturar sua saída para validação.</p>
+
+<p>Nosso critério para validar o resultado desses blocos é simples: queremos que cada um retorne um inteiro (verificado por <code>v::intVal</code>), mas poderíamos validar estruturas de saída mais complexas, se necessário, aninhando mais validadores.</p>
+
+<h3>Primeira Olhada nas Mensagens</h3>
+
+<p>Então, está completo, certo? Vamos ver a saída das mensagens:</p>
+
+<pre class="codeblock"><code>- `[League\CommonMark\Extension\CommonMark\Node\Block\Heading { -$level=1 #$startLine=1 #$endLine=1 +$data=Dflydev\ ... ]` deve passar por todas as regras
+  - `[League\CommonMark\Extension\CommonMark\Node\Block\Heading { -$level=1 #$startLine=1 #$endLine=1 +$data=Dflydev\ ... ]` deve passar por todas as regras
+    - `.0.literal` deve ser igual a "Hello World"
+    - `.1.level` deve ser igual a 2
+    - `.2.literal` deve ser igual a "Examples"
+  - Cada item em `[League\CommonMark\Extension\CommonMark\Node\Block\FencedCode { -$info="php" -$literal="echo 123;
+" -$length=3  ... ]` deve ser válido
+    - `.1` deve passar nas regras
+      - `.1.literal` deve ser um inteiro
+    - `.2` deve passar nas regras
+      - `.2.literal` deve ser um inteiro
+</code></pre>
+
+<p>Funciona até certo ponto, mas a saída é um pouco verbosa e poderia ser mais legível. O Respect\Validation tem muitos casos de uso, e não pode suportar mensagens para todo cenário possível. Em vez disso, fornecemos maneiras poderosas de modelar essas mensagens.</p>
+
+<h3>Modelando a Saída das Mensagens</h3>
+
+<p>Primeiro, falta algo: quero as linhas reais do arquivo Markdown que geraram o erro. Podemos extrair isso da AST e incluí-las na mensagem de forma simples?</p>
+
+<p>Sim podemos! Vamos melhorar a função <code>make_heading_validator</code>:</p>
+
+<pre class="codeblock"><code><span class="code-keyword">function</span> <span class="code-function">make_heading_validator</span> (<span class="code-argument">$level</span>, <span class="code-argument">$text</span>): <span class="code-class">Validator</span>
+{
+    <span class="code-keyword">return</span> <span class="code-class">v</span>::<span class="code-function">factory</span>(<span class="code-keyword">static</span> <span class="code-keyword">fn</span> (<span class="code-argument">$heading</span>) => <span class="code-class">v</span>::<span class="code-function">named</span>(
+        <span class="code-function">sprintf</span>(<span class="code-string">'Cabeçalho na linha %s'</span>, <span class="code-argument">$heading</span>-><span class="code-function">getStartLine</span>()),
+        <span class="code-class">v</span>::<span class="code-function">shortCircuit</span>(
+            <span class="code-class">v</span>::<span class="code-function">property</span>(<span class="code-string">'level'</span>, <span class="code-class">v</span>::<span class="code-function">equals</span>(<span class="code-argument">$level</span>)),
+            <span class="code-class">v</span>::<span class="code-function">property</span>(<span class="code-string">'firstChild'</span>, <span class="code-class">v</span>::<span class="code-function">property</span>(<span class="code-string">'literal'</span>, <span class="code-class">v</span>::<span class="code-function">equals</span>(<span class="code-argument">$text</span>))),
+        )
+    ));
+}
+</code></pre>
+
+<p>Se executarmos agora, devemos ver algumas mudanças:</p>
+
+<pre class="codeblock"><code>...
+- `.0.literal` (<- Cabeçalho na linha 1) deve ser igual a "Hello World"
+- `.1.level` (<- Cabeçalho na linha 7) deve ser igual a 2
+- `.2.literal` (<- Cabeçalho na linha 13) deve ser igual a "Examples"
+</code></pre>
+
+<p>Legal! Atingimos os critérios de aceitação (mensagens granulares e estruturadas com números de linha). Ainda podemos, no entanto, ir além.</p>
+
+<p>Acabamos de ver o uso do validador <a href="https://github.com/Respect/Validation/blob/305a7d15dbc6264619f7c0a6a51d5b872ee723af/docs/validators/Named.md">v::named</a>. Ele não é exatamente um validador, mas uma forma de renomear o nome padrão que o motor atribui automaticamente a cada regra. Neste caso, estamos usando os números de linha diretamente no nome como uma forma de referenciá-los.</p>
+
+<p>Ao aplicar <code>v::named</code> e <code>v::templated</code> em nós de validadores selecionados, podemos mudar completamente como eles são apresentados e finalmente personalizar as mensagens de saída para torná-las mais significativas e legíveis:</p>
+
+<pre class="codeblock"><code>- A estrutura Markdown deve passar por todas as regras
+  - A estrutura de cabeçalhos deve passar por todas as regras
+    - `.0.literal` (<- Cabeçalho na linha 1) deve ser igual a "Hello World"
+    - `.1.level` (<- Cabeçalho na linha 7) deve ser igual a 2
+    - `.2.literal` (<- Cabeçalho na linha 13) deve ser igual a "Examples"
+  - Blocos de código devem passar por todas as regras
+    - `.1` (<- Bloco de código na linha 9) deve passar nas regras
+      - "sd" não é uma saída de código válida
+    - `.2` (<- Bloco de código na linha 15) deve passar nas regras
+      - "asd" não é uma saída de código válida
+</code></pre>
+
+<h3>Obtenha o Código</h3>
+
+<p>Confira o <a href="https://github.com/alganet/example-commonmark-respect">código completo deste exemplo no GitHub</a>. Preparei três arquivos no repositório:</p>
+
+<p><ul>
+  <li><a href="https://github.com/alganet/example-commonmark-respect/blob/main/rawmessages.php">rawmessages.php</a> contém a versão sem formatação de mensagens.</li>
+  <li><a href="https://github.com/alganet/example-commonmark-respect/blob/main/expressionbuilding.php">expressionbuilding.php</a> tem a construção passo a passo da expressão.</li>
+  <li><a href="https://github.com/alganet/example-commonmark-respect/blob/main/expressionzilla.php">expressionzilla.php</a> contém a expressão inteira sem funções ou variáveis intermediárias, em uma única cadeia mega-complexa.</li>
+</ul></p>
+
+<h3>Conclusão</h3>
+
+<p>Neste artigo, exploramos como validar a estrutura de um documento Markdown usando uma única expressão declarativa com o Respect\Validation. Vimos como modelar mensagens de erro para incluir números de linha e torná-las mais legíveis, proporcionando uma saída clara e estruturada para facilitar a depuração e a validação.</p>
+
+<p>Este exemplo demonstra claramente que o Respect\Validation vai muito além da verificação de valores simples e pode realizar validações complexas em dados estruturados, produzindo mensagens de erro de qualidade que são informativas e fáceis de entender.</p>
+
+<p>Acabamos de lançar o <a href="https://github.com/Respect/Validation/releases/tag/3.0.0">Respect\Validation 3.0</a> na semana passada! Não deixe de conferir e explorar esses novos recursos empolgantes.</p>
+
+<hr class=end><p class=cc><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></p>

@@ -56,6 +56,7 @@ pre.codeblock {
   font-size: 0.8em;
   padding: 1em;
   background: #FFF;
+  overflow: scroll;
 }
 
 code {
@@ -99,6 +100,30 @@ pre del::before {
 pre .code-number {
   color: #666;
 }
+
+/* Light theme token colors */
+pre .code-keyword { color: #b75946; font-weight: 600; }
+pre .code-string { color: #0b6f6f; }
+pre .code-function { color: #1f5fb7; }
+pre .code-class { color: #6b4ea3; }
+pre .code-tag { color: #a63b2f; }
+pre .code-attr { color: #b07c00; }
+pre .code-operator, pre .code-punctuation { color: #666; }
+pre .code-builtin { color: #b359a0; font-style: italic; }
+pre .code-boolean { color: #8b0000; font-weight: 600; }
+
+/* Code execution/output helpers (light theme) */
+pre .code-output {
+  color: #666;
+  background: rgba(0,0,0,0.02);
+  display: block;
+  padding: 0.5em;
+  margin-top: 0.6em;
+  border-radius: 0.25em;
+}
+pre .code-stdout { color: #0b6f6f; }
+pre .code-stderr { color: #b75946; font-weight: 700; }
+pre .code-result { color: #1f5fb7; font-weight: 700; }
 
 blockquote.review {
   border: 0.1em solid #CCC;
@@ -230,28 +255,35 @@ p, ul {
   }
   
   pre.codeblock {
-    background: #333;
+    background: #1b1b1b;
+    border: 0.06em solid #444;
+    border-radius: 0.35em;
+    overflow: auto;
   }
 
   code {
     background: #333;
-    border: 0.01em solid #CCC;
+    border: 0.01em solid #555;
   }
   
-  pre .code-statement {
-    color: #e17c68;
-  }
+  /* Dark theme token colors */
+  pre .code-statement { color: #e17c68; }
+  pre .code-keyword { color: #e17c68; font-weight: 600; }
+  pre .code-argument { color: #b4b4b4; }
+  pre .code-comment { color: #3cd868; }
+  pre .code-number { color: #9a9a9a; }
+  pre .code-string { color: #39bfb1; }
+  pre .code-function { color: #6ec0ff; }
+  pre .code-class { color: #c8a6ff; }
+  pre .code-tag { color: #f29988; }
+  pre .code-attr { color: #ffb86b; }
+  pre .code-operator, pre .code-punctuation { color: #b4b4b4; }
+  pre .code-builtin { color: #ffa0d6; }
 
-  pre .code-argument {
-    color: #b4b4b4
-  }
-
-  pre .code-comment {
-    color: #3cd868;
-  }
-
-  pre .code-number {
-    color: #9a9a9a;
-  }
+  /* Output helpers in dark mode */
+  pre .code-output { background: rgba(255,255,255,0.02); color: #bbb; }
+  pre .code-stdout { color: #39bfb1; }
+  pre .code-stderr { color: #ff6b6b; font-weight: 700; }
+  pre .code-result { color: #6ec0ff; font-weight: 700; }
 
 }
