@@ -5,7 +5,17 @@
   <id>tag:alganet.github.io,2025:feed.pt</id>
   <link href="https://alganet.github.io/" />
   <link href="https://alganet.github.io/feed.pt.xml" rel="self" />
-  <updated>2026-02-11T02:00:00Z</updated>
+  <updated>2026-02-12T22:00:00Z</updated>
+  <entry>
+    <title>Construindo uma Aplicação Modular com apywire e starlette</title>
+    <id>tag:alganet.github.io,2025:2026-02-12-22-Construindo-uma-Aplicacao-Modular-com-apywire-e-starlette.pt</id>
+    <link href="https://alganet.github.io/blog/2026-02-12-22-Construindo-uma-Aplicacao-Modular-com-apywire-e-starlette.pt.html" />
+    <updated>2026-02-12T22:00:00Z</updated>
+    <summary> Este post explica como usar o apywire para construir uma aplicação modular com injeção de dependências usando starlette. Vamos passo a passo para conectar serviços, handlers e um banco de dados usando um config.yaml declarativo. O código completo deste tutorial está disponível em...</summary>
+    <author>
+      <name>Alexandre Gomes Gaigalas</name>
+    </author>
+  </entry>
   <entry>
     <title>Validando Estrutura Markdown em uma Única Expressão Declarativa</title>
     <id>tag:alganet.github.io,2025:2026-02-11-02-Validando-Estrutura-Markdown-em-uma-Unica-Expressao-Declarativa.pt</id>
@@ -31,7 +41,7 @@
     <id>tag:alganet.github.io,2025:2026-01-19-14-Como-Fazer-Bons-Code-Reviews.pt</id>
     <link href="https://alganet.github.io/blog/2026-01-19-14-Como-Fazer-Bons-Code-Reviews.pt.html" />
     <updated>2026-01-19T14:00:00Z</updated>
-    <summary> Bons code reviews são uma arte. Leva anos, e às vezes décadas, para aprender a fazer direito. A coisa mais importante, nossa diretiva principal, é ser gentil e construtivo. Habilidades Os outros ingredientes são conhecimento técnico e atenção aos...</summary>
+    <summary> Bons code reviews são uma arte. Leva anos, e às vezes décadas, para aprender a fazer direito. A coisa mais importante, nossa diretiva principal, é ser gentil e construtivo. Habilidades Os outros ingredientes são conhecimento técnico e atenção aos detalhes. A seguir estão algumas das dicas mais importantes que englobam esses...</summary>
     <author>
       <name>Alexandre Gomes Gaigalas</name>
     </author>

@@ -1,0 +1,131 @@
+<!doctype html>
+<link rel=stylesheet href=/style.css?12>
+<title>Building a Modular Application with apywire and starlette</title>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-087KLX3WP7"></script><script>window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', 'G-087KLX3WP7');</script>
+<h1><a href= />alganet</a></h1>
+<nav class=lang><a href="/blog/2026-02-12-22-Building-a-Modular-Application-with-apywire-and-starlette.html" class=selected>English</a> <a href="/blog/2026-02-12-22-Construindo-uma-Aplicacao-Modular-com-apywire-e-starlette.pt.html">Português</a></nav>
+
+<h2>Building a Modular Application with apywire and starlette</h2>
+<p class=info><em>Alexandre Gomes Gaigalas</em> – <em>February 12, 2026</em></p>
+<p>This blog post explains how to use <strong>apywire</strong> to build a modular, dependency-injected <strong>starlette</strong> application. We’ll go step-by-step to wire up services, handlers, and a database using a declarative <code>config.yaml</code>.</p>
+<p>The complete code for this tutorial is available at <a href="https://github.com/alganet/apywire-starlette">github.com/alganet/apywire-starlette</a>.</p>
+
+<h3>The Problem</h3>
+<p>In many Python web applications, wiring dependencies (like database connections, services, and controllers) is often done manually in the application entrypoint or using frameworks that rely heavily on runtime reflection and decorators. This can lead to:</p>
+<ul>
+<li><strong>Tightly coupled code</strong>: Hard to test and refactor.</li>
+<li><strong>Runtime overhead</strong>: Reflection slows down startup and request handling.</li>
+<li><strong>Implicit dependencies</strong>: Hard to see the full dependency graph.</li>
+</ul>
+<p><strong>apywire</strong> solves this by providing a <strong>declarative</strong> way to define your dependency graph in a YAML file, which is then <strong>compiled</strong> into efficient, transparent Python code.</p>
+
+<h3>Step 1: The Components</h3>
+<p>First, let’s define our application components as plain Python classes. Notice they have no dependency on <code>apywire</code> or any DI framework. They just declare what they need in <code>__init__</code>.</p>
+
+<h4>Services (<code>src/services.py</code>)</h4>
+<pre class=codeblock><code><span class="code-keyword">class</span> <span class="code-class">UserService</span>:
+    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(<span class="code-argument">self</span>, <span class="code-argument">db</span>):
+        <span class="code-argument">self</span>.<span class="code-argument">db</span> = <span class="code-argument">db</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">get_user</span>(<span class="code-argument">self</span>, <span class="code-argument">screen_name</span>: <span class="code-class">str</span>):
+        <span class="code-comment"># ... logic to fetch user ...</span>
+        <span class="code-keyword">pass</span>
+
+<span class="code-keyword">class</span> <span class="code-class">MigrationService</span>:
+    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(<span class="code-argument">self</span>, <span class="code-argument">db</span>):
+        <span class="code-argument">self</span>.<span class="code-argument">db</span> = <span class="code-argument">db</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">run</span>(<span class="code-argument">self</span>):
+        <span class="code-comment"># ... logic to run migrations ...</span>
+        <span class="code-keyword">pass</span>
+</code></pre>
+
+<h4>Handlers (<code>src/handlers.py</code>)</h4>
+<p>Our handlers (controllers) are simple callables that take dependencies.</p>
+<pre class=codeblock><code><span class="code-keyword">from</span> <span class="code-class">starlette.responses</span> <span class="code-keyword">import</span> <span class="code-class">JSONResponse</span>
+<span class="code-keyword">from</span> <span class="code-class">starlette.requests</span> <span class="code-keyword">import</span> <span class="code-class">Request</span>
+<span class="code-keyword">import</span> <span class="code-class">services</span>
+
+<span class="code-keyword">class</span> <span class="code-class">UserHandler</span>:
+    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(<span class="code-argument">self</span>, <span class="code-argument">users</span>: <span class="code-class">services.UserService</span>):
+        <span class="code-argument">self</span>.<span class="code-argument">users</span> = <span class="code-argument">users</span>
+
+    <span class="code-keyword">async</span> <span class="code-keyword">def</span> <span class="code-function">__call__</span>(<span class="code-argument">self</span>, <span class="code-argument">scope</span>, <span class="code-argument">receive</span>, <span class="code-argument">send</span>):
+        <span class="code-argument">request</span> = <span class="code-class">Request</span>(<span class="code-argument">scope</span>, <span class="code-argument">receive</span>)
+        <span class="code-argument">screen_name</span> = <span class="code-argument">request</span>.path_params[<span class="code-string">"screen_name"</span>]
+        <span class="code-argument">user</span> = <span class="code-argument">self</span>.<span class="code-argument">users</span>.<span class="code-function">get_user</span>(<span class="code-argument">screen_name</span>)
+        <span class="code-comment"># ... return response ...</span>
+</code></pre>
+
+<h3>Step 2: The Wiring (<code>config.yaml</code>)</h3>
+<p>This is where the magic happens. We declare our dependency graph in <code>config.yaml</code>.</p>
+<pre class=codeblock><code><span class="code-comment"># 1. Define the Database Connection - We use apsw directly, no wrapper needed.</span>
+<span class="code-class">apsw.Connection</span> <span class="code-argument">db</span><span class="code-punctuation">:</span>
+  <span class="code-attr">filename</span><span class="code-punctuation">:</span> <span class="code-string">"db.sqlite"</span>
+
+<span class="code-comment"># 2. Wire the Services - We inject the 'db' defined above into our services.</span>
+<span class="code-class">services.UserService</span> <span class="code-argument">users</span><span class="code-punctuation">:</span>
+  <span class="code-argument">db</span><span class="code-punctuation">:</span> <span class="code-punctuation">{</span><span class="code-argument">db</span><span class="code-punctuation">}</span>
+
+<span class="code-class">services.MigrationService</span> <span class="code-argument">migrations</span><span class="code-punctuation">:</span>
+  <span class="code-argument">db</span><span class="code-punctuation">:</span> <span class="code-punctuation">{</span><span class="code-argument">db</span><span class="code-punctuation">}</span>
+
+<span class="code-comment"># 3. Wire the Handlers - We inject the 'users' service into the UserHandler.</span>
+<span class="code-class">handlers.UserHandler</span> <span class="code-argument">user_handler</span><span class="code-punctuation">:</span>
+  <span class="code-argument">users</span><span class="code-punctuation">:</span> <span class="code-punctuation">{</span><span class="code-argument">users</span><span class="code-punctuation">}</span>
+
+<span class="code-class">handlers.HomeHandler</span> <span class="code-argument">home_handler</span><span class="code-punctuation">:</span> <span class="code-punctuation">{</span><span class="code-punctuation">}</span>
+
+<span class="code-comment"># 4. Define Routes - We bind the 'user_handler' to a path.</span>
+<span class="code-class">starlette.routing.Route</span> <span class="code-argument">user_route</span><span class="code-punctuation">:</span>
+  <span class="code-attr">path</span><span class="code-punctuation">:</span> <span class="code-string">"/users/</span><span class="code-punctuation">{</span><span class="code-argument">screen_name</span><span class="code-punctuation">}</span><span class="code-string">"</span>
+  <span class="code-attr">endpoint</span><span class="code-punctuation">:</span> <span class="code-punctuation">{</span><span class="code-argument">user_handler</span><span class="code-punctuation">}</span>
+  <span class="code-attr">methods</span><span class="code-punctuation">:</span> <span class="code-punctuation">[</span><span class="code-string">"GET"</span><span class="code-punctuation">]</span>
+
+<span class="code-class">starlette.routing.Route</span> <span class="code-argument">hello_route</span><span class="code-punctuation">:</span>
+  <span class="code-attr">path</span><span class="code-punctuation">:</span> <span class="code-string">"/"</span>
+  <span class="code-attr">endpoint</span><span class="code-punctuation">:</span> <span class="code-punctuation">{</span><span class="code-argument">home_handler</span><span class="code-punctuation">}</span>
+
+<span class="code-comment"># 5. The Application - We assemble the app with our routes.</span>
+<span class="code-class">starlette.applications.starlette</span> <span class="code-argument">app</span><span class="code-punctuation">:</span>
+  <span class="code-attr">routes</span><span class="code-punctuation">:</span>
+    <span class="code-punctuation">-</span> <span class="code-punctuation">{</span><span class="code-argument">user_route</span><span class="code-punctuation">}</span>
+    <span class="code-punctuation">-</span> <span class="code-punctuation">{</span><span class="code-argument">hello_route</span><span class="code-punctuation">}</span>
+</code></pre>
+
+<p><strong>Key takeaways</strong>:</p>
+<ul>
+<li><code>{db}</code>: References the component named <code>db</code>.</li>
+<li><strong>Fully Qualified Names</strong>: We use <code>module.ClassName</code> to specify types.</li>
+<li><strong>No Code Changes</strong>: We didn't touch our Python classes to wire them up.</li>
+</ul>
+
+<h3>Step 3: Compilation</h3>
+<p>apywire compiles this YAML into a Python file (<code>src/container.py</code>). This generated code is what your application actually uses. It handles lazy loading and ensures singletons are shared correctly.</p>
+<p>To compile:</p>
+<pre class=codeblock><code>python src/app.py --compile</code></pre>
+<p>This generates <code>src/container.py</code>. You don't edit this file, but you can inspect it to see exactly how your application is wired. It’s just plain Python code!</p>
+
+<h3>Step 4: Running the App</h3>
+<p>Our entrypoint <code>src/app.py</code> simply imports the compiled container and uses it.</p>
+<pre class=codeblock><code><span class="code-keyword">from</span> <span class="code-class">container</span> <span class="code-keyword">import</span> <span class="code-class">compiled</span>
+
+<span class="code-keyword">def</span> <span class="code-function">create_app</span>():
+    <span class="code-keyword">return</span> <span class="code-class">compiled</span>.app()
+
+<span class="code-keyword">if</span> <span class="code-argument">__name__</span> == <span class="code-string">"__main__"</span>:
+    <span class="code-comment"># ... CLI logic ...</span>
+    <span class="code-class">uvicorn</span>.<span class="code-function">run</span>(<span class="code-string">"app:create_app"</span>, factory=<span class="code-keyword">True</span>)
+</code></pre>
+<p>Because <code>compiled</code> is imported from a generated file, there is <strong>zero</strong> framework overhead at runtime.</p>
+
+<h3>Conclusion</h3>
+<p>By isolating wiring into <code>config.yaml</code>, we achieved:</p>
+<ol>
+<li><strong>Clean Architecture</strong>: Business logic knows nothing about the framework.</li>
+<li><strong>Performance</strong>: Compilation effectively "bakes" the dependency graph into optimized code.</li>
+<li><strong>Flexibility</strong>: Changing the database implementation or swapping a service is just a config change.</li>
+</ol>
+<p>Give <a href="https://github.com/alganet/apywire">apywire</a> a try for your next Python project!</p>
+
+<hr class=end><p class=cc><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></p>
