@@ -137,7 +137,7 @@ do
     fi
 
     echo "<h2>$BLOG_TITLE</h2>" > "$BLOG_ALL"
-    echo '<ul>' >> "$BLOG_ALL"
+    echo '<ul class=blog>' >> "$BLOG_ALL"
 
     if [ -z "$LANG_SUFFIX" ]; then
         entries="$(find blog -maxdepth 1 -type f -name "*.html" ! -name "*.pt.html" | sort -rn)"
@@ -216,7 +216,7 @@ do
         cat tmp_entry.html > "${entry}"
         echo "$content" >> "${entry}"
         echo "<hr class=end><p class=cc><a href=\"https://creativecommons.org/licenses/by-nc-sa/4.0/\">CC BY-NC-SA 4.0</a></p>" >> "${entry}"
-        echo "<li><a href=\"/${entry}\">$title</a> — <em>$date</em></li>" >> "$BLOG_ALL"
+        echo "<li><a href=\"/${entry}\">$title</a> <em>$date</em></li>" >> "$BLOG_ALL"
         rm tmp_entry.html
     done
 
