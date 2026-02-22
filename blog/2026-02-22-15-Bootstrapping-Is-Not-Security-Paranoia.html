@@ -1,0 +1,48 @@
+<!doctype html>
+<link rel=stylesheet href=/style.css?20>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bootstrapping Is Not Security Paranoia</title>
+<script defer src="/script.js?20"></script>
+<h1><a href= />alganet</a></h1>
+<nav class=lang><a href="/blog/2026-02-22-15-Bootstrapping-Is-Not-Security-Paranoia.html" class=selected>English</a> <a href="/blog/2026-02-22-15-Bootstrapping-Nao-E-Paranoia-de-Seguranca.pt.html">Português</a></nav>
+
+<h2>Bootstrapping Is Not Security Paranoia</h2>
+<p class=info><em>Alexandre Gomes Gaigalas</em> – <em>February 22, 2026</em></p>
+<p>Bootstrapping compilers are often discussed from the same angle: <em>security paranoia</em>. In this framing, their only purpose is to defend against the class of attacks described in Ken Thompson’s <a href="https://dl.acm.org/doi/10.1145/358198.358210"><em>Reflections on Trusting Trust</em></a>. If a compiler is compromised, it can perpetuate that compromise indefinitely, even when its source code appears clean.</p>
+<p>That concern is real, but treating it as the <em>only</em> reason for bootstrapping obscures why bootstrappability matters in practice.</p>
+<p>I want to explore the idea of bootstrapping as a way of structuring systems so they are easier to understand, reason about, and reproduce. Security benefits fall out of that structure, but they are not the main payoff.</p>
+
+<h3>The Malicious Compiler as a Platonic Ideal</h3>
+<p>The malicious compiler described in <em>Reflections on Trusting Trust</em> functions as a thought experiment. It demonstrates that there are limits to what source-level inspection alone can guarantee, and it forces us to confront uncomfortable assumptions about trust.</p>
+<p>That notion of purity is intentionally unachievable. It lives in the same realm as Plato's world of perfect forms.</p>
+<p>A truly pure bootstrap would require an audited kernel, a toolchain built only by that kernel, firmware and microcode with known provenance, and hardware whose behavior is fully specified and verifiable. Even this list is incomplete. At some point, trust escapes the software stack entirely and enters the physical world.</p>
+<p>It is a reminder that defeating that malicious compiler is a <em>Platonic ideal</em>: useful for reasoning about principles, not a realistic destination. Mistaking the ideal for the goal leads either to disappointment or to dismissing bootstrapping as impractical or obsessive.</p>
+
+<h3>Bootstrappability as a Gradient</h3>
+<p>Once we let go of purity as a destination, bootstrappability becomes something more useful: a gradient.</p>
+<p>Each reduction in the size, opacity, or complexity of the build foundation has value. Rebuilding a compiler from a previous version, rebuilding it from a reduced subset of itself, or rebuilding it using a simpler toolchain do not eliminate the theoretical possibility of a malicious compiler. What they do eliminate is unnecessary complexity. They shorten the chain of assumptions a human must make to understand how a system comes into existence.</p>
+
+<h3>What Bootstrapping Buys Us Today</h3>
+<p>When bootstrappability is treated as a design discipline rather than a purity test, its practical implications become clear.</p>
+<p>Bootstrappable systems force clarity about dependencies. Questions that are otherwise easy to avoid must be answered explicitly. Systems become easier to reason about precisely because fewer assumptions remain implicit.</p>
+<p>Bootstrapping also pressures build pipelines toward reproducibility. If a system can be rebuilt in stages, those stages must be describable, repeatable, and isolated from ambient state. This has obvious supply‑chain implications, but it also improves everyday engineering practice. <a href="https://reproducible-builds.org/docs/why/">Reproducible builds</a> are easier to debug, easier to audit, and easier to maintain over time.</p>
+<p>Auditing itself changes character under this lens. Instead of being framed purely as a defensive search for backdoors, it becomes an exercise in understanding. When a system can be rebuilt from simpler components, each stage becomes small enough to inspect meaningfully. Even partial auditability is valuable, because it replaces blind trust with <strong>informed trust</strong>.</p>
+
+<h3>Design Pressure and Constraint</h3>
+<p>If a system must eventually build itself, every dependency must be justified, not merely convenient. This is not a trivial requirement.</p>
+<p>Many build systems, when subjected to bootstrapping discipline, reveal a tangle of circular or undeclared dependencies that were invisible under normal operation.</p>
+<p>The <a href="https://github.com/fosslinux/live-bootstrap">live-bootstrap</a> project encountered this repeatedly: tools that claimed to need only a C compiler turned out to implicitly rely on specific shell behavior, particular filesystem layouts, or undocumented assumptions about the host environment.</p>
+<p>Making each stage rebuild cleanly forced those assumptions into the open. The result is a system whose behavior is more predictable under novel conditions, because the conditions it depends on are now stated rather than assumed.</p>
+
+<h3>A Practical Comparison: Nix and live-bootstrap</h3>
+<p>The difference between platonic ideals and practical outcomes becomes clearer when comparing projects with very different motivations.</p>
+<p>live-bootstrap treats bootstrapping as a primary objective. It is explicitly concerned with minimizing the trusted computing base, pushing as close as practical toward the thought experiment implied by <em>Reflections on Trusting Trust</em>. Its work lives near the ideal, even when that work is slow and painstaking.</p>
+<p><a href="https://nixos.org/manual/nix/stable/">Nix</a>, by contrast, is not motivated by that thought experiment. Its focus is on reproducibility, isolation, and making builds precise and declarative. It does not attempt to eliminate all trust, nor does it claim to.</p>
+<p>Despite this difference, their designs intersect in meaningful ways. Both systems make dependencies explicit, reject hidden global state in the build process, and treat the build pipeline as part of the system rather than an afterthought. Both prioritize reproducibility and inspectability, even when doing so imposes constraints.</p>
+<p>This intersection is the point. live-bootstrap shows what happens when the platonic ideal is taken seriously. Nix shows what happens when practical concerns are pursued rigorously enough that bootstrappability becomes possible as a side effect.</p>
+
+<h3>Conclusion</h3>
+<p>Security in compilers is important. Even though the problem described by Ken Thompson has been <a href="https://www.ietfng.org/nwf/cs/tcc-trusting-trust.html">reproduced in practice</a> (demonstrating that such attacks remain feasible today), its consequences extend far beyond security alone.</p>
+<p>The major benefits of bootstrappability include making systems easier to reason about, easier to reproduce, and harder to accidentally misunderstand. It turns implicit assumptions into explicit structure and treats the build process as something worth designing carefully.</p>
+
+<hr class=end><p class=cc><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></p>

@@ -5,7 +5,17 @@
   <id>tag:alganet.github.io,2025:feed</id>
   <link href="https://alganet.github.io/" />
   <link href="https://alganet.github.io/feed.xml" rel="self" />
-  <updated>2026-02-12T22:00:00Z</updated>
+  <updated>2026-02-22T15:00:00Z</updated>
+  <entry>
+    <title>Bootstrapping Is Not Security Paranoia</title>
+    <id>tag:alganet.github.io,2025:2026-02-22-15-Bootstrapping-Is-Not-Security-Paranoia</id>
+    <link href="https://alganet.github.io/blog/2026-02-22-15-Bootstrapping-Is-Not-Security-Paranoia.html" />
+    <updated>2026-02-22T15:00:00Z</updated>
+    <summary> Bootstrapping compilers are often discussed from the same angle: security paranoia. In this framing, their only purpose is to defend against the class of attacks described in Ken Thompson’s Reflections on Trusting Trust. If a compiler is compromised, it can perpetuate that compromise indefinitely, even when its source code appears...</summary>
+    <author>
+      <name>Alexandre Gomes Gaigalas</name>
+    </author>
+  </entry>
   <entry>
     <title>Building a Modular Application with apywire and starlette</title>
     <id>tag:alganet.github.io,2025:2026-02-12-22-Building-a-Modular-Application-with-apywire-and-starlette</id>
