@@ -5,7 +5,17 @@
   <id>tag:alganet.github.io,2025:feed</id>
   <link href="https://alganet.github.io/" />
   <link href="https://alganet.github.io/feed.xml" rel="self" />
-  <updated>2026-02-22T15:00:00Z</updated>
+  <updated>2026-02-22T23:00:00Z</updated>
+  <entry>
+    <title>Leveraging Attributes With Respect\Validation and Laravel</title>
+    <id>tag:alganet.github.io,2025:2026-02-22-23-Leveraging-Attributes-With-Respect-Validation-and-Laravel</id>
+    <link href="https://alganet.github.io/blog/2026-02-22-23-Leveraging-Attributes-With-Respect-Validation-and-Laravel.html" />
+    <updated>2026-02-22T23:00:00Z</updated>
+    <summary> The full example for this blog post is available on GitHub. Validation logic often ends up distributed across request rules, controller checks, model helpers, and serializers. In that arrangement, constraints for the same field can diverge over...</summary>
+    <author>
+      <name>Alexandre Gomes Gaigalas</name>
+    </author>
+  </entry>
   <entry>
     <title>Bootstrapping Is Not Security Paranoia</title>
     <id>tag:alganet.github.io,2025:2026-02-22-15-Bootstrapping-Is-Not-Security-Paranoia</id>

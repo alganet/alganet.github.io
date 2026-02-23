@@ -1,0 +1,92 @@
+<!doctype html>
+<link rel=stylesheet href=/style.css?20>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aproveitando Atributos com Respect\Validation e Laravel</title>
+<script defer src="/script.js?20"></script>
+<h1><a href=/index.pt.html>alganet</a></h1>
+<nav class=lang><a href="/blog/2026-02-22-23-Leveraging-Attributes-With-Respect-Validation-and-Laravel.html">English</a> <a href="/blog/2026-02-22-23-Aproveitando-Atributos-com-Respect-Validation-e-Laravel.pt.html" class=selected>Português</a></nav>
+
+<h2>Aproveitando Atributos com Respect\Validation e Laravel</h2>
+<p class=info><em>Alexandre Gomes Gaigalas</em> – <em>22 de Fevereiro de 2026</em></p>
+<p>O exemplo completo deste post está disponível no <a href="https://github.com/alganet/attributes-laravel-validation">GitHub</a>.</p>
+<h3>Contexto</h3>
+<p>Lógica de validação muitas vezes acaba distribuída entre regras da request, verificações em controladores, helpers de modelos e serializadores. Desse jeito, as validações para o mesmo campo podem divergir com o tempo.</p>
+<p>Este exemplo usa um único objeto de domínio como fonte de verdade para validações e mapeamento de payload, e em seguida integra esse objeto ao tratamento de requisições e persistência do Laravel.</p>
+<h3>Objetivo de Projeto</h3>
+<p>O objetivo é manter uma definição central para:</p>
+<ul>
+<li>validações de domínio</li>
+<li>mensagens de validação</li>
+<li>mapeamento de campos de persistência/saída</li>
+</ul>
+<p><code>PitchDraft</code> é essa definição autoritativa.</p>
+<h3>Contrato de Domínio</h3>
+<p><code>PitchDraft</code> declara validações diretamente nos parâmetros tipados do construtor usando atributos do Respect.</p>
+<pre class="codeblock"><code><span class="code-statement">final</span> <span class="code-statement">readonly</span> <span class="code-statement">class</span> <span class="code-class">PitchDraft</span>
+{
+    <span class="code-statement">public</span> <span class="code-statement">function</span> <span class="code-function">__construct</span>(
+        #[<span class="code-class">Named</span>('Speaker Name', <span class="code-statement">new</span> <span class="code-class">AllOf</span>(<span class="code-statement">new</span> <span class="code-class">StringType</span>, <span class="code-statement">new</span> <span class="code-class">Length</span>(<span class="code-statement">new</span> <span class="code-class">Between</span>(4, 60))))]
+        <span class="code-statement">public</span> <span class="code-statement">string</span> <span class="code-argument">$speaker_name</span>,
+
+        #[<span class="code-class">Named</span>('Speaker Email', <span class="code-statement">new</span> <span class="code-class">Email</span>)]
+        <span class="code-statement">public</span> <span class="code-statement">string</span> <span class="code-argument">$speaker_email</span>,
+
+        #[<span class="code-class">Named</span>('Talk Title', <span class="code-statement">new</span> <span class="code-class">ShortCircuit</span>(<span class="code-statement">new</span> <span class="code-class">Length</span>(<span class="code-statement">new</span> <span class="code-class">Between</span>(12, 90)), <span class="code-statement">new</span> <span class="code-class">Contains</span>('Laravel')))]
+        <span class="code-statement">public</span> <span class="code-statement">string</span> <span class="code-argument">$talk_title</span>,
+
+        #[<span class="code-class">Named</span>('Talk Duration', <span class="code-statement">new</span> <span class="code-class">AllOf</span>(<span class="code-statement">new</span> <span class="code-class">IntVal</span>, <span class="code-statement">new</span> <span class="code-class">Between</span>(20, 45)))]
+        <span class="code-statement">public</span> <span class="code-statement">int</span> <span class="code-argument">$talk_duration_minutes</span>,
+
+        #[<span class="code-class">Named</span>('Skill Level', <span class="code-statement">new</span> <span class="code-class">Templated</span>('Skill level must be either {{haystack|list:or}}.', <span class="code-statement">new</span> <span class="code-class">In</span>([<span class="code-string">'intermediate'</span>, <span class="code-string">'advanced'</span>]))) ]
+        <span class="code-statement">public</span> <span class="code-statement">string</span> <span class="code-argument">$skill_level</span>,
+    ) {}
+}
+</code></pre>
+<p>Isso mantém a composição de regras explícita (<code>AllOf</code>, <code>ShortCircuit</code>, <code>Between</code>, <code>Each</code>) e localiza a customização de mensagens (<code>Named</code>, <code>Templated</code>).</p>
+<h3>Borda das Requests</h3>
+<p>Requests de formulário lidam com sanitização e conversão, e então constroem o DTO.</p>
+<pre class="codeblock"><code><span class="code-statement">public</span> <span class="code-statement">function</span> <span class="code-function">toPitchDraft</span>(): <span class="code-class">PitchDraft</span>
+{
+    <span class="code-argument">$sanitized</span> = $this-><span class="code-function">validated</span>();
+
+    <span class="code-statement">return</span> <span class="code-statement">new</span> <span class="code-class">PitchDraft</span>(
+        speaker_name: <span class="code-function">trim</span>(<span class="code-statement">(string</span>) ($sanitized['speaker_name'] ?? '')),
+        speaker_email: <span class="code-function">trim</span>(<span class="code-statement">(string</span>) ($sanitized['speaker_email'] ?? '')),
+        talk_title: <span class="code-function">trim</span>(<span class="code-statement">(string</span>) ($sanitized['talk_title'] ?? '')),
+        talk_duration_minutes: $this-><span class="code-function">normalizeDuration</span>($sanitized['talk_duration_minutes'] ?? <span class="code-statement">null</span>),
+        skill_level: <span class="code-function">trim</span>(<span class="code-statement">(string</span>) ($sanitized['skill_level'] ?? '')),
+        highlights: <span class="code-function">array_values</span>(<span class="code-function">array_filter</span>(<span class="code-function">array_map</span>('trim', $sanitized['highlights'] ?? []))),
+    );
+}
+</code></pre>
+<p>Os atributos da request permanecem focados em comportamento HTTP, tal como <code>#[RedirectToRoute]</code>.</p>
+<h3>Adaptador para Exceções do Laravel</h3>
+<p>Exceções do Respect\Validation são convertidas para ValidationException do Laravel uma vez, em um pequeno adaptador.</p>
+<pre class="codeblock"><code><span class="code-statement">final</span> <span class="code-statement">class</span> <span class="code-class">RespectAttributeValidator</span>
+{
+    <span class="code-statement">public</span> <span class="code-statement">function</span> <span class="code-function">validate</span>(<span class="code-statement">object</span> $dto): <span class="code-statement">void</span>
+    {
+        <span class="code-statement">try</span> {
+            <span class="code-class">v</span>::<span class="code-function">attributes</span>()-><span class="code-function">assert</span>($dto);
+        } <span class="code-statement">catch</span> (<span class="code-class">RespectValidationException</span> $exception) {
+            $messages = $exception-><span class="code-function">getMessages</span>();
+            <span class="code-function">unset</span>($messages['__root__']);
+
+            <span class="code-statement">throw</span> <span class="code-class">ValidationException</span>::<span class="code-function">withMessages</span>($messages);
+        }
+    }
+}
+</code></pre>
+<p>Isso preserva o comportamento padrão de resposta do Laravel para fluxos web e de API. Se seu projeto tiver várias classes DTO, você pode usar este mesmo adaptador para todas elas.</p>
+<h3>Reutilizando Um Único Mapeamento de Payload</h3>
+<p><code>PitchDraft::toAttributes()</code> é reutilizado tanto para persistência quanto para saída de API.</p>
+<ul>
+<li>caminho de persistência: <code>Pitch::create($draft->toAttributes())</code></li>
+<li>caminho de resposta: <code>$pitch->toDraft()->toAttributes()</code></li>
+</ul>
+<p>Usar uma única função de mapeamento evita listas de campos duplicadas e mantém os payloads de escrita/leitura alinhados.</p>
+<h3>Notas Operacionais</h3>
+<p>A abordagem introduz um componente de integração (<code>RespectAttributeValidator</code>) e um método de reconstrução de DTO para modelo (<code>Pitch::toDraft()</code>). Em troca, o contrato de validação fica explícito, centralizado e reutilizável em vários pontos de entrada.</p>
+<h3>Resumo</h3>
+<p>Esta arquitetura mantém o Laravel responsável pelas preocupações de transporte e persistência, enquanto a validação de domínio permanece definida em um único contrato DTO por meio de atributos do Respect. O resultado é menos duplicação e uma fonte única de verdade mais rígida para a lógica de validação.</p>
+<hr class=end><p class=cc><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></p>
