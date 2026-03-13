@@ -5,7 +5,17 @@
   <id>tag:alganet.github.io,2025:feed.pt</id>
   <link href="https://alganet.github.io/" />
   <link href="https://alganet.github.io/feed.pt.xml" rel="self" />
-  <updated>2026-02-22T23:00:00Z</updated>
+  <updated>2026-03-12T20:00:00Z</updated>
+  <entry>
+    <title>Refatoração Feng Shui</title>
+    <id>tag:alganet.github.io,2025:2026-03-12-20-Refatoracao-Feng-Shui.pt</id>
+    <link href="https://alganet.github.io/blog/2026-03-12-20-Refatoracao-Feng-Shui.pt.html" />
+    <updated>2026-03-12T20:00:00Z</updated>
+    <summary> Se você já trabalhou em uma base de código grande por tempo suficiente, provavelmente já viu um certo tipo de refatoração que parece produtiva mas não melhora o sistema de verdade. Alguns arquivos são renomeados, funções mudam de lugar, diretórios e namespaces são reorganizados, mas nada...</summary>
+    <author>
+      <name>Alexandre Gomes Gaigalas</name>
+    </author>
+  </entry>
   <entry>
     <title>Aproveitando Atributos com Respect\Validation e Laravel</title>
     <id>tag:alganet.github.io,2025:2026-02-22-23-Aproveitando-Atributos-com-Respect-Validation-e-Laravel.pt</id>

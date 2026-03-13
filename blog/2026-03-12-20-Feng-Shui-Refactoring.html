@@ -1,0 +1,83 @@
+<!doctype html>
+<link rel=stylesheet href=/style.css?20>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Feng Shui Refactoring</title>
+<script defer src="/script.js?20"></script>
+<h1><a href= />alganet</a></h1>
+<nav class=lang><a href="/blog/2026-03-12-20-Feng-Shui-Refactoring.html" class=selected>English</a> <a href="/blog/2026-03-12-20-Refatoracao-Feng-Shui.pt.html">Português</a></nav>
+
+<h2>Feng Shui Refactoring</h2>
+<p class=info><em>Alexandre Gomes Gaigalas</em> – <em>March 12, 2026</em></p>
+<p>If you've worked on a large codebase long enough, you've probably seen a certain kind of refactoring that <em>feels</em> productive but doesn't actually improve the system.</p>
+<p>Some files get renamed, functions move around, directories and namespaces are reorganized, but <strong>nothing changes</strong>.</p>
+<p>The diff is large, the structure looks different, and the pull request description says something like "clean up project structure". Lots of things change, but readability hasn't really improved and the behavior stays the same.</p>
+
+<h3>What It Looks Like</h3>
+<p>A feng shui refactor rearranges code without improving its structure. The system looks different, but it behaves the same and remains just as hard to reason about.</p>
+<p>A common example is <strong>renaming without clarifying behavior</strong>.</p>
+<p>Before:</p>
+<pre class="codeblock"><code><span class="code-statement">def</span> <span class="code-statement">handle</span>(<span class="code-argument">x</span>):
+    <span class="code-statement">return</span> <span class="code-statement">process</span>(<span class="code-argument">x</span>)</code></pre>
+<p>After:</p>
+<pre class="codeblock"><code><span class="code-statement">def</span> <span class="code-statement">process_event</span>(<span class="code-argument">event</span>):
+    <span class="code-statement">return</span> <span class="code-statement">process</span>(<span class="code-argument">event</span>)</code></pre>
+<p>The names sound nicer, but the design problem hasn't changed: the function still hides what it actually does. Specific names like "handle", "manage", "orchestrate" and namespaces such as "common" and "utils" often act as magnets for this kind of pseudo-refactoring.</p>
+<p>Another example is <strong>moving code without changing dependencies</strong>.</p>
+<p>Before:</p>
+<pre class="codeblock"><code>services/
+    billing.py
+    notifications.py</code></pre>
+<p>After:</p>
+<pre class="codeblock"><code>domain/
+    billing_service.py
+    notification_service.py</code></pre>
+<p>If both modules still import half the application and call each other in complex ways, the architecture hasn't improved. The furniture just moved.</p>
+
+<h3>Why It Happens</h3>
+<p>This kind of change is attractive because it transmit the <em>intent of improvement</em>. You might think better names will foster better modularization later, or breaking up something without untangling the dependencies will lead to more modularization later.</p>
+<p>Real refactoring requires understanding the system well enough to identify structural problems. That usually means reading code, tracing behavior, and forming a mental model <strong>before</strong> touching anything.</p>
+
+<h3>Good Renames</h3>
+<p>The most useful refactors tend to remove something: duplication, hidden coupling, unnecessary indirection.</p>
+<p>Sometimes, renaming <em>can in fact be useful</em>, such as clarifying a buried business rule.</p>
+<p>Before:</p>
+<pre class="codeblock"><code><span class="code-statement">def</span> <span class="code-statement">process</span>(<span class="code-argument">order</span>):
+    <span class="code-statement">if</span> <span class="code-argument">order</span>.total &gt; <span class="code-number">100</span>:
+        <span class="code-argument">order</span>.discount = <span class="code-argument">order</span>.total * <span class="code-number">0.1</span></code></pre>
+<p>After:</p>
+<pre class="codeblock"><code><span class="code-statement">def</span> <span class="code-statement">apply_loyalty_discount</span>(<span class="code-argument">order</span>):
+    <span class="code-statement">if</span> <span class="code-argument">order</span>.total &gt; <span class="code-number">100</span>:
+        <span class="code-argument">order</span>.discount = <span class="code-argument">order</span>.total * <span class="code-number">0.1</span></code></pre>
+<p>Interestingly, these kinds of refactors often produce <em>smaller</em> diffs than large reorganizations.</p>
+
+<h3>What Real Refactoring Looks Like</h3>
+<p>Real refactoring tends to simplify how the system works rather than how it is arranged.</p>
+<p>A good example is <strong>removing hard-coded knowledge</strong> that quietly spreads through the system.</p>
+<p>Before:</p>
+<pre class="codeblock"><code><span class="code-statement">def</span> <span class="code-statement">shipping_cost</span>(<span class="code-argument">order</span>):
+    <span class="code-statement">if</span> <span class="code-argument">order</span>.country == <span class="code-argument">"US"</span>:
+        <span class="code-statement">return</span> <span class="code-number">5</span>
+    <span class="code-statement">return</span> <span class="code-number">15</span></code></pre>
+<p>After:</p>
+<pre class="codeblock"><code><span class="code-argument">SHIPPING_RATES</span> = {
+    <span class="code-argument">"US"</span>: <span class="code-number">5</span>,
+    <span class="code-argument">"INTL"</span>: <span class="code-number">15</span>,
+}
+
+<span class="code-statement">def</span> <span class="code-statement">shipping_cost</span>(<span class="code-argument">order</span>):
+    <span class="code-argument">region</span> = <span class="code-argument">"US"</span> <span class="code-statement">if</span> <span class="code-argument">order</span>.country == <span class="code-argument">"US"</span> <span class="code-statement">else</span> <span class="code-argument">"INTL"</span>
+    <span class="code-statement">return</span> <span class="code-argument">SHIPPING_RATES</span>[<span class="code-argument">region</span>]</code></pre>
+<p>The behavior hasn't changed, but the rule is now visible and centralized instead of buried inside a conditional. When the pricing inevitably changes, there is a clear place to update it.</p>
+<p>These kinds of changes rarely produce dramatic diffs. Often they involve deleting code, collapsing layers, or making relationships more explicit.</p>
+<p>But they steadily reduce the amount of work required to understand and modify the system.</p>
+
+<h3>A Small Question</h3>
+<p>Before starting a refactor, it can help to ask a simple question:</p>
+<p>What concrete problem will this change solve?</p>
+<p>Sometimes the answer is clear: duplicated logic disappears, a circular dependency breaks, or a domain concept becomes explicit.</p>
+<p>Other times the answer is harder to articulate. The change mostly affects how the code <em>looks</em>.</p>
+
+<h3>Rearranging the Room</h3>
+<p>Sometimes moving things around <em>does in fact improve them</em>, but without a clear purpose, it's a red flag. If you can't explain what problem it solves, it might be just one of these feng shui refactors.</p>
+
+<hr class=end><p class=cc><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></p>

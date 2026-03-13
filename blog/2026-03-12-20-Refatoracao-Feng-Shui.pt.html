@@ -1,0 +1,83 @@
+<!doctype html>
+<link rel=stylesheet href=/style.css?20>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Refatoração Feng Shui</title>
+<script defer src="/script.js?20"></script>
+<h1><a href=/index.pt.html>alganet</a></h1>
+<nav class=lang><a href="/blog/2026-03-12-20-Feng-Shui-Refactoring.html">English</a> <a href="/blog/2026-03-12-20-Refatoracao-Feng-Shui.pt.html" class=selected>Português</a></nav>
+
+<h2>Refatoração Feng Shui</h2>
+<p class=info><em>Alexandre Gomes Gaigalas</em> – <em>12 de Março de 2026</em></p>
+<p>Se você já trabalhou em uma base de código grande por tempo suficiente, provavelmente já viu um certo tipo de refatoração que <em>parece</em> produtiva mas não melhora o sistema de verdade.</p>
+<p>Alguns arquivos são renomeados, funções mudam de lugar, diretórios e namespaces são reorganizados, mas <strong>nada muda</strong>.</p>
+<p>O diff é grande, a estrutura parece diferente, e a descrição do pull request diz algo como "limpar estrutura do projeto". Muitas coisas mudam, mas a legibilidade não melhorou de verdade e o comportamento continua o mesmo.</p>
+
+<h3>Como Identificar</h3>
+<p>Um refactoring feng shui reorganiza código sem melhorar sua estrutura. O sistema parece diferente, mas se comporta da mesma forma e continua igualmente difícil de entender.</p>
+<p>Um exemplo comum é <strong>renomear sem esclarecer comportamento</strong>.</p>
+<p>Antes:</p>
+<pre class="codeblock"><code><span class="code-statement">def</span> <span class="code-statement">handle</span>(<span class="code-argument">x</span>):
+    <span class="code-statement">return</span> <span class="code-statement">process</span>(<span class="code-argument">x</span>)</code></pre>
+<p>Depois:</p>
+<pre class="codeblock"><code><span class="code-statement">def</span> <span class="code-statement">process_event</span>(<span class="code-argument">event</span>):
+    <span class="code-statement">return</span> <span class="code-statement">process</span>(<span class="code-argument">event</span>)</code></pre>
+<p>Os nomes soam melhor, mas o problema de design não mudou: a função ainda esconde o que realmente faz. Nomes específicos como "handle", "manage", "orchestrate" e namespaces como "common" e "utils" frequentemente funcionam como ímãs para esse tipo de pseudo-refatoração.</p>
+<p>Outro exemplo é <strong>mover código sem mudar dependências</strong>.</p>
+<p>Antes:</p>
+<pre class="codeblock"><code>services/
+    billing.py
+    notifications.py</code></pre>
+<p>Depois:</p>
+<pre class="codeblock"><code>domain/
+    billing_service.py
+    notification_service.py</code></pre>
+<p>Se ambos os módulos ainda importam metade da aplicação e se chamam mutuamente de formas complexas, a arquitetura não melhorou. Os móveis apenas mudaram de lugar.</p>
+
+<h3>Por Que Isso Acontece</h3>
+<p>Esse tipo de mudança é atraente porque transmite a <em>intenção de melhoria</em>. Você pode pensar que nomes melhores vão fomentar melhor modularização depois, ou que dividir algo sem desemaranhar as dependências vai levar a mais modularização no futuro.</p>
+<p>Refatoração de verdade requer entender o sistema bem o suficiente para identificar problemas estruturais. Isso normalmente significa ler código, rastrear comportamento e formar um modelo mental <strong>antes</strong> de mexer em qualquer coisa.</p>
+
+<h3>Boas Renomeações</h3>
+<p>As refatorações mais úteis tendem a remover algo: duplicação, acoplamento oculto, indireção desnecessária.</p>
+<p>Às vezes, renomear <em>pode de fato ser útil</em>, como esclarecer uma regra de negócio enterrada.</p>
+<p>Antes:</p>
+<pre class="codeblock"><code><span class="code-statement">def</span> <span class="code-statement">process</span>(<span class="code-argument">order</span>):
+    <span class="code-statement">if</span> <span class="code-argument">order</span>.total &gt; <span class="code-number">100</span>:
+        <span class="code-argument">order</span>.discount = <span class="code-argument">order</span>.total * <span class="code-number">0.1</span></code></pre>
+<p>Depois:</p>
+<pre class="codeblock"><code><span class="code-statement">def</span> <span class="code-statement">apply_loyalty_discount</span>(<span class="code-argument">order</span>):
+    <span class="code-statement">if</span> <span class="code-argument">order</span>.total &gt; <span class="code-number">100</span>:
+        <span class="code-argument">order</span>.discount = <span class="code-argument">order</span>.total * <span class="code-number">0.1</span></code></pre>
+<p>Curiosamente, esse tipo de refatoração costuma produzir diffs <em>menores</em> do que grandes reorganizações.</p>
+
+<h3>Como É uma Refatoração de Verdade</h3>
+<p>Refatoração de verdade tende a simplificar como o sistema funciona, não como ele é organizado.</p>
+<p>Um bom exemplo é <strong>remover conhecimento hard-coded</strong> que se espalha silenciosamente pelo sistema.</p>
+<p>Antes:</p>
+<pre class="codeblock"><code><span class="code-statement">def</span> <span class="code-statement">shipping_cost</span>(<span class="code-argument">order</span>):
+    <span class="code-statement">if</span> <span class="code-argument">order</span>.country == <span class="code-argument">"US"</span>:
+        <span class="code-statement">return</span> <span class="code-number">5</span>
+    <span class="code-statement">return</span> <span class="code-number">15</span></code></pre>
+<p>Depois:</p>
+<pre class="codeblock"><code><span class="code-argument">SHIPPING_RATES</span> = {
+    <span class="code-argument">"US"</span>: <span class="code-number">5</span>,
+    <span class="code-argument">"INTL"</span>: <span class="code-number">15</span>,
+}
+
+<span class="code-statement">def</span> <span class="code-statement">shipping_cost</span>(<span class="code-argument">order</span>):
+    <span class="code-argument">region</span> = <span class="code-argument">"US"</span> <span class="code-statement">if</span> <span class="code-argument">order</span>.country == <span class="code-argument">"US"</span> <span class="code-statement">else</span> <span class="code-argument">"INTL"</span>
+    <span class="code-statement">return</span> <span class="code-argument">SHIPPING_RATES</span>[<span class="code-argument">region</span>]</code></pre>
+<p>O comportamento não mudou, mas a regra agora é visível e centralizada em vez de enterrada dentro de um condicional. Quando os preços inevitavelmente mudarem, há um lugar claro para atualizá-los.</p>
+<p>Esse tipo de mudança raramente produz diffs dramáticos. Frequentemente envolve deletar código, colapsar camadas ou tornar relações mais explícitas.</p>
+<p>Mas elas reduzem continuamente a quantidade de trabalho necessária para entender e modificar o sistema.</p>
+
+<h3>Uma Pequena Pergunta</h3>
+<p>Antes de começar uma refatoração, pode ajudar fazer uma pergunta simples:</p>
+<p>Que problema concreto essa mudança vai resolver?</p>
+<p>Às vezes a resposta é clara: lógica duplicada desaparece, uma dependência circular é quebrada, ou um conceito de domínio se torna explícito.</p>
+<p>Outras vezes a resposta é mais difícil de articular. A mudança afeta principalmente como o código <em>parece</em>.</p>
+
+<h3>Reorganizando o Quarto</h3>
+<p>Às vezes mover coisas de lugar <em>de fato melhora</em>, mas sem um propósito claro, é um sinal de alerta. Se você não consegue explicar qual problema a mudança resolve, pode ser apenas mais um desses refactorings feng shui.</p>
+
+<hr class=end><p class=cc><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></p>
