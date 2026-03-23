@@ -5,7 +5,17 @@
   <id>tag:alganet.github.io,2025:feed.pt</id>
   <link href="https://alganet.github.io/" />
   <link href="https://alganet.github.io/feed.pt.xml" rel="self" />
-  <updated>2026-03-12T20:00:00Z</updated>
+  <updated>2026-03-23T20:00:00Z</updated>
+  <entry>
+    <title>O Plugue Universal: Conectando Containers a Callables</title>
+    <id>tag:alganet.github.io,2025:2026-03-23-20-O-Plugue-Universal--Conectando-Containers-a-Callables.pt</id>
+    <link href="https://alganet.github.io/blog/2026-03-23-20-O-Plugue-Universal--Conectando-Containers-a-Callables.pt.html" />
+    <updated>2026-03-23T20:00:00Z</updated>
+    <summary> A PSR-11 resolveu um problema importante no PHP: nos deu uma tomada universal para containers de dependência. Qualquer framework, qualquer biblioteca, qualquer aplicação pode expor seus serviços através da ContainerInterface, e qualquer consumidor pode obtê-los sem se preocupar com a...</summary>
+    <author>
+      <name>Alexandre Gomes Gaigalas</name>
+    </author>
+  </entry>
   <entry>
     <title>Refatoração Feng Shui</title>
     <id>tag:alganet.github.io,2025:2026-03-12-20-Refatoracao-Feng-Shui.pt</id>
@@ -71,7 +81,7 @@
     <id>tag:alganet.github.io,2025:2026-01-19-14-Como-Fazer-Bons-Code-Reviews.pt</id>
     <link href="https://alganet.github.io/blog/2026-01-19-14-Como-Fazer-Bons-Code-Reviews.pt.html" />
     <updated>2026-01-19T14:00:00Z</updated>
-    <summary> Bons code reviews são uma arte. Leva anos, e às vezes décadas, para aprender a fazer direito. A coisa mais importante, nossa diretiva principal, é ser gentil e construtivo. Habilidades Os outros ingredientes são conhecimento técnico e atenção aos detalhes. A seguir estão algumas das dicas mais importantes que englobam esses...</summary>
+    <summary> Bons code reviews são uma arte. Leva anos, e às vezes décadas, para aprender a fazer direito. A coisa mais importante, nossa diretiva principal, é ser gentil e construtivo. Habilidades Os outros ingredientes são conhecimento técnico e atenção aos...</summary>
     <author>
       <name>Alexandre Gomes Gaigalas</name>
     </author>

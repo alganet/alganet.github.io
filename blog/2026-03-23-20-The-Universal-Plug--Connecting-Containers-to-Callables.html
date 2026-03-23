@@ -1,0 +1,76 @@
+<!doctype html>
+<link rel=stylesheet href=/style.css?20>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Universal Plug: Connecting Containers to Callables</title>
+<script defer src="/script.js?20"></script>
+<h1><a href= />alganet</a></h1>
+<nav class=lang><a href="/blog/2026-03-23-20-The-Universal-Plug--Connecting-Containers-to-Callables.html" class=selected>English</a> <a href="/blog/2026-03-23-20-O-Plugue-Universal--Conectando-Containers-a-Callables.pt.html">Português</a></nav>
+
+<h2>The Universal Plug: Connecting Containers to Callables</h2>
+<p class=info><em>Alexandre Gomes Gaigalas</em> – <em>March 23, 2026</em></p>
+
+<p>PSR-11 solved an important problem in PHP: it gave us a <strong>universal socket</strong> for dependency containers. Any framework, any library, any application can expose its services through <code>ContainerInterface</code>, and any consumer can pull from it without caring about the implementation.</p>
+<p>But there's a gap. You have a container full of services, and you have a function that needs some of them. How do you connect the two?</p>
+
+<h3>The Gap</h3>
+<p>Consider a request handler:</p>
+<pre class="codeblock"><code><span class="code-statement">function</span> <span class="code-function">handleOrder</span>(<span class="code-class">Mailer</span> <span class="code-argument">$mailer</span>, <span class="code-class">Logger</span> <span class="code-argument">$logger</span>, <span class="code-statement">string</span> <span class="code-argument">$orderId</span>) {
+    <span class="code-argument">$logger</span>-&gt;<span class="code-function">info</span>(<span class="code-string">"Processing order $orderId"</span>);
+    <span class="code-argument">$mailer</span>-&gt;<span class="code-function">send</span>(<span class="code-string">"Order $orderId confirmed"</span>);
+}</code></pre>
+<p>Your container knows how to build a <code>Mailer</code> and a <code>Logger</code>. The function declares it needs them. But someone still has to do the wiring:</p>
+<pre class="codeblock"><code><span class="code-argument">$mailer</span> = <span class="code-argument">$container</span>-&gt;<span class="code-function">get</span>(<span class="code-class">Mailer</span>::<span class="code-statement">class</span>);
+<span class="code-argument">$logger</span> = <span class="code-argument">$container</span>-&gt;<span class="code-function">get</span>(<span class="code-class">Logger</span>::<span class="code-statement">class</span>);
+<span class="code-function">handleOrder</span>(<span class="code-argument">$mailer</span>, <span class="code-argument">$logger</span>, <span class="code-argument">$orderId</span>);</code></pre>
+<p>This works, but it's manual. You're reading the function signature with your eyes and translating it into container calls by hand. Every time the signature changes, you update the wiring. Every new handler means more glue code.</p>
+<p>If the container is the socket, this glue code is a hand-soldered wire. It works, but it doesn't scale.</p>
+
+<h3>The Plug</h3>
+<p><a href="https://github.com/Respect/Parameter">Respect\Parameter</a> is a small library that automates this connection. Give it a container and a function signature, and it figures out which parameters come from the container and which come from you.</p>
+<pre class="codeblock"><code><span class="code-statement">use</span> <span class="code-class">Respect\Parameter\Resolver</span>;
+
+<span class="code-argument">$resolver</span> = <span class="code-statement">new</span> <span class="code-class">Resolver</span>(<span class="code-argument">$container</span>);
+<span class="code-argument">$reflection</span> = <span class="code-class">Resolver</span>::<span class="code-function">reflectCallable</span>(<span class="code-string">'handleOrder'</span>);
+
+<span class="code-argument">$args</span> = <span class="code-argument">$resolver</span>-&gt;<span class="code-function">resolve</span>(<span class="code-argument">$reflection</span>, [<span class="code-string">'ORD-42'</span>]);
+<span class="code-function">handleOrder</span>(...<span class="code-argument">$args</span>);</code></pre>
+<p>That's it. The resolver sees that <code>Mailer</code> and <code>Logger</code> are class types available in the container, pulls them automatically, and slots <code>'ORD-42'</code> into the remaining <code>string</code> parameter. The result is a named array you can spread directly into the function call.</p>
+
+<h3>Named Arguments</h3>
+<p>Sometimes positional arguments aren't enough. You might want to be explicit about which parameter gets which value, especially when a function has multiple string parameters. The <code>resolveNamed</code> method handles this:</p>
+<pre class="codeblock"><code><span class="code-argument">$args</span> = <span class="code-argument">$resolver</span>-&gt;<span class="code-function">resolveNamed</span>(<span class="code-argument">$reflection</span>, [<span class="code-string">'orderId'</span> =&gt; <span class="code-string">'ORD-42'</span>]);
+<span class="code-function">handleOrder</span>(...<span class="code-argument">$args</span>);</code></pre>
+<p>Named arguments always win. If you explicitly pass <code>'orderId'</code>, the resolver uses your value. Everything else still falls through to the container and then to defaults.</p>
+
+<h3>Reflecting Any Callable</h3>
+<p>PHP has many ways to express a callable: closures, array pairs, invocable objects, function names, static method strings. The <code>reflectCallable</code> static method normalizes all of them into a <code>ReflectionFunctionAbstract</code>:</p>
+<pre class="codeblock"><code><span class="code-comment">// Closure</span>
+<span class="code-class">Resolver</span>::<span class="code-function">reflectCallable</span>(<span class="code-statement">fn</span>(<span class="code-class">Mailer</span> <span class="code-argument">$m</span>) =&gt; <span class="code-argument">$m</span>-&gt;<span class="code-function">send</span>(<span class="code-string">'hi'</span>));
+
+<span class="code-comment">// Object method</span>
+<span class="code-class">Resolver</span>::<span class="code-function">reflectCallable</span>([<span class="code-argument">$controller</span>, <span class="code-string">'index'</span>]);
+
+<span class="code-comment">// Invocable object</span>
+<span class="code-class">Resolver</span>::<span class="code-function">reflectCallable</span>(<span class="code-argument">$middleware</span>);
+
+<span class="code-comment">// Static method string</span>
+<span class="code-class">Resolver</span>::<span class="code-function">reflectCallable</span>(<span class="code-string">'Cache::warmUp'</span>);</code></pre>
+<p>This is useful on its own, even outside parameter resolution. Any time you need to introspect a callable's signature, this saves you from writing a cascade of <code>instanceof</code> checks.</p>
+
+<h3>Where This Fits</h3>
+<p>The library is intentionally minimal. It doesn't build containers, doesn't manage lifecycles, doesn't do routing. It does one thing: given a container and a callable, resolve the parameters.</p>
+<p>This makes it a natural fit as a building block for:</p>
+<ul>
+    <li><strong>Request dispatchers</strong> that autowire controller actions.</li>
+    <li><strong>Event systems</strong> that resolve listener dependencies.</li>
+    <li><strong>CLI runners</strong> that inject services into command handlers.</li>
+    <li><strong>Middleware pipelines</strong> that wire dependencies into each layer.</li>
+</ul>
+<p>In all these cases, the pattern is the same: you know <em>what</em> to call, the container knows <em>what exists</em>, and the resolver connects the two.</p>
+
+<h3>Socket and Plug</h3>
+<p>PSR-11 standardized how to <em>pull</em> dependencies out of a container. But it left the question of how to <em>push</em> them into arbitrary callables as an exercise for the reader.</p>
+<p>That exercise usually ends up as framework-specific autowiring logic, tightly coupled to a particular DI container or router. The same problem, solved slightly differently, in every project.</p>
+<p><a href="https://github.com/Respect/Parameter">Respect\Parameter</a> is a small, portable answer. If <code>ContainerInterface</code> is the universal socket, then <code>Resolver</code> is the universal plug.</p>
+
+<hr class=end><p class=cc><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></p>

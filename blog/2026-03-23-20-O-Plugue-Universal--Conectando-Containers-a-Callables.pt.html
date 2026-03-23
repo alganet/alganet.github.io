@@ -1,0 +1,76 @@
+<!doctype html>
+<link rel=stylesheet href=/style.css?20>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>O Plugue Universal: Conectando Containers a Callables</title>
+<script defer src="/script.js?20"></script>
+<h1><a href=/index.pt.html>alganet</a></h1>
+<nav class=lang><a href="/blog/2026-03-23-20-The-Universal-Plug--Connecting-Containers-to-Callables.html">English</a> <a href="/blog/2026-03-23-20-O-Plugue-Universal--Conectando-Containers-a-Callables.pt.html" class=selected>Português</a></nav>
+
+<h2>O Plugue Universal: Conectando Containers a Callables</h2>
+<p class=info><em>Alexandre Gomes Gaigalas</em> – <em>23 de Março de 2026</em></p>
+
+<p>A PSR-11 resolveu um problema importante no PHP: nos deu uma <strong>tomada universal</strong> para containers de dependência. Qualquer framework, qualquer biblioteca, qualquer aplicação pode expor seus serviços através da <code>ContainerInterface</code>, e qualquer consumidor pode obtê-los sem se preocupar com a implementação.</p>
+<p>Mas existe um problema. Você tem um container cheio de serviços, e tem uma função que precisa de alguns deles. Como você conecta os dois?</p>
+
+<h3>O Problema</h3>
+<p>Considere um handler de requisição:</p>
+<pre class="codeblock"><code><span class="code-statement">function</span> <span class="code-function">handleOrder</span>(<span class="code-class">Mailer</span> <span class="code-argument">$mailer</span>, <span class="code-class">Logger</span> <span class="code-argument">$logger</span>, <span class="code-statement">string</span> <span class="code-argument">$orderId</span>) {
+    <span class="code-argument">$logger</span>-&gt;<span class="code-function">info</span>(<span class="code-string">"Processing order $orderId"</span>);
+    <span class="code-argument">$mailer</span>-&gt;<span class="code-function">send</span>(<span class="code-string">"Order $orderId confirmed"</span>);
+}</code></pre>
+<p>Seu container sabe como construir um <code>Mailer</code> e um <code>Logger</code>. A função declara que precisa deles. Mas alguém ainda tem que fazer a ligação:</p>
+<pre class="codeblock"><code><span class="code-argument">$mailer</span> = <span class="code-argument">$container</span>-&gt;<span class="code-function">get</span>(<span class="code-class">Mailer</span>::<span class="code-statement">class</span>);
+<span class="code-argument">$logger</span> = <span class="code-argument">$container</span>-&gt;<span class="code-function">get</span>(<span class="code-class">Logger</span>::<span class="code-statement">class</span>);
+<span class="code-function">handleOrder</span>(<span class="code-argument">$mailer</span>, <span class="code-argument">$logger</span>, <span class="code-argument">$orderId</span>);</code></pre>
+<p>Funciona, mas é manual. Você está lendo a assinatura da função com os olhos e traduzindo-a em chamadas ao container à mão. Cada vez que a assinatura muda, você atualiza a ligação. Cada novo handler significa mais código de cola.</p>
+<p>Se o container é a tomada, esse código de cola é um fio soldado à mão. Funciona, mas não escala.</p>
+
+<h3>O Plugue</h3>
+<p><a href="https://github.com/Respect/Parameter">Respect\Parameter</a> é uma biblioteca pequena que automatiza essa conexão. Forneça um container e uma assinatura de função, e ela descobre quais parâmetros vêm do container e quais vêm de você.</p>
+<pre class="codeblock"><code><span class="code-statement">use</span> <span class="code-class">Respect\Parameter\Resolver</span>;
+
+<span class="code-argument">$resolver</span> = <span class="code-statement">new</span> <span class="code-class">Resolver</span>(<span class="code-argument">$container</span>);
+<span class="code-argument">$reflection</span> = <span class="code-class">Resolver</span>::<span class="code-function">reflectCallable</span>(<span class="code-string">'handleOrder'</span>);
+
+<span class="code-argument">$args</span> = <span class="code-argument">$resolver</span>-&gt;<span class="code-function">resolve</span>(<span class="code-argument">$reflection</span>, [<span class="code-string">'ORD-42'</span>]);
+<span class="code-function">handleOrder</span>(...<span class="code-argument">$args</span>);</code></pre>
+<p>Só isso. O resolver vê que <code>Mailer</code> e <code>Logger</code> são tipos de classe disponíveis no container, puxa-os automaticamente, e encaixa <code>'ORD-42'</code> no parâmetro <code>string</code> restante. O resultado é um array nomeado que você pode espalhar diretamente na chamada da função.</p>
+
+<h3>Argumentos Nomeados</h3>
+<p>Às vezes argumentos posicionais não são suficientes. Você pode querer ser explícito sobre qual parâmetro recebe qual valor, especialmente quando uma função tem múltiplos parâmetros string. O método <code>resolveNamed</code> cuida disso:</p>
+<pre class="codeblock"><code><span class="code-argument">$args</span> = <span class="code-argument">$resolver</span>-&gt;<span class="code-function">resolveNamed</span>(<span class="code-argument">$reflection</span>, [<span class="code-string">'orderId'</span> =&gt; <span class="code-string">'ORD-42'</span>]);
+<span class="code-function">handleOrder</span>(...<span class="code-argument">$args</span>);</code></pre>
+<p>Argumentos nomeados sempre vencem. Se você passa explicitamente <code>'orderId'</code>, o resolver usa seu valor. Todo o resto ainda cai para o container e depois para os valores padrão.</p>
+
+<h3>Refletindo Qualquer Callable</h3>
+<p>O PHP tem muitas formas de expressar um callable: closures, pares de array, objetos invocáveis, nomes de função, strings de método estático. O método estático <code>reflectCallable</code> normaliza todas elas em um <code>ReflectionFunctionAbstract</code>:</p>
+<pre class="codeblock"><code><span class="code-comment">// Closure</span>
+<span class="code-class">Resolver</span>::<span class="code-function">reflectCallable</span>(<span class="code-statement">fn</span>(<span class="code-class">Mailer</span> <span class="code-argument">$m</span>) =&gt; <span class="code-argument">$m</span>-&gt;<span class="code-function">send</span>(<span class="code-string">'hi'</span>));
+
+<span class="code-comment">// Método de objeto</span>
+<span class="code-class">Resolver</span>::<span class="code-function">reflectCallable</span>([<span class="code-argument">$controller</span>, <span class="code-string">'index'</span>]);
+
+<span class="code-comment">// Objeto invocável</span>
+<span class="code-class">Resolver</span>::<span class="code-function">reflectCallable</span>(<span class="code-argument">$middleware</span>);
+
+<span class="code-comment">// String de método estático</span>
+<span class="code-class">Resolver</span>::<span class="code-function">reflectCallable</span>(<span class="code-string">'Cache::warmUp'</span>);</code></pre>
+<p>Isso é útil por si só, mesmo fora da resolução de parâmetros. Sempre que você precisa introspectar a assinatura de um callable, isso evita escrever uma cascata de verificações <code>instanceof</code>.</p>
+
+<h3>Onde Isso Se Encaixa</h3>
+<p>A biblioteca é intencionalmente mínima. Ela não constrói containers, não gerencia ciclos de vida, não faz roteamento. Ela faz uma coisa: dado um container e um callable, resolve os parâmetros.</p>
+<p>Isso a torna uma peça natural como bloco de construção para:</p>
+<ul>
+    <li><strong>Dispatchers de requisição</strong> que fazem autowiring de ações de controllers.</li>
+    <li><strong>Sistemas de eventos</strong> que resolvem dependências de listeners.</li>
+    <li><strong>Runners de CLI</strong> que injetam serviços em handlers de comando.</li>
+    <li><strong>Pipelines de middleware</strong> que conectam dependências em cada camada.</li>
+</ul>
+<p>Em todos esses casos, o padrão é o mesmo: você sabe <em>o que</em> chamar, o container sabe <em>o que existe</em>, e o resolver conecta os dois.</p>
+
+<h3>Tomada e Plugue</h3>
+<p>A PSR-11 padronizou como <em>puxar</em> dependências de um container. Mas deixou a questão de como <em>empurrá-las</em> para callables arbitrários como exercício para o leitor.</p>
+<p>Esse exercício geralmente acaba como lógica de autowiring específica do framework, fortemente acoplada a um container de DI ou router particular. O mesmo problema, resolvido de forma ligeiramente diferente, em cada projeto.</p>
+<p><a href="https://github.com/Respect/Parameter">Respect\Parameter</a> é uma resposta pequena e portátil. Se a <code>ContainerInterface</code> é a tomada universal, então o <code>Resolver</code> é o plugue universal.</p>
+
+<hr class=end><p class=cc><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></p>

@@ -5,7 +5,17 @@
   <id>tag:alganet.github.io,2025:feed</id>
   <link href="https://alganet.github.io/" />
   <link href="https://alganet.github.io/feed.xml" rel="self" />
-  <updated>2026-03-12T20:00:00Z</updated>
+  <updated>2026-03-23T20:00:00Z</updated>
+  <entry>
+    <title>The Universal Plug: Connecting Containers to Callables</title>
+    <id>tag:alganet.github.io,2025:2026-03-23-20-The-Universal-Plug--Connecting-Containers-to-Callables</id>
+    <link href="https://alganet.github.io/blog/2026-03-23-20-The-Universal-Plug--Connecting-Containers-to-Callables.html" />
+    <updated>2026-03-23T20:00:00Z</updated>
+    <summary> PSR-11 solved an important problem in PHP: it gave us a universal socket for dependency containers. Any framework, any library, any application can expose its services through ContainerInterface, and any consumer can pull from it without caring about the...</summary>
+    <author>
+      <name>Alexandre Gomes Gaigalas</name>
+    </author>
+  </entry>
   <entry>
     <title>Feng Shui Refactoring</title>
     <id>tag:alganet.github.io,2025:2026-03-12-20-Feng-Shui-Refactoring</id>
