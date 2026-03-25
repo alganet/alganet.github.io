@@ -5,7 +5,17 @@
   <id>tag:alganet.github.io,2025:feed.pt</id>
   <link href="https://alganet.github.io/" />
   <link href="https://alganet.github.io/feed.pt.xml" rel="self" />
-  <updated>2026-03-23T20:00:00Z</updated>
+  <updated>2026-03-25T05:00:00Z</updated>
+  <entry>
+    <title>Ensinando IA a Verificar Suas Fontes</title>
+    <id>tag:alganet.github.io,2025:2026-03-25-05-Ensinando-IA-a-Verificar-Fontes.pt</id>
+    <link href="https://alganet.github.io/blog/2026-03-25-05-Ensinando-IA-a-Verificar-Fontes.pt.html" />
+    <updated>2026-03-25T05:00:00Z</updated>
+    <summary> LLMs citam documenta&amp;ccedil;&amp;atilde;o que n&amp;atilde;o existe com total confian&amp;ccedil;a. &amp;ldquo;De acordo com o MDN, Promise.allSettled() retorna uma promise que resolve quando todas as promises s&amp;atilde;o completadas (&amp;ldquo;returns a promise that resolves when all promises have...</summary>
+    <author>
+      <name>Alexandre Gomes Gaigalas</name>
+    </author>
+  </entry>
   <entry>
     <title>O Plugue Universal: Conectando Containers a Callables</title>
     <id>tag:alganet.github.io,2025:2026-03-23-20-O-Plugue-Universal--Conectando-Containers-a-Callables.pt</id>
@@ -81,7 +91,7 @@
     <id>tag:alganet.github.io,2025:2026-01-19-14-Como-Fazer-Bons-Code-Reviews.pt</id>
     <link href="https://alganet.github.io/blog/2026-01-19-14-Como-Fazer-Bons-Code-Reviews.pt.html" />
     <updated>2026-01-19T14:00:00Z</updated>
-    <summary> Bons code reviews são uma arte. Leva anos, e às vezes décadas, para aprender a fazer direito. A coisa mais importante, nossa diretiva principal, é ser gentil e construtivo. Habilidades Os outros ingredientes são conhecimento técnico e atenção aos...</summary>
+    <summary> Bons code reviews são uma arte. Leva anos, e às vezes décadas, para aprender a fazer direito. A coisa mais importante, nossa diretiva principal, é ser gentil e construtivo. Habilidades Os outros ingredientes são conhecimento técnico e atenção aos detalhes. A seguir estão algumas das dicas mais importantes que englobam esses...</summary>
     <author>
       <name>Alexandre Gomes Gaigalas</name>
     </author>

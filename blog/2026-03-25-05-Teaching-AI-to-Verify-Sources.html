@@ -1,0 +1,95 @@
+<!doctype html>
+<link rel=stylesheet href=/style.css?20>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teaching AI to Verify Its Sources</title>
+<script defer src="/script.js?20"></script>
+<h1><a href= />alganet</a></h1>
+<nav class=lang><a href="/blog/2026-03-25-05-Teaching-AI-to-Verify-Sources.html" class=selected>English</a> <a href="/blog/2026-03-25-05-Ensinando-IA-a-Verificar-Fontes.pt.html">Português</a></nav>
+
+<h2>Teaching AI to Verify Its Sources</h2>
+<p class=info><em>Alexandre Gomes Gaigalas</em> – <em>March 25, 2026</em></p>
+
+<p>LLMs confidently cite documentation that doesn't exist.</p>
+<p>&ldquo;According to MDN, <code>Promise.allSettled()</code> returns a promise that resolves when all promises have completed.&rdquo;</p>
+<p>That <em>sounds</em> right. But MDN actually says &ldquo;fulfills when all of the input's promises settle&rdquo;. Different verb, different semantics. A human might not catch this. But a tool can.</p>
+<p>This post shows how to make an AI verify its own claims before writing them, using <a href="https://github.com/alganet/apysource">apysource</a> and a simple instruction file.</p>
+<p>A working demo of this workflow lives at <a href="https://github.com/alganet/ecmascript-featurecard">alganet/ecmascript-featurecard</a>.</p>
+
+<h3>The Instruction File</h3>
+<p>Most coding agents support project-level instruction files: a markdown file in the repo root that the agent reads before starting work. Drop this into yours:</p>
+<pre class=codeblock><code><span class="code-comment"># Source Verification</span>
+
+When writing documentation that references external sources, prefer
+direct quotes over paraphrasing. Every factual claim about what a
+source says should be backed by an exact snippet from that source.
+
+1. Before claiming <span class="code-string">"X says Y"</span>, verify the quote:
+       apysource locate <span class="code-string">"&lt;url&gt;"</span> <span class="code-string">"&lt;exact quote&gt;"</span>
+   If the snippet is not found, do not make the claim.
+
+2. After verifying, register the claim:
+       apysource add sources.yaml <span class="code-string">"&lt;url&gt;"</span> <span class="code-string">"&lt;exact quote&gt;"</span> --label <span class="code-string">"&lt;claim name&gt;"</span>
+
+3. After all documentation is written, run the full check:
+       apysource check sources.yaml
+   All checks must pass before considering the task complete.</code></pre>
+<p>Think of it as an automated <code>[citation needed]</code>, the kind Wikipedia editors tag on unsourced claims, except here the agent is both the writer and the fact-checker, and the tag is enforced before the text is ever committed.</p>
+<p>That's the entire integration. The agent reads this file, gains access to three shell commands, and follows the workflow: <strong>locate -&gt; add -&gt; check</strong>.</p>
+
+<h3>The Happy Path</h3>
+<p>A user asks the agent to add <code>Array.findLast()</code> to the reference card.</p>
+<p>The agent first verifies a quote from the MDN page:</p>
+<pre class=codeblock><code><span class="code-argument">$</span> apysource locate \
+    <span class="code-string">"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findLast"</span> \
+    <span class="code-string">"iterates the array in reverse order"</span></code></pre>
+<pre class=codeblock><code><span class="code-comment"># Found in: https://developer.mozilla.org/en-US/docs/.../Array/findLast</span>
+<span class="code-comment"># Targetter: section</span>
+
+<span class="code-operator">-</span> <span class="code-attr">label</span><span class="code-operator">:</span> <span class="code-string">''</span>
+  <span class="code-attr">section</span><span class="code-operator">:</span> Array.prototype.findLast(), paragraph 2
+  <span class="code-attr">snippet</span><span class="code-operator">:</span> iterates the array in reverse order</code></pre>
+<p>The snippet exists. The agent registers it:</p>
+<pre class=codeblock><code><span class="code-argument">$</span> apysource add sources.yaml \
+    <span class="code-string">"https://developer.mozilla.org/.../Array/findLast"</span> \
+    <span class="code-string">"iterates the array in reverse order"</span> \
+    --label <span class="code-string">"Array.findLast() iteration"</span></code></pre>
+<pre class=codeblock><code><span class="code-output">  Located: section -> Array.prototype.findLast(), paragraph 2
+  Added new source: https://developer.mozilla.org/.../Array/findLast
+  Added fragment "Array.findLast() iteration" to sources.yaml</span></code></pre>
+<p>Then runs the full check:</p>
+<pre class=codeblock><code><span class="code-argument">$</span> apysource check sources.yaml</code></pre>
+<pre class=codeblock><code><span class="code-output">  <span class="code-result">[PASS]</span> Fragments: cache resolution............. 8/8
+  <span class="code-result">[PASS]</span> Fragments: content extraction........... 8/8
+  <span class="code-result">[PASS]</span> Fragments: snippet verified............. 8/8</span></code></pre>
+<p>All 8 fragments (the original 7 plus the new one) pass. The agent proceeds to regenerate the reference card with <code>python generate.py</code>.</p>
+
+<h3>The Hallucination</h3>
+<p>Now the agent tries a different quote, one it <em>thinks</em> MDN says:</p>
+<pre class=codeblock><code><span class="code-argument">$</span> apysource locate \
+    <span class="code-string">"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findLast"</span> \
+    <span class="code-string">"returns the first matching element from the end of the array"</span></code></pre>
+<pre class=codeblock><code><span class="code-output"><span class="code-stderr">Error: snippet not found in https://developer.mozilla.org/.../Array/findLast</span></span></code></pre>
+<p>Exit code 1. The instruction is clear: <em>&ldquo;If the snippet is not found, do not make the claim.&rdquo;</em></p>
+<p>The agent doesn't write the hallucinated quote. Instead, it goes back to <code>locate</code> with a shorter phrase, finds what MDN actually says, and uses that instead.</p>
+<p>This is not post-hoc correction. The agent never wrote the wrong claim. The verification happened <em>before</em> the documentation was produced.</p>
+
+<h3>CI as Safety Net</h3>
+<p>Even with the instruction file, agents make mistakes. The CI pipeline is the final gate:</p>
+<pre class=codeblock><code><span class="code-comment"># .github/workflows/verify-sources.yml</span>
+<span class="code-attr">name</span><span class="code-operator">:</span> Verify Sources
+<span class="code-attr">on</span><span class="code-operator">:</span> <span class="code-operator">[</span>push, pull_request<span class="code-operator">]</span>
+<span class="code-attr">jobs</span><span class="code-operator">:</span>
+  <span class="code-attr">check</span><span class="code-operator">:</span>
+    <span class="code-attr">runs-on</span><span class="code-operator">:</span> ubuntu-latest
+    <span class="code-attr">steps</span><span class="code-operator">:</span>
+      <span class="code-operator">-</span> <span class="code-attr">uses</span><span class="code-operator">:</span> actions/checkout@v4
+      <span class="code-operator">-</span> <span class="code-attr">run</span><span class="code-operator">:</span> pip install apysource
+      <span class="code-operator">-</span> <span class="code-attr">run</span><span class="code-operator">:</span> apysource check sources.yaml</code></pre>
+<p>If any quote drifts, whether the agent introduced it or MDN changed the page, the build fails. The <code>sources.yaml</code> manifest is the contract between the documentation and its sources.</p>
+
+<h3>Final Remarks</h3>
+<p>Without source verification, AI-generated documentation is a liability. You can't distinguish accurate citations from hallucinations without manually checking every link.</p>
+<p>With apysource in the loop, the agent becomes a <em>verified</em> documentation author. Every claim is grounded. Every quote is checked. The provenance graph records when it was verified and what the outcome was.</p>
+<p>The <code>sources.yaml</code> file is a machine-readable bibliography. It can generate reference cards, feed dashboards, or serve as an audit trail.</p>
+
+<hr class=end><p class=cc><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></p>

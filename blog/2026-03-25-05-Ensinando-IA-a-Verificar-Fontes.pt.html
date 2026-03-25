@@ -1,0 +1,95 @@
+<!doctype html>
+<link rel=stylesheet href=/style.css?20>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ensinando IA a Verificar Suas Fontes</title>
+<script defer src="/script.js?20"></script>
+<h1><a href=/index.pt.html>alganet</a></h1>
+<nav class=lang><a href="/blog/2026-03-25-05-Teaching-AI-to-Verify-Sources.html">English</a> <a href="/blog/2026-03-25-05-Ensinando-IA-a-Verificar-Fontes.pt.html" class=selected>Português</a></nav>
+
+<h2>Ensinando IA a Verificar Suas Fontes</h2>
+<p class=info><em>Alexandre Gomes Gaigalas</em> – <em>25 de Março de 2026</em></p>
+
+<p>LLMs citam documenta&ccedil;&atilde;o que n&atilde;o existe com total confian&ccedil;a.</p>
+<p>&ldquo;De acordo com o MDN, <code>Promise.allSettled()</code> retorna uma promise que resolve quando todas as promises s&atilde;o completadas (<em lang=en>&ldquo;returns a promise that resolves when all promises have completed&rdquo;</em>).&rdquo;</p>
+<p>Isso <em>parece</em> correto. Mas o MDN na verdade diz <em lang=en>&ldquo;fulfills when all of the input's promises settle&rdquo;</em> (&ldquo;cumpre quando todas as promises da entrada se estabelecem&rdquo;). Verbo diferente, sem&acirc;ntica diferente. Um humano pode n&atilde;o perceber isso. Mas uma ferramenta pode.</p>
+<p>Este post mostra como fazer uma IA verificar suas pr&oacute;prias afirma&ccedil;&otilde;es antes de escrev&ecirc;-las, usando <a href="https://github.com/alganet/apysource">apysource</a> e um simples arquivo de instru&ccedil;&otilde;es.</p>
+<p>Uma demonstra&ccedil;&atilde;o funcional deste fluxo de trabalho est&aacute; em <a href="https://github.com/alganet/ecmascript-featurecard">alganet/ecmascript-featurecard</a>.</p>
+
+<h3>O Arquivo de Instru&ccedil;&otilde;es</h3>
+<p>A maioria dos agentes de c&oacute;digo suporta arquivos de instru&ccedil;&otilde;es em n&iacute;vel de projeto: um arquivo markdown na raiz do reposit&oacute;rio que o agente l&ecirc; antes de come&ccedil;ar o trabalho. Coloque isto no seu:</p>
+<pre class=codeblock><code><span class="code-comment"># Verifica&ccedil;&atilde;o de Fontes</span>
+
+Ao escrever documenta&ccedil;&atilde;o que referencia fontes externas, prefira
+cita&ccedil;&otilde;es diretas em vez de par&aacute;frases. Toda afirma&ccedil;&atilde;o factual sobre o
+que uma fonte diz deve ser respaldada por um trecho exato dessa fonte.
+
+1. Antes de afirmar <span class="code-string">"X diz Y"</span>, verifique a cita&ccedil;&atilde;o:
+       apysource locate <span class="code-string">"&lt;url&gt;"</span> <span class="code-string">"&lt;cita&ccedil;&atilde;o exata&gt;"</span>
+   Se o trecho n&atilde;o for encontrado, n&atilde;o fa&ccedil;a a afirma&ccedil;&atilde;o.
+
+2. Ap&oacute;s verificar, registre a afirma&ccedil;&atilde;o:
+       apysource add sources.yaml <span class="code-string">"&lt;url&gt;"</span> <span class="code-string">"&lt;cita&ccedil;&atilde;o exata&gt;"</span> --label <span class="code-string">"&lt;nome da afirma&ccedil;&atilde;o&gt;"</span>
+
+3. Ap&oacute;s toda a documenta&ccedil;&atilde;o ser escrita, execute a verifica&ccedil;&atilde;o completa:
+       apysource check sources.yaml
+   Todas as verifica&ccedil;&otilde;es devem passar antes de considerar a tarefa conclu&iacute;da.</code></pre>
+<p>Pense nisso como um <code>[cita&ccedil;&atilde;o necess&aacute;ria]</code> automatizado, do tipo que editores da Wikip&eacute;dia colocam em afirma&ccedil;&otilde;es sem fonte, exceto que aqui o agente &eacute; tanto o escritor quanto o verificador, e a tag &eacute; aplicada antes do texto ser commitado.</p>
+<p>Essa &eacute; toda a integra&ccedil;&atilde;o. O agente l&ecirc; este arquivo, ganha acesso a tr&ecirc;s comandos shell, e segue o fluxo: <strong>locate -&gt; add -&gt; check</strong>.</p>
+
+<h3>O Caminho Feliz</h3>
+<p>Um usu&aacute;rio pede ao agente para adicionar <code>Array.findLast()</code> ao cart&atilde;o de refer&ecirc;ncia.</p>
+<p>O agente primeiro verifica uma cita&ccedil;&atilde;o da p&aacute;gina do MDN:</p>
+<pre class=codeblock><code><span class="code-argument">$</span> apysource locate \
+    <span class="code-string">"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findLast"</span> \
+    <span class="code-string">"iterates the array in reverse order"</span></code></pre>
+<pre class=codeblock><code><span class="code-comment"># Found in: https://developer.mozilla.org/en-US/docs/.../Array/findLast</span>
+<span class="code-comment"># Targetter: section</span>
+
+<span class="code-operator">-</span> <span class="code-attr">label</span><span class="code-operator">:</span> <span class="code-string">''</span>
+  <span class="code-attr">section</span><span class="code-operator">:</span> Array.prototype.findLast(), paragraph 2
+  <span class="code-attr">snippet</span><span class="code-operator">:</span> iterates the array in reverse order</code></pre>
+<p>O trecho existe. O agente o registra:</p>
+<pre class=codeblock><code><span class="code-argument">$</span> apysource add sources.yaml \
+    <span class="code-string">"https://developer.mozilla.org/.../Array/findLast"</span> \
+    <span class="code-string">"iterates the array in reverse order"</span> \
+    --label <span class="code-string">"Array.findLast() iteration"</span></code></pre>
+<pre class=codeblock><code><span class="code-output">  Located: section -> Array.prototype.findLast(), paragraph 2
+  Added new source: https://developer.mozilla.org/.../Array/findLast
+  Added fragment "Array.findLast() iteration" to sources.yaml</span></code></pre>
+<p>Ent&atilde;o executa a verifica&ccedil;&atilde;o completa:</p>
+<pre class=codeblock><code><span class="code-argument">$</span> apysource check sources.yaml</code></pre>
+<pre class=codeblock><code><span class="code-output">  <span class="code-result">[PASS]</span> Fragments: cache resolution............. 8/8
+  <span class="code-result">[PASS]</span> Fragments: content extraction........... 8/8
+  <span class="code-result">[PASS]</span> Fragments: snippet verified............. 8/8</span></code></pre>
+<p>Todos os 8 fragmentos (os 7 originais mais o novo) passam. O agente prossegue para regenerar o cart&atilde;o de refer&ecirc;ncia com <code>python generate.py</code>.</p>
+
+<h3>A Alucina&ccedil;&atilde;o</h3>
+<p>Agora o agente tenta uma cita&ccedil;&atilde;o diferente, uma que ele <em>acha</em> que o MDN diz:</p>
+<pre class=codeblock><code><span class="code-argument">$</span> apysource locate \
+    <span class="code-string">"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findLast"</span> \
+    <span class="code-string">"returns the first matching element from the end of the array"</span></code></pre>
+<pre class=codeblock><code><span class="code-output"><span class="code-stderr">Error: snippet not found in https://developer.mozilla.org/.../Array/findLast</span></span></code></pre>
+<p>C&oacute;digo de sa&iacute;da 1. A instru&ccedil;&atilde;o &eacute; clara: <em>&ldquo;Se o trecho n&atilde;o for encontrado, n&atilde;o fa&ccedil;a a afirma&ccedil;&atilde;o.&rdquo;</em></p>
+<p>O agente n&atilde;o escreve a cita&ccedil;&atilde;o alucinada. Em vez disso, volta ao <code>locate</code> com uma frase mais curta, encontra o que o MDN realmente diz, e usa isso.</p>
+<p>Isso n&atilde;o &eacute; corre&ccedil;&atilde;o ap&oacute;s o fato. O agente nunca escreveu a afirma&ccedil;&atilde;o errada. A verifica&ccedil;&atilde;o aconteceu <em>antes</em> da documenta&ccedil;&atilde;o ser produzida.</p>
+
+<h3>CI como Mecanismo de Seguran&ccedil;a</h3>
+<p>Mesmo com o arquivo de instru&ccedil;&otilde;es, agentes cometem erros. O pipeline de CI &eacute; o portão final:</p>
+<pre class=codeblock><code><span class="code-comment"># .github/workflows/verify-sources.yml</span>
+<span class="code-attr">name</span><span class="code-operator">:</span> Verify Sources
+<span class="code-attr">on</span><span class="code-operator">:</span> <span class="code-operator">[</span>push, pull_request<span class="code-operator">]</span>
+<span class="code-attr">jobs</span><span class="code-operator">:</span>
+  <span class="code-attr">check</span><span class="code-operator">:</span>
+    <span class="code-attr">runs-on</span><span class="code-operator">:</span> ubuntu-latest
+    <span class="code-attr">steps</span><span class="code-operator">:</span>
+      <span class="code-operator">-</span> <span class="code-attr">uses</span><span class="code-operator">:</span> actions/checkout@v4
+      <span class="code-operator">-</span> <span class="code-attr">run</span><span class="code-operator">:</span> pip install apysource
+      <span class="code-operator">-</span> <span class="code-attr">run</span><span class="code-operator">:</span> apysource check sources.yaml</code></pre>
+<p>Se qualquer cita&ccedil;&atilde;o divergir, seja porque o agente a introduziu ou porque o MDN mudou a p&aacute;gina, o build falha. O manifesto <code>sources.yaml</code> &eacute; o contrato entre a documenta&ccedil;&atilde;o e suas fontes.</p>
+
+<h3>Considera&ccedil;&otilde;es Finais</h3>
+<p>Sem verifica&ccedil;&atilde;o de fontes, documenta&ccedil;&atilde;o gerada por IA &eacute; um passivo. Voc&ecirc; n&atilde;o consegue distinguir cita&ccedil;&otilde;es precisas de alucina&ccedil;&otilde;es sem verificar manualmente cada link.</p>
+<p>Com apysource no fluxo, o agente se torna um autor de documenta&ccedil;&atilde;o <em>verificado</em>. Cada afirma&ccedil;&atilde;o &eacute; fundamentada. Cada cita&ccedil;&atilde;o &eacute; checada. O grafo de proveninência registra quando foi verificado e qual foi o resultado.</p>
+<p>O arquivo <code>sources.yaml</code> &eacute; uma bibliografia leg&iacute;vel por m&aacute;quina. Ele pode gerar cart&otilde;es de refer&ecirc;ncia, alimentar dashboards, ou servir como trilha de auditoria.</p>
+
+<hr class=end><p class=cc><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></p>
