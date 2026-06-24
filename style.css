@@ -45,14 +45,20 @@
 html {
   color-scheme: light;
   background-color: var(--bg-base);
+}
+
+/* Fixed gradient on its own compositor layer; avoids the per-frame
+   repaint that background-attachment: fixed triggers (Safari jank). */
+html::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--bg-base);
   background-image: var(--bg-gradient);
-  background-attachment: fixed;
 }
 
 body {
-  background-color: var(--bg-base);
-  background-image: var(--bg-gradient);
-  background-attachment: fixed;
   color: var(--text-main);
   min-height: 100vh;
   max-width: var(--content-max);
