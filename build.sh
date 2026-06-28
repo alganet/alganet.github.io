@@ -122,7 +122,7 @@ do
                 order=$((order + 1))
                 ;;
         esac
-        echo "$line" >> "tmp_${LANG_SUFFIX}_${order}_${section}_section.html"
+        printf '%s\n' "$line" >> "tmp_${LANG_SUFFIX}_${order}_${section}_section.html"
     done < "./$INDEX_FILE"
 
     # Rebuild the full blog and latest posts section
@@ -214,7 +214,7 @@ do
         
         write_header "$entry" "$LANG_SUFFIX" "$title" > "tmp_entry.html"
         cat tmp_entry.html > "${entry}"
-        echo "$content" >> "${entry}"
+        printf '%s\n' "$content" >> "${entry}"
         echo "<hr class=end><p class=cc><a href=\"https://creativecommons.org/licenses/by-nc-sa/4.0/\">CC BY-NC-SA 4.0</a></p>" >> "${entry}"
         echo "<li><a href=\"/${entry}\">$title</a> <em>$date</em></li>" >> "$BLOG_ALL"
         rm tmp_entry.html
@@ -242,7 +242,7 @@ do
             write_header "$INDEX_FILE" "$LANG_SUFFIX" >> "$INDEX_FILE"
         else
             while get_line
-            do echo "$line" >> "$INDEX_FILE"
+            do printf '%s\n' "$line" >> "$INDEX_FILE"
             done < "$filename"
         fi
         rm "$filename"

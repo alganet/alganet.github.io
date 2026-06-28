@@ -1,0 +1,57 @@
+<!doctype html>
+<link rel=stylesheet href=/style.css?20>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>POSIX Is Not A Shell</title>
+<script defer src="/script.js?20"></script>
+<h1><a href= />alganet</a></h1>
+<nav class=lang><a href="/blog/2026-06-28-12-POSIX-Is-Not-A-Shell.html" class=selected>English</a> <a href="/blog/2026-06-28-12-POSIX-Nao-E-Um-Shell.pt.html">Português</a></nav>
+
+<h2>POSIX Is Not A Shell</h2>
+<p class=info><em>Alexandre Gomes Gaigalas</em> – <em>June 28, 2026</em></p>
+<p>When someone says "write it in POSIX shell for portability," they mean well.</p>
+<p>POSIX is a specification. Not a program. The thing that actually runs your script is bash, dash, ash, ksh, yash, or one of a dozen others. They each implement POSIX with their own gaps, extensions, and historical accidents.</p>
+<p>Here is a small experiment. One line, no flags, no functions, nothing exotic:</p>
+<pre class="codeblock"><code><span class="code-comment">#!/bin/sh</span>
+<span class="code-statement">echo</span> <span class="code-string">"C:\new"</span></code></pre>
+<p>On bash, ksh, and a handful of others, you get back exactly what you typed:</p>
+<pre class="codeblock"><code><span class="code-output">C:\new</span></code></pre>
+<p>On dash (which <em>is</em> <code>/bin/sh</code> on Debian, Ubuntu, and Alpine) the same line prints:</p>
+<pre class="codeblock"><code><span class="code-output">C:
+ew</span></code></pre>
+<p>dash's <code>echo</code> interprets <code>\n</code> as a newline. bash's does not. Run it across <a href="https://github.com/alganet/shell-versions">shell-versions</a> and the shells split almost evenly: about half treat the backslash literally, the other half expand it.</p>
+<pre class="codeblock"><code><span class="code-statement">docker</span> run --rm alganet/shell-versions:all -c <span class="code-string">'echo "C:\new"'</span></code></pre>
+<p>POSIX does not break the tie. The standard explicitly leaves <a href="https://pubs.opengroup.org/onlinepubs/9699919799/utilities/echo.html#tag_20_37_05"><code>echo</code>'s treatment of backslash escapes <strong>implementation-defined</strong></a>, and <a href="https://pubs.opengroup.org/onlinepubs/9699919799/utilities/echo.html#tag_20_37_16">encourages you to use <code>printf</code> instead</a>. So "POSIX <code>echo</code>" is not a behavior you can write a script against. It is a documented disagreement.</p>
+<p>This is not a contrived edge case. <code>echo</code> is the first command anyone learns. It is what "POSIX compliant" means in practice: compliant with the parts the spec actually pins down, on the versions that happened to ship.</p>
+
+<h3>The Problem With Dialects</h3>
+<p>Natural languages have dialects. Brazilian Portuguese and European Portuguese are both Portuguese. A native speaker of one can understand the other with effort, but they are not the same. You cannot write Portuguese and expect it to work identically everywhere.</p>
+<p>Shell scripting has the same problem. Bash is not <em>the</em> shell. It is <em>a</em> shell with a specific set of behaviors, many of which are not in POSIX and some of which contradict implementations that are technically more compliant (like dash).</p>
+<p>The community pretends otherwise. We say "sh script" and mean "bash with <code>-e -u -o pipefail</code>." We say "POSIX compliant" and mean "it worked in CI." We say "portable" and mean "it ran on the two machines I tried."</p>
+
+<h3>What Validation Actually Looks Like</h3>
+<p>I have been building <a href="https://github.com/alganet/shell-docs">shell-docs</a>, a cross-shell reference that validates each documented feature across 14 shells. The process is mechanical: write an example, run it on every shell, record the output, check for divergence.</p>
+<p>Most features work the same. Some do not.</p>
+<p><code>$#</code> - the count of positional parameters. Works everywhere, no surprises.</p>
+<p><code>local</code> - not in POSIX at all. Every shell has it anyway, with different scoping rules.</p>
+<p><code>$(( ))</code> - <a href="https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_06_04">arithmetic expansion</a>, universally supported. Division by zero: varies by implementation.</p>
+<p><code>[[ ]]</code> - not POSIX, not present in dash. If your script uses it under <code>#!/bin/sh</code>, it will silently fail on every system where <code>/bin/sh</code> is dash (Debian, Ubuntu, Alpine).</p>
+<p>The ones that diverge are not bugs. They are accumulated decisions from decades of independent implementations, each targeting a slightly different point in the spec's history: 1988, 2001, 2017.</p>
+
+<h3>The Honest Version of "Portable"</h3>
+<p>Portable means: tested across the range of shells it will actually run on.</p>
+<p>The tool <a href="https://github.com/alganet/shell-versions">shell-versions</a> tracks what version of each shell ships with major distributions. At time of writing, <code>/bin/sh</code> is:</p>
+<ul>
+<li><code>dash 0.5.12</code> on Ubuntu 24.04</li>
+<li><code>bash 3.2.57</code> on macOS (unchanged in fifteen years; GPL v3 kept bash 4.x out of the base system)</li>
+<li><code>busybox ash</code> on Alpine</li>
+<li><code>ksh93</code> on some enterprise Linux distributions</li>
+</ul>
+<p>These are not the same program. They are not even the same age.</p>
+<p>If you write <code>#!/bin/bash</code> and mean it, that is fine. At least it is honest. Write <code>#!/bin/sh</code> and you are promising something you should verify.</p>
+
+<h3>Verification Is A Habit</h3>
+<p>The validation harness in shell-docs runs each example against all 14 shells in isolation, captures stdout and exit codes, and compares them against a known-good table. When a new shell version is released, you run it again.</p>
+<p>This is not complex. It is just work that does not happen by default.</p>
+<p>The payoff is that "it works in POSIX sh" can mean something concrete: it works in the fourteen shells I tested, and here are the results. That is a different claim than "I ran it in bash and it looked fine."</p>
+<p>POSIX is not a shell. It is a promise about what shells should do. Verification is how you find out which ones kept it.</p>
+<hr class=end><p class=cc><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></p>

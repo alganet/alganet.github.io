@@ -5,7 +5,17 @@
   <id>tag:alganet.github.io,2025:feed.pt</id>
   <link href="https://alganet.github.io/" />
   <link href="https://alganet.github.io/feed.pt.xml" rel="self" />
-  <updated>2026-03-25T05:00:00Z</updated>
+  <updated>2026-06-28T12:00:00Z</updated>
+  <entry>
+    <title>POSIX Não É Um Shell</title>
+    <id>tag:alganet.github.io,2025:2026-06-28-12-POSIX-Nao-E-Um-Shell.pt</id>
+    <link href="https://alganet.github.io/blog/2026-06-28-12-POSIX-Nao-E-Um-Shell.pt.html" />
+    <updated>2026-06-28T12:00:00Z</updated>
+    <summary> Quando alguém diz &quot;escreva em shell POSIX para garantir portabilidade&quot;, a intenção é boa. POSIX é uma especificação. Não um programa. O que de fato executa o seu script é o bash, o dash, o ash, o ksh, o yash, ou um entre uma dúzia de outros. Cada um implementa o POSIX com suas próprias lacunas, extensões e acidentes...</summary>
+    <author>
+      <name>Alexandre Gomes Gaigalas</name>
+    </author>
+  </entry>
   <entry>
     <title>Ensinando IA a Verificar Suas Fontes</title>
     <id>tag:alganet.github.io,2025:2026-03-25-05-Ensinando-IA-a-Verificar-Fontes.pt</id>

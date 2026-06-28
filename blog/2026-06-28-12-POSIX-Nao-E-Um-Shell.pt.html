@@ -1,0 +1,57 @@
+<!doctype html>
+<link rel=stylesheet href=/style.css?20>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>POSIX Não É Um Shell</title>
+<script defer src="/script.js?20"></script>
+<h1><a href=/index.pt.html>alganet</a></h1>
+<nav class=lang><a href="/blog/2026-06-28-12-POSIX-Is-Not-A-Shell.html">English</a> <a href="/blog/2026-06-28-12-POSIX-Nao-E-Um-Shell.pt.html" class=selected>Português</a></nav>
+
+<h2>POSIX Não É Um Shell</h2>
+<p class=info><em>Alexandre Gomes Gaigalas</em> – <em>28 de Junho de 2026</em></p>
+<p>Quando alguém diz "escreva em shell POSIX para garantir portabilidade", a intenção é boa.</p>
+<p>POSIX é uma especificação. Não um programa. O que de fato executa o seu script é o bash, o dash, o ash, o ksh, o yash, ou um entre uma dúzia de outros. Cada um implementa o POSIX com suas próprias lacunas, extensões e acidentes históricos.</p>
+<p>Aqui vai um pequeno experimento. Uma linha, sem flags, sem funções, nada de exótico:</p>
+<pre class="codeblock"><code><span class="code-comment">#!/bin/sh</span>
+<span class="code-statement">echo</span> <span class="code-string">"C:\new"</span></code></pre>
+<p>No bash, no ksh e em alguns outros, você recebe de volta exatamente o que digitou:</p>
+<pre class="codeblock"><code><span class="code-output">C:\new</span></code></pre>
+<p>No dash (que <em>é</em> o <code>/bin/sh</code> no Debian, no Ubuntu e no Alpine) a mesma linha imprime:</p>
+<pre class="codeblock"><code><span class="code-output">C:
+ew</span></code></pre>
+<p>O <code>echo</code> do dash interpreta <code>\n</code> como uma quebra de linha. O do bash não. Rode isso em todos os <a href="https://github.com/alganet/shell-versions">shell-versions</a> e os shells se dividem quase pela metade: cerca de metade trata a barra invertida de forma literal, a outra metade a expande.</p>
+<pre class="codeblock"><code><span class="code-statement">docker</span> run --rm alganet/shell-versions:all -c <span class="code-string">'echo "C:\new"'</span></code></pre>
+<p>O POSIX não desempata. O padrão explicitamente deixa o <a href="https://pubs.opengroup.org/onlinepubs/9699919799/utilities/echo.html#tag_20_37_05">tratamento que o <code>echo</code> dá às sequências de escape com barra invertida como <strong>definido pela implementação</strong></a>, e <a href="https://pubs.opengroup.org/onlinepubs/9699919799/utilities/echo.html#tag_20_37_16">recomenda que você use <code>printf</code> no lugar</a>. Então "o <code>echo</code> POSIX" não é um comportamento contra o qual você possa escrever um script. É uma divergência documentada.</p>
+<p>Este não é um caso extremo forçado. O <code>echo</code> é o primeiro comando que qualquer um aprende. É o que "compatível com POSIX" significa na prática: compatível com as partes que a especificação de fato fixa, nas versões que por acaso vieram instaladas.</p>
+
+<h3>O Problema Com Dialetos</h3>
+<p>Línguas naturais têm dialetos. O português brasileiro e o português europeu são ambos português. Um falante nativo de um entende o outro com algum esforço, mas não são a mesma coisa. Você não pode escrever em português e esperar que funcione de forma idêntica em todo lugar.</p>
+<p>O scripting de shell tem o mesmo problema. O bash não é <em>o</em> shell. É <em>um</em> shell com um conjunto específico de comportamentos, muitos dos quais não estão no POSIX e alguns dos quais contradizem implementações que são tecnicamente mais compatíveis (como o dash).</p>
+<p>A comunidade finge o contrário. Dizemos "script sh" e queremos dizer "bash com <code>-e -u -o pipefail</code>". Dizemos "compatível com POSIX" e queremos dizer "funcionou na CI". Dizemos "portável" e queremos dizer "rodou nas duas máquinas que testei".</p>
+
+<h3>Como É a Validação na Prática</h3>
+<p>Venho construindo o <a href="https://github.com/alganet/shell-docs">shell-docs</a>, uma referência multi-shell que valida cada recurso documentado em 14 shells. O processo é mecânico: escreva um exemplo, rode em cada shell, registre a saída, verifique se há divergência.</p>
+<p>A maioria dos recursos funciona igual. Alguns não.</p>
+<p><code>$#</code> - a contagem de parâmetros posicionais. Funciona em todo lugar, sem surpresas.</p>
+<p><code>local</code> - não está no POSIX de jeito nenhum. Todo shell tem assim mesmo, com regras de escopo diferentes.</p>
+<p><code>$(( ))</code> - <a href="https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_06_04">expansão aritmética</a>, suportada universalmente. Divisão por zero: varia conforme a implementação.</p>
+<p><code>[[ ]]</code> - não é POSIX, não existe no dash. Se o seu script usa isso sob <code>#!/bin/sh</code>, ele vai falhar silenciosamente em todo sistema onde o <code>/bin/sh</code> é o dash (Debian, Ubuntu, Alpine).</p>
+<p>Os que divergem não são bugs. São decisões acumuladas por décadas de implementações independentes, cada uma mirando um ponto ligeiramente diferente na história da especificação: 1988, 2001, 2017.</p>
+
+<h3>A Versão Honesta de "Portável"</h3>
+<p>Portável significa: testado na variedade de shells em que ele vai de fato rodar.</p>
+<p>A ferramenta <a href="https://github.com/alganet/shell-versions">shell-versions</a> rastreia qual versão de cada shell vem com as principais distribuições. No momento em que escrevo, o <code>/bin/sh</code> é:</p>
+<ul>
+<li><code>dash 0.5.12</code> no Ubuntu 24.04</li>
+<li><code>bash 3.2.57</code> no macOS (inalterado há quinze anos; a GPL v3 manteve o bash 4.x fora do sistema base)</li>
+<li><code>busybox ash</code> no Alpine</li>
+<li><code>ksh93</code> em algumas distribuições Linux corporativas</li>
+</ul>
+<p>Não são o mesmo programa. Não têm nem a mesma idade.</p>
+<p>Se você escreve <code>#!/bin/bash</code> e fala sério, tudo bem. Pelo menos é honesto. Escreva <code>#!/bin/sh</code> e você está prometendo algo que deveria verificar.</p>
+
+<h3>Verificação É Um Hábito</h3>
+<p>O harness de validação do shell-docs roda cada exemplo contra todos os 14 shells isoladamente, captura a saída padrão e os códigos de saída, e os compara com uma tabela de referência conhecida. Quando uma nova versão de um shell é lançada, você roda de novo.</p>
+<p>Isso não é complexo. É só um trabalho que não acontece por padrão.</p>
+<p>A recompensa é que "funciona no sh POSIX" pode significar algo concreto: funciona nos catorze shells que testei, e aqui estão os resultados. Essa é uma afirmação diferente de "rodei no bash e pareceu funcionar".</p>
+<p>POSIX não é um shell. É uma promessa sobre o que os shells deveriam fazer. A verificação é como você descobre quais delas foram cumpridas.</p>
+<hr class=end><p class=cc><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></p>
