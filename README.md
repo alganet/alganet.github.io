@@ -39,7 +39,7 @@ Run `./build.sh` to update all generated files after adding, editing or removing
 
 ### `vendor.sh`
 
-Snapshots the shell-TUI *engine* into `terminal/`: the [tui.sh](https://github.com/alganet/tuish) toolkit and the [wasi-sh](https://github.com/alganet/wasi-sh) runtime (busybox-on-wasm) from the sibling checkouts `../tuish` and `../wasi-sh`. Run `./vendor.sh` only when tuish or wasi-sh themselves change; the vendored snapshot is committed. (Content is *not* vendored — `build.sh` generates it alongside the HTML.)
+Snapshots the shell-TUI *engine* into `terminal/`: the [tui.sh](https://github.com/alganet/tuish) toolkit and the [wasi-sh](https://github.com/alganet/wasi-sh) (private) runtime (busybox-on-wasm) from the sibling checkouts `../tuish` and `../wasi-sh`. Run `./vendor.sh` only when tuish or wasi-sh themselves change; the vendored snapshot is committed. (Content is *not* vendored — `build.sh` generates it alongside the HTML.)
 
 The terminal version's own program is [`terminal/index.sh`](terminal/index.sh) — a generic, data-driven blog reader; [`terminal/index.html`](terminal/index.html) is the browser boot loader.
 
