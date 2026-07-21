@@ -197,7 +197,11 @@ if (!crossOriginIsolated) {
   const files = {
     ...await fetchTree({ paths: srcManifest.src, baseUrl: "./tuish/src", mount: "/src", filter: onlySh, transform }),
     ...await fetchTree({ manifestUrl: "./content.json", baseUrl: "..", mount: "/content" }),
-    "/site/index.sh": await (await fetch("./index.sh")).text(),
+    // The reader itself: revalidate every boot (cheap 304 when unchanged) so a
+    // deploy reaches returning visitors immediately, not after GitHub Pages'
+    // ~10-min max-age lapses. The tuish sources and .tui content below stay on
+    // the default HTTP cache — they change rarely and tolerate the window.
+    "/site/index.sh": await (await fetch("./index.sh", { cache: "no-cache" })).text(),
   };
 
   const dec = new TextDecoder();

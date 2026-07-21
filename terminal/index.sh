@@ -115,6 +115,9 @@ _NL='
 _started=no
 _built_w=-1                     # width the content buffer was last wrapped at (resize cache)
 _lang_x=0                       # screen column where the masthead language switch begins
+_scroll_drawn=0                 # the _scroll value the body was last painted at (scroll-shift cache)
+_geom_drawn=                    # body geometry at that paint ("_ci_r:_ci_h:_colc:_colw")
+_body_dirty=1                   # 1 = something other than _scroll changed; next body paint must be full
 
 # ─── Layout — a centered column, no chrome ───────────────────────────
 _MAXCOL=76                      # max readable column width (≈ the site's 40em measure)
@@ -418,8 +421,27 @@ _view_html ()
 
 # ─── Rendering ───────────────────────────────────────────────────────
 _render ()      { _lay; tuish_begin; tuish_draw_fill 1 1 "$_W" "$_H" bg=$C_BG; _draw_masthead; _draw_body; tuish_end; }
-_render_body () { _lay; tuish_begin; _draw_body; tuish_end; }
 _render_mast () { _lay; tuish_begin; _draw_masthead; tuish_end; }
+
+# A scroll is the common body redraw. Rather than repaint every visible line,
+# shift the rows that stay on screen with the terminal's own scroll region and
+# paint only the few that scrolled into view (_scroll_body). Fall back to a full
+# _draw_body when the body changed for a non-scroll reason (_body_dirty), the
+# geometry moved (resize/rebuild), or the jump clears the whole screen anyway.
+_render_body ()
+{
+	_lay
+	tuish_begin
+	local _d=$(( _scroll - _scroll_drawn )) _ad
+	_ad=${_d#-}
+	if test "$_d" -ne 0 && test "$_body_dirty" -eq 0 \
+	   && test "$_geom_drawn" = "${_ci_r}:${_ci_h}:${_colc}:${_colw}" \
+	   && test "$_ad" -lt "$_ci_h"
+	then _scroll_body "$_d"
+	else _draw_body
+	fi
+	tuish_end
+}
 
 # A rule (─) drawn as text so it carries the app background — tuish_draw_hline
 # only sets fg, which would leave the cells on the terminal's default (black) bg.
@@ -460,25 +482,69 @@ _draw_masthead ()
 
 _max_scroll () { local _m=$(( _content_h - _ci_h )); test $_m -lt 0 && _m=0; echo $_m; }
 
+# Paint one body row (0-based _i) from the content buffer. The canvas must be
+# active and the row's background already laid: _draw_cline fills its own card
+# background for code/entry rows but leaves plain text on whatever is beneath.
+_paint_row ()   # $1 = 0-based row within the body
+{
+	local _i=$1 _row _raw _sty _txt
+	_row=$(( _scroll + _i + 1 ))
+	test "$_row" -ge 1 && test "$_row" -le "$_content_h" || return 0
+	tuish_buf_get content "$_row"; _raw="$TUISH_BLINE"
+	_sty="${_raw%%	*}"; _txt="${_raw#*	}"
+	_draw_cline $(( _i + 1 )) "$_sty" "$_txt"
+}
+
 _draw_body ()
 {
 	tuish_draw_fill "$_ci_r" 1 "$_W" "$_ci_h" bg=$C_BG
 	tuish_canvas "$_ci_r" "$_colc" "$_colw" "$_ci_h"
-	local _i=0 _row _raw _sty _txt
+	local _i=0
 	while test $_i -lt "$_ci_h"
 	do
-		_row=$(( _scroll + _i + 1 ))
-		if test "$_row" -ge 1 && test "$_row" -le "$_content_h"
-		then
-			tuish_buf_get content "$_row"; _raw="$TUISH_BLINE"
-			_sty="${_raw%%	*}"; _txt="${_raw#*	}"
-			_draw_cline $(( _i + 1 )) "$_sty" "$_txt"
-		fi
+		_paint_row "$_i"
 		_i=$(( _i + 1 ))
 	done
 	tuish_canvas_off
 	_draw_cb_focus
 	_draw_scrollbar
+	# Record what is now on screen so a following scroll can shift instead of
+	# repaint (see _render_body / _scroll_body).
+	_scroll_drawn=$_scroll
+	_geom_drawn="${_ci_r}:${_ci_h}:${_colc}:${_colw}"
+	_body_dirty=0
+}
+
+# Shift the body with the terminal scroll region and repaint only the rows that
+# scrolled into view. _d is the signed change in _scroll since the last paint:
+# positive scrolls content up (new rows exposed at the bottom), negative down
+# (new rows at the top). Caller guarantees 0 < |_d| < _ci_h and unchanged geometry.
+_scroll_body ()   # $1 = signed scroll delta since the last body paint
+{
+	local _d=$1 _first _last _i _n
+	tuish_scroll_region "$_ci_r" $(( _ci_r + _ci_h - 1 ))
+	if test "$_d" -gt 0
+	then tuish_scroll_up_n "$_d";              _first=$(( _ci_h - _d )); _last=$(( _ci_h - 1 ))
+	else _n=${_d#-}; tuish_scroll_down_n "$_n"; _first=0;                _last=$(( _n - 1 ))
+	fi
+	tuish_reset_scroll
+	# The rows the terminal freed carry ITS default background, not the app's, and
+	# a plain-text line does not repaint the column's empty cells — so clear each
+	# exposed row full width (covering the side margins) before painting content.
+	_i=$_first
+	while test "$_i" -le "$_last"
+	do tuish_draw_fill $(( _ci_r + _i )) 1 "$_W" 1 bg=$C_BG; _i=$(( _i + 1 )); done
+	tuish_canvas "$_ci_r" "$_colc" "$_colw" "$_ci_h"
+	_i=$_first
+	while test "$_i" -le "$_last"
+	do _paint_row "$_i"; _i=$(( _i + 1 )); done
+	tuish_canvas_off
+	# Overlays live in the scrolled band too. The code-focus bar shifted with its
+	# block, so redrawing it in place is correct; the scrollbar thumb tracks the
+	# offset (not the content) and must be repainted wholesale over the shift.
+	_draw_cb_focus
+	_draw_scrollbar
+	_scroll_drawn=$_scroll
 }
 
 # Mark the focused code block: an accent bar down its left padding and a copy hint
@@ -647,6 +713,7 @@ _focus_move ()
 	else
 		_scroll_by "$1"; return 0
 	fi
+	_body_dirty=1                   # selection highlight moved — not a pure scroll
 	tuish_request_redraw 2
 }
 
@@ -668,6 +735,7 @@ _copy_cb ()
 	local _t; eval "_t=\$_cb_text_$_csel"
 	tuish_clip_set "$_t"
 	_copyflash=1
+	_body_dirty=1                   # copy hint changed in place — not a pure scroll
 	tuish_request_redraw 2
 }
 
@@ -734,7 +802,7 @@ _hover ()
 	local _x=$TUISH_MOUSE_X _y=$TUISH_MOUSE_Y _eh=0
 	if test "$_x" -ge "$_colc" && test "$_x" -lt $(( _colc + _colw )) && test "$_y" -ge "$_ci_r"
 	then _ent_at "$_y"; _eh=$_ehit; fi
-	if test "$_eh" -ne "$_ent_hover"; then _ent_hover=$_eh; tuish_request_redraw 2; fi
+	if test "$_eh" -ne "$_ent_hover"; then _ent_hover=$_eh; _body_dirty=1; tuish_request_redraw 2; fi
 }
 
 # ─── Idle: first paint ───────────────────────────────────────────────
