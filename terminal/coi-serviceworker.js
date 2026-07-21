@@ -1,4 +1,7 @@
 /*! coi-serviceworker v0.1.7 - Guido Zuidhof and contributors, licensed under MIT */
+/* Patched: the fetch handler no longer resolves respondWith() with `undefined`
+   when a response can't be rebuilt (Firefox is strict about opaque/null-body
+   responses). Maintained in-tree — NOT overwritten by vendor.sh. */
 let coepCredentialless = false;
 if (typeof window === 'undefined') {
     self.addEventListener("install", () => self.skipWaiting());
@@ -32,30 +35,47 @@ if (typeof window === 'undefined') {
                 credentials: "omit",
             })
             : r;
-        event.respondWith(
-            fetch(request)
-                .then((response) => {
-                    if (response.status === 0) {
-                        return response;
-                    }
 
-                    const newHeaders = new Headers(response.headers);
-                    newHeaders.set("Cross-Origin-Embedder-Policy",
-                        coepCredentialless ? "credentialless" : "require-corp"
-                    );
-                    if (!coepCredentialless) {
-                        newHeaders.set("Cross-Origin-Resource-Policy", "cross-origin");
-                    }
-                    newHeaders.set("Cross-Origin-Opener-Policy", "same-origin");
+        // Patched for Firefox (see terminal/README of alganet.github.io). The
+        // upstream handler ended in `.catch(e => console.error(e))`, which resolves
+        // respondWith() with `undefined` the instant anything throws — and Firefox
+        // throws while REBUILDING certain responses (opaque, and the null-body
+        // statuses 204/205/304/…) where Chrome is lenient. One such throw then broke
+        // EVERY resource. Here we never return undefined: problematic responses pass
+        // through untouched, and any rebuild error falls back to the original. Adding
+        // COOP/COEP to the navigation document is what enables isolation; same-origin
+        // subresources load fine with or without the extra header.
+        event.respondWith((async () => {
+            let response;
+            try {
+                response = await fetch(request);
+            } catch (e) {
+                try { return await fetch(r); } catch (e2) { return Response.error(); }
+            }
 
-                    return new Response(response.body, {
-                        status: response.status,
-                        statusText: response.statusText,
-                        headers: newHeaders,
-                    });
-                })
-                .catch((e) => console.error(e))
-        );
+            const s = response.status;
+            const noRebuild = s === 0 || s === 101 || s === 103
+                || s === 204 || s === 205 || s === 304;
+            if (noRebuild) return response;
+
+            const newHeaders = new Headers(response.headers);
+            newHeaders.set("Cross-Origin-Embedder-Policy",
+                coepCredentialless ? "credentialless" : "require-corp");
+            if (!coepCredentialless) {
+                newHeaders.set("Cross-Origin-Resource-Policy", "cross-origin");
+            }
+            newHeaders.set("Cross-Origin-Opener-Policy", "same-origin");
+
+            try {
+                return new Response(response.body, {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: newHeaders,
+                });
+            } catch (e) {
+                return response;
+            }
+        })());
     });
 
 } else {

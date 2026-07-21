@@ -38,10 +38,10 @@ done
 cp "$WASISH"/src/*.mjs "$DEST/vendor/wasi-sh/src/"
 cp "$WASISH"/dist/busybox.wasm "$DEST/vendor/wasi-sh/dist/"
 
-# 3. The wasm adaptation (the four stty `|| :` guards) + the COOP/COEP shim,
-#    both verbatim from the tuish web POC so they cannot drift.
+# 3. The wasm adaptation (the four stty `|| :` guards), verbatim from the tuish web
+#    POC so it cannot drift. (coi-serviceworker.js is NOT copied: our copy is
+#    patched for Firefox — see its header — and maintained in-tree.)
 cp "$WEB/tweaks.mjs" "$DEST/tweaks.mjs"
-cp "$WEB/coi-serviceworker.js" "$DEST/coi-serviceworker.js"
 
 # 3b. xterm.js + addons + css, vendored LOCALLY (not loaded from a CDN at run
 #     time). This is load-bearing: on GitHub Pages the coi-serviceworker adds the

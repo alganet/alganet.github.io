@@ -5,7 +5,17 @@
   <id>tag:alganet.github.io,2025:feed.pt</id>
   <link href="https://alganet.github.io/" />
   <link href="https://alganet.github.io/feed.pt.xml" rel="self" />
-  <updated>2026-06-28T12:00:00Z</updated>
+  <updated>2026-07-21T00:00:00Z</updated>
+  <entry>
+    <title>Bash para Frontend no Navegador</title>
+    <id>tag:alganet.github.io,2025:2026-07-21-00-Bash-para-Frontend-no-Navegador.pt</id>
+    <link href="https://alganet.github.io/blog/2026-07-21-00-Bash-para-Frontend-no-Navegador.pt.html" />
+    <updated>2026-07-21T00:00:00Z</updated>
+    <summary> O título é bait. E, irritantemente, é verdade. Se você tiver um terminal disponível, roda isso: O que aparece não é uma captura de tela do site nem um dump de texto, mas o próprio site, feito navegável, de modo que as setas scrollam, o Tab percorre os links, o Enter abre um post, e a tecla y copia um trecho de código. Se você preferir ficar só no navegador, o mesmo programa roda ali também, seja na versão terminal do site ou pelo pequeno interruptor $ [] ali no canto superior de cada...</summary>
+    <author>
+      <name>Alexandre Gomes Gaigalas</name>
+    </author>
+  </entry>
   <entry>
     <title>POSIX Não É Um Shell</title>
     <id>tag:alganet.github.io,2025:2026-06-28-12-POSIX-Nao-E-Um-Shell.pt</id>
@@ -101,7 +111,7 @@
     <id>tag:alganet.github.io,2025:2026-01-19-14-Como-Fazer-Bons-Code-Reviews.pt</id>
     <link href="https://alganet.github.io/blog/2026-01-19-14-Como-Fazer-Bons-Code-Reviews.pt.html" />
     <updated>2026-01-19T14:00:00Z</updated>
-    <summary> Bons code reviews são uma arte. Leva anos, e às vezes décadas, para aprender a fazer direito. A coisa mais importante, nossa diretiva principal, é ser gentil e construtivo. Habilidades Os outros ingredientes são conhecimento técnico e atenção aos...</summary>
+    <summary> Bons code reviews são uma arte. Leva anos, e às vezes décadas, para aprender a fazer direito. A coisa mais importante, nossa diretiva principal, é ser gentil e construtivo. Habilidades Os outros ingredientes são conhecimento técnico e atenção aos detalhes. A seguir estão algumas das dicas mais importantes que englobam esses...</summary>
     <author>
       <name>Alexandre Gomes Gaigalas</name>
     </author>

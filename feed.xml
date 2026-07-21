@@ -5,7 +5,17 @@
   <id>tag:alganet.github.io,2025:feed</id>
   <link href="https://alganet.github.io/" />
   <link href="https://alganet.github.io/feed.xml" rel="self" />
-  <updated>2026-06-28T12:00:00Z</updated>
+  <updated>2026-07-21T00:00:00Z</updated>
+  <entry>
+    <title>Bash for Browser Frontend</title>
+    <id>tag:alganet.github.io,2025:2026-07-21-00-Bash-for-Browser-Frontend</id>
+    <link href="https://alganet.github.io/blog/2026-07-21-00-Bash-for-Browser-Frontend.html" />
+    <updated>2026-07-21T00:00:00Z</updated>
+    <summary> The title is bait. It is also, annoyingly, true. If you have a terminal within reach, run this: What comes back is not a screenshot of the site and not a dump of its text, but the site itself, made navigable, so that the arrow keys scroll it, Tab steps between its links, Enter opens a post, and the y key copies a code snippet to your clipboard. If you would rather stay in a browser, the same program runs there as well, either at the terminal version of the site or through the small $ [] switcher tucked into the corner of every...</summary>
+    <author>
+      <name>Alexandre Gomes Gaigalas</name>
+    </author>
+  </entry>
   <entry>
     <title>POSIX Is Not A Shell</title>
     <id>tag:alganet.github.io,2025:2026-06-28-12-POSIX-Is-Not-A-Shell</id>

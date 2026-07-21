@@ -1,0 +1,30 @@
+<!doctype html>
+<link rel=stylesheet href=/style.css?23>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bash para Frontend no Navegador</title>
+<script defer src="/script.js?23"></script>
+<h1><a href=/index.pt.html>alganet</a></h1>
+<nav class=lang><a href="/blog/2026-07-21-00-Bash-for-Browser-Frontend.html">English</a> <a href="/blog/2026-07-21-00-Bash-para-Frontend-no-Navegador.pt.html" class=selected>Português</a> <a class=shell href="/terminal/?p=post:2026-07-21-00-Bash-para-Frontend-no-Navegador.pt&amp;lang=pt" title="View this page in the terminal">$ <b></b></a></nav>
+
+<h2>Bash para Frontend no Navegador</h2>
+<p class=info><em>Alexandre Gomes Gaigalas</em> – <em>21 de Julho de 2026</em></p>
+<p>O título é bait. E, irritantemente, é verdade.</p>
+<p>Se você tiver um terminal disponível, roda isso:</p>
+<pre class="codeblock"><code><span class="code-statement">bash</span> -c <span class="code-string">"$(curl -fsSL https://alganet.github.io/terminal/index.sh)"</span></code></pre>
+<p>O que aparece não é uma captura de tela do site nem um dump de texto, mas o próprio site, feito navegável, de modo que as setas scrollam, o Tab percorre os links, o Enter abre um post, e a tecla <code>y</code> copia um trecho de código. Se você preferir ficar só no navegador, o mesmo programa roda ali também, seja na <a href="/terminal/">versão terminal do site</a> ou pelo pequeno interruptor <code>$&nbsp;[]</code> ali no canto superior de cada página.</p>
+<p>É um único script que roda nos dois lugares sem se importar muito com qual deles vai encontrar, e a stack usada é curta o bastante para explicar inteiramente.</p>
+<h3>wasi-sh</h3>
+<p><a href="https://github.com/alganet/wasi-sh">wasi-sh</a> é o BusyBox compilado para WebAssembly: um shell POSIX de verdade, sem fork, que carrega uns cinquenta coreutils como builtins no próprio processo e roda dentro de uma aba do navegador sem servidor algum por trás. Ele consegue montar uma árvore de arquivos e mover bytes para dentro e para fora, o que é quase tudo de que um programa precisa para se sentir em casa.</p>
+<h3>tuish</h3>
+<p><a href="https://github.com/alganet/tuish">tuish</a> é um toolkit de interface de terminal escrito em shell script portável. Ele não compila nada e não gera subprocessos, desenhando em vez disso sequências de escape ANSI diretamente, e por conta própria dá conta de eventos de teclado e mouse, decorações de caixa, truecolor, Unicode e viewports scrolláveis.</p>
+<p>Junte os dois e um shell script vira um frontend, o que é o truque inteiro e a razão de o título ser apenas meia piada.</p>
+<h3>Não é bash, na verdade. Mas é shell mesmo.</h3>
+<p>O shell que roda no navegador não é bash, e sim o <code>ash</code> do BusyBox, e o toolkit que faz o trabalho de verdade roda sem modificação em cinco deles:</p>
+<pre class="codeblock"><code><span class="code-output">bash        4+
+zsh         5+
+ksh93       AJM 93u+
+mksh        R59+
+busybox sh  1.30+</span></code></pre>
+<p>Isso deixa o <code>bash</code>, a única palavra em que o título se apoia, como o shell que menos contribui. A parte que merece atenção é o shell portável embaixo da solução, que apenas por acaso chega ao seu navegador como uma build do BusyBox.</p>
+<p>O resto fica para você descobrir, já que a fonte inteira é um único <a href="/terminal/index.sh">shell script</a> que você está convidado a ler e, melhor ainda, a rodar.</p>
+<hr class=end><p class=cc><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></p>
