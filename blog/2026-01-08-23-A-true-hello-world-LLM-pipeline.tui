@@ -1,0 +1,51 @@
+a	2026-01-08-23-A-true-hello-world-LLM-pipeline2026-01-08-23-Um-verdadeiro-hello-world-para-LLM-pipelines.pt
+t	A true 'hello world' LLM pipeline
+i	Alexandre Gomes Gaigalas – January 8, 2026
+p	xFor a while now, I've been searching for the simplest, useful LLM pipeline example. Some kind of hello world that beginners can quickly understand and iterate upon. 
+p	xI also want something for software engineers, not data scientists. Software engineers are a different breed, and although they need to eventually learn the machine learning fundamentals involved if they want to move forward in this area, they often prefer to start with practical, hands-on examples.
+p	xTherefore, a true 'hello world' LLM pipeline should be simple, practical, and accessible. I can't honestly ask engineers to rent a machine or spend cloud credits running a simple hello world. There must be a better way.
+h	What about X or Z?
+p	xThere are many existing claims of "small" pipelines out there, but they don't qualify as true 'hello world' stuff. 
+p	xFor example, kKarpathy's nanochatd (https://github.com/karpathy/nanochat)x claims to be very small, but that is quite relative. For someone already immersed in the industry, it is indeed very small. However, for a complete beginner, it is a huge undertaking requiring specialized hardware, money, and considerable time and effort.
+p	xTo run nanochat, you need a very powerful commercial GPU. You cannot buy those (in 2025) unless you're a company. All you can do is rent them.
+p	xKarpathy himself claims you can run nanochat for $100. Would you pay $100 for a hello world?
+h	Hunting For Good Examples
+p	xOne of the challenges of making a super 'hello world'-size LLM pipeline is that it's very difficult to generate good stuff with limited resources.
+p	xThis becomes very clear when you follow some tutorial, like the popular ktiny Shakespeared (https://github.com/karpathy/char-rnn)x example. The very first training checkpoints take a long time, and produce completely garbled output. They do get better, and that's the nature of this kind of work, but it's definitely not a good first impression for beginners.
+p	xTo achieve a faster run-modify-understand iterable loop for educational purposes, we need to think outside the box.
+h	The Solution: Shrink the Generation Scope
+p	xWhile large LLMs generate complete text, full of sentences, we don't actually need that to understand how they work. Instead, we can focus on much smaller units of text generation, such as a single word.
+p	xGenerating a single word is enough to exercise some important ideas:
+b	xTokenization: Understanding how text is broken down into tokens.
+b	xModel Architecture: Grasping the basics of how LLMs are structured.
+b	xTraining Process: Learning how models are trained on data.
+b	xEvaluation: Assessing model performance on a simple task.
+h	The wordgen Repository
+p	xWith that in mind, I made wordgen.
+p	xThe kwordgen repositoryd (https://github.com/alganet/wordgen)x contains the code and examples for this single-word, full pipeline approach.
+p	xYou can run it in minutes on CPU, or even seconds if you have a decent gaming GPU.
+p	xIt's as simple as this:
+c	.python train.py
+p	xRun it and you'll see the training steps, getting some words in the end:
+c	....
+c	.Generating samples...
+c	.Generated word 1: coales
+c	.Generated word 2: tereed
+c	.Generated word 3: healable
+c	.Generated word 4: thines
+c	.Generated word 5: unitlerable
+c	.Generated word 6: loteroformated
+c	.Generated word 7: rearmaz
+c	.Generated word 8: Debrowing
+c	.Generated word 9: unpatates
+c	.Generated word 10: unatined
+p	xMost importantly, this first run doesn't generate a completely garbled Shakespeare. It instead generates plausible English-like words.
+h	Stuff You Can Do With It
+p	xFirst, you should run it as it is. It will do the whole thing from downloading the data to generating words in a matter of minutes, and you'll see the results immediately.
+p	xThe next thing is probably to play with the hyperparameters. I could have left examples for you to try, but I believe experimentation is the best way to learn. With a pipeline that runs this fast, encouraging you to dig is better than providing canned examples.
+p	xAfter that, you can try tokenizing with BPE. This was one of the first things I did, and I almost included it as part of the repository, but I want engineers to experience the realization of how tokenization impacts model performance and output quality for themselves.
+p	xIn fact, you can grow that initial approach however you like. You can introduce safetensors, tweak sample generation, or make the model larger. With a few tweaks, you can make it generate sentences instead of words.
+h	That's It
+p	xYou can't really say much of a hello world. It exists now. It's there, and it's simple and fast. If you are a backend or frontend engineer wanting to dip your toes into LLMs, this is a great place to start. You can quickly grasp important concepts, then move on to more robust projects.
+r	
+p	kCC BY-NC-SA 4.0d (https://creativecommons.org/licenses/by-nc-sa/4.0/)

@@ -1,0 +1,60 @@
+a	2026-03-23-20-The-Universal-Plug--Connecting-Containers-to-Callables2026-03-23-20-O-Plugue-Universal--Conectando-Containers-a-Callables.pt
+t	O Plugue Universal: Conectando Containers a Callables
+i	Alexandre Gomes Gaigalas – 23 de Março de 2026
+p	xA PSR-11 resolveu um problema importante no PHP: nos deu uma tomada universal para containers de dependência. Qualquer framework, qualquer biblioteca, qualquer aplicação pode expor seus serviços através da mContainerInterfacex, e qualquer consumidor pode obtê-los sem se preocupar com a implementação.
+p	xMas existe um problema. Você tem um container cheio de serviços, e tem uma função que precisa de alguns deles. Como você conecta os dois?
+h	O Problema
+p	xConsidere um handler de requisição:
+c	Kfunction. FhandleOrder.(LMailer. .$mailer., LLogger. .$logger., Kstring. .$orderId.) {
+c	.    .$logger.->Finfo.(S"Processing order $orderId".);
+c	.    .$mailer.->Fsend.(S"Order $orderId confirmed".);
+c	.}
+p	xSeu container sabe como construir um mMailerx e um mLoggerx. A função declara que precisa deles. Mas alguém ainda tem que fazer a ligação:
+c	.$mailer. = .$container.->Fget.(LMailer.::Kclass.);
+c	.$logger. = .$container.->Fget.(LLogger.::Kclass.);
+c	FhandleOrder.(.$mailer., .$logger., .$orderId.);
+p	xFunciona, mas é manual. Você está lendo a assinatura da função com os olhos e traduzindo-a em chamadas ao container à mão. Cada vez que a assinatura muda, você atualiza a ligação. Cada novo handler significa mais código de cola.
+p	xSe o container é a tomada, esse código de cola é um fio soldado à mão. Funciona, mas não escala.
+h	O Plugue
+p	kRespect\Parameterd (https://github.com/Respect/Parameter)x é uma biblioteca pequena que automatiza essa conexão. Forneça um container e uma assinatura de função, e ela descobre quais parâmetros vêm do container e quais vêm de você.
+c	Kuse. LRespect\Parameter\Resolver.;
+c	
+c	.$resolver. = Knew. LResolver.(.$container.);
+c	.$reflection. = LResolver.::FreflectCallable.(S'handleOrder'.);
+c	
+c	.$args. = .$resolver.->Fresolve.(.$reflection., [S'ORD-42'.]);
+c	FhandleOrder.(....$args.);
+p	xSó isso. O resolver vê que mMailerx e mLoggerx são tipos de classe disponíveis no container, puxa-os automaticamente, e encaixa m'ORD-42'x no parâmetro mstringx restante. O resultado é um array nomeado que você pode espalhar diretamente na chamada da função.
+h	Argumentos Nomeados
+p	xÀs vezes argumentos posicionais não são suficientes. Você pode querer ser explícito sobre qual parâmetro recebe qual valor, especialmente quando uma função tem múltiplos parâmetros string. O método mresolveNamedx cuida disso:
+c	.$args. = .$resolver.->FresolveNamed.(.$reflection., [S'orderId'. => S'ORD-42'.]);
+c	FhandleOrder.(....$args.);
+p	xArgumentos nomeados sempre vencem. Se você passa explicitamente m'orderId'x, o resolver usa seu valor. Todo o resto ainda cai para o container e depois para os valores padrão.
+h	Refletindo Qualquer Callable
+p	xO PHP tem muitas formas de expressar um callable: closures, pares de array, objetos invocáveis, nomes de função, strings de método estático. O método estático mreflectCallablex normaliza todas elas em um mReflectionFunctionAbstractx:
+c	C// Closure
+c	LResolver.::FreflectCallable.(Kfn.(LMailer. .$m.) => .$m.->Fsend.(S'hi'.));
+c	
+c	C// Método de objeto
+c	LResolver.::FreflectCallable.([.$controller., S'index'.]);
+c	
+c	C// Objeto invocável
+c	LResolver.::FreflectCallable.(.$middleware.);
+c	
+c	C// String de método estático
+c	LResolver.::FreflectCallable.(S'Cache::warmUp'.);
+p	xIsso é útil por si só, mesmo fora da resolução de parâmetros. Sempre que você precisa introspectar a assinatura de um callable, isso evita escrever uma cascata de verificações minstanceofx.
+h	Onde Isso Se Encaixa
+p	xA biblioteca é intencionalmente mínima. Ela não constrói containers, não gerencia ciclos de vida, não faz roteamento. Ela faz uma coisa: dado um container e um callable, resolve os parâmetros.
+p	xIsso a torna uma peça natural como bloco de construção para:
+p	x    Dispatchers de requisição que fazem autowiring de ações de controllers.
+p	x    Sistemas de eventos que resolvem dependências de listeners.
+p	x    Runners de CLI que injetam serviços em handlers de comando.
+p	x    Pipelines de middleware que conectam dependências em cada camada.
+p	xEm todos esses casos, o padrão é o mesmo: você sabe o que chamar, o container sabe o que existe, e o resolver conecta os dois.
+h	Tomada e Plugue
+p	xA PSR-11 padronizou como puxar dependências de um container. Mas deixou a questão de como empurrá-las para callables arbitrários como exercício para o leitor.
+p	xEsse exercício geralmente acaba como lógica de autowiring específica do framework, fortemente acoplada a um container de DI ou router particular. O mesmo problema, resolvido de forma ligeiramente diferente, em cada projeto.
+p	kRespect\Parameterd (https://github.com/Respect/Parameter)x é uma resposta pequena e portátil. Se a mContainerInterfacex é a tomada universal, então o mResolverx é o plugue universal.
+r	
+p	kCC BY-NC-SA 4.0d (https://creativecommons.org/licenses/by-nc-sa/4.0/)

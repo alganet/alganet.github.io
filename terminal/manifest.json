@@ -1,0 +1,3 @@
+{
+  "src": ["compat.sh", "ord.sh", "tui.sh", "term.sh", "canvas.sh", "event.sh", "hid.sh", "viewport.sh", "str.sh", "draw.sh", "keybind.sh", "buf.sh", "clip.sh"]
+}

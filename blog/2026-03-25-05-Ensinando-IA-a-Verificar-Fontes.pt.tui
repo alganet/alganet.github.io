@@ -1,0 +1,82 @@
+a	2026-03-25-05-Teaching-AI-to-Verify-Sources2026-03-25-05-Ensinando-IA-a-Verificar-Fontes.pt
+t	Ensinando IA a Verificar Suas Fontes
+i	Alexandre Gomes Gaigalas – 25 de Março de 2026
+p	xLLMs citam documentação que não existe com total confiança.
+p	x“De acordo com o MDN, mPromise.allSettled()x retorna uma promise que resolve quando todas as promises são completadas (“returns a promise that resolves when all promises have completed”).”
+p	xIsso parece correto. Mas o MDN na verdade diz “fulfills when all of the input's promises settle” (“cumpre quando todas as promises da entrada se estabelecem”). Verbo diferente, semântica diferente. Um humano pode não perceber isso. Mas uma ferramenta pode.
+p	xEste post mostra como fazer uma IA verificar suas próprias afirmações antes de escrevê-las, usando kapysourced (https://github.com/alganet/apysource)x e um simples arquivo de instruções.
+p	xUma demonstração funcional deste fluxo de trabalho está em kalganet/ecmascript-featurecardd (https://github.com/alganet/ecmascript-featurecard)x.
+h	O Arquivo de Instruções
+p	xA maioria dos agentes de código suporta arquivos de instruções em nível de projeto: um arquivo markdown na raiz do repositório que o agente lê antes de começar o trabalho. Coloque isto no seu:
+c	C# Verificação de Fontes
+c	
+c	.Ao escrever documentação que referencia fontes externas, prefira
+c	.citações diretas em vez de paráfrases. Toda afirmação factual sobre o
+c	.que uma fonte diz deve ser respaldada por um trecho exato dessa fonte.
+c	
+c	.1. Antes de afirmar S"X diz Y"., verifique a citação:
+c	.       apysource locate S"<url>". S"<citação exata>"
+c	.   Se o trecho não for encontrado, não faça a afirmação.
+c	
+c	.2. Após verificar, registre a afirmação:
+c	.       apysource add sources.yaml S"<url>". S"<citação exata>". --label S"<nome da afirmação>"
+c	
+c	.3. Após toda a documentação ser escrita, execute a verificação completa:
+c	.       apysource check sources.yaml
+c	.   Todas as verificações devem passar antes de considerar a tarefa concluída.
+p	xPense nisso como um m[citação necessária]x automatizado, do tipo que editores da Wikipédia colocam em afirmações sem fonte, exceto que aqui o agente é tanto o escritor quanto o verificador, e a tag é aplicada antes do texto ser commitado.
+p	xEssa é toda a integração. O agente lê este arquivo, ganha acesso a três comandos shell, e segue o fluxo: locate -> add -> check.
+h	O Caminho Feliz
+p	xUm usuário pede ao agente para adicionar mArray.findLast()x ao cartão de referência.
+p	xO agente primeiro verifica uma citação da página do MDN:
+c	.$. apysource locate \
+c	.    S"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findLast". \
+c	.    S"iterates the array in reverse order"
+c	C# Found in: https://developer.mozilla.org/en-US/docs/.../Array/findLast
+c	C# Targetter: section
+c	
+c	O-. AlabelO:. S''
+c	.  AsectionO:. Array.prototype.findLast(), paragraph 2
+c	.  AsnippetO:. iterates the array in reverse order
+p	xO trecho existe. O agente o registra:
+c	.$. apysource add sources.yaml \
+c	.    S"https://developer.mozilla.org/.../Array/findLast". \
+c	.    S"iterates the array in reverse order". \
+c	.    --label S"Array.findLast() iteration"
+c	.  Located: section -> Array.prototype.findLast(), paragraph 2
+c	.  Added new source: https://developer.mozilla.org/.../Array/findLast
+c	.  Added fragment "Array.findLast() iteration" to sources.yaml
+p	xEntão executa a verificação completa:
+c	.$. apysource check sources.yaml
+c	.  F[PASS]. Fragments: cache resolution............. 8/8
+c	.  F[PASS]. Fragments: content extraction........... 8/8
+c	.  F[PASS]. Fragments: snippet verified............. 8/8
+p	xTodos os 8 fragmentos (os 7 originais mais o novo) passam. O agente prossegue para regenerar o cartão de referência com mpython generate.pyx.
+h	A Alucinação
+p	xAgora o agente tenta uma citação diferente, uma que ele acha que o MDN diz:
+c	.$. apysource locate \
+c	.    S"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findLast". \
+c	.    S"returns the first matching element from the end of the array"
+c	EError: snippet not found in https://developer.mozilla.org/.../Array/findLast
+p	xCódigo de saída 1. A instrução é clara: “Se o trecho não for encontrado, não faça a afirmação.”
+p	xO agente não escreve a citação alucinada. Em vez disso, volta ao mlocatex com uma frase mais curta, encontra o que o MDN realmente diz, e usa isso.
+p	xIsso não é correção após o fato. O agente nunca escreveu a afirmação errada. A verificação aconteceu antes da documentação ser produzida.
+h	CI como Mecanismo de Segurança
+p	xMesmo com o arquivo de instruções, agentes cometem erros. O pipeline de CI é o portão final:
+c	C# .github/workflows/verify-sources.yml
+c	AnameO:. Verify Sources
+c	AonO:. O[.push, pull_requestO]
+c	AjobsO:
+c	.  AcheckO:
+c	.    Aruns-onO:. ubuntu-latest
+c	.    AstepsO:
+c	.      O-. AusesO:. actions/checkout@v4
+c	.      O-. ArunO:. pip install apysource
+c	.      O-. ArunO:. apysource check sources.yaml
+p	xSe qualquer citação divergir, seja porque o agente a introduziu ou porque o MDN mudou a página, o build falha. O manifesto msources.yamlx é o contrato entre a documentação e suas fontes.
+h	Considerações Finais
+p	xSem verificação de fontes, documentação gerada por IA é um passivo. Você não consegue distinguir citações precisas de alucinações sem verificar manualmente cada link.
+p	xCom apysource no fluxo, o agente se torna um autor de documentação verificado. Cada afirmação é fundamentada. Cada citação é checada. O grafo de proveninência registra quando foi verificado e qual foi o resultado.
+p	xO arquivo msources.yamlx é uma bibliografia legível por máquina. Ele pode gerar cartões de referência, alimentar dashboards, ou servir como trilha de auditoria.
+r	
+p	kCC BY-NC-SA 4.0d (https://creativecommons.org/licenses/by-nc-sa/4.0/)

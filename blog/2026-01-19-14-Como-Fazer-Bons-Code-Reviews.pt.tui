@@ -1,0 +1,89 @@
+a	2026-01-19-14-How-To-Make-Good-Code-Reviews2026-01-19-14-Como-Fazer-Bons-Code-Reviews.pt
+t	Como Fazer Bons Code Reviews
+i	Alexandre Gomes Gaigalas – 19 de Janeiro de 2026
+p	xBons code reviews são uma arte. Leva anos, e às vezes décadas, para aprender a fazer direito.
+p	xA coisa mais importante, nossa diretiva principal, é ser gentil e construtivo. Habilidades interpessoais são um dos ingredientes-chave para sustentar uma boa prática de revisão de código ao longo do tempo.
+p	xOs outros ingredientes são conhecimento técnico e atenção aos detalhes.
+p	xA seguir estão algumas das dicas mais importantes que englobam esses princípios:
+h	Não Reclame, Ensine
+p	xAo encontrar um problema, em vez de apenas apontar o erro, proponha uma solução e explique por que ela é melhor.
+p	xVamos usar esta mudança de código como exemplo:
+c	.function ($foo, $bar = null);
+c	.function ($foo, $bar = null, $baz);
+c	
+p	x❌ Review não construtivo:
+q	xIsso está errado porque adiciona um novo parâmetro sem valor padrão.
+p	xEsse tipo de review aponta um problema, mas não oferece orientação sobre como corrigir. Ou assume que o autor sabe como resolver, mas não quis, ou presume que o autor não sabe e o deixa sem direção.
+p	x✅ Momento de aprendizado:
+q	xAdicionar um novo parâmetro sem valor padrão pode quebrar chamadas existentes para essa função.
+q	xVocê deve fornecer um valor padrão para o novo parâmetro ou atualizar todas as chamadas existentes para incluir o novo argumento.
+p	xEsse tipo de review não apenas aponta o problema, como também fornece uma orientação clara de como resolvê-lo, facilitando para o autor entender e aplicar as mudanças necessárias.
+h	Saiba Quando Você Está Fazendo Nitpicking
+p	xNitpicking é apontar problemas pequenos que não impactam de forma relevante a funcionalidade, a legibilidade ou a manutenibilidade do código. Atenção aos detalhes é importante, mas nitpicking em excesso gera frustração e desmotivação para quem escreveu a mudança.
+p	xVamos usar esta mudança de código como exemplo:
+c	.$firstPiece = 'square';
+c	.$middlePiece = 'circle';
+c	.$lastPiece = 'triangle';
+c	
+p	x❌ Nitpicking excessivo:
+q	xUse m$intermediatePiecex em vez de m$middlePiecex.
+p	xEmbora essa sugestão seja válida, ela pode não ser significativa a ponto de justificar uma alteração. O nome original da variável ainda é claro e compreensível.
+p	xNitpicks frequentemente se resumem a preferências pessoais que não cabem (ou não valem) ser formalizadas em checks automáticos ou em um guia de estilo. É, no fim, sobre a preferência do revisor.
+p	xSe essas preferências acabam desacelerando o processo de revisão ou frustrando autores, a revisão deixa de ser útil e passa a ser um ponto de atrito.
+p	x✅ Sugestão amigável:
+q	xNitpick: eu prefiro m$intermediatePiecex em vez de m$middlePiecex.
+p	xAo enquadrar a sugestão como preferência pessoal, e não como uma regra rígida, você mantém um tom positivo e colaborativo. Nitpicks não devem bloquear um code review e, por padrão, deveriam ser opcionais (o autor pode optar por não aplicar a mudança sugerida).
+h	Use Referências
+p	xLinks, números de linha e referências de documentação ajudam a dar contexto e embasar seu feedback.
+p	xVamos usar esta mudança de código como exemplo:
+c	.if (isValid($input)) {
+c	.    process($input);
+c	.} else {
+c	.    error_log('Invalid input');
+c	.}
+c	
+p	x❌ Feedback vago:
+q	xNossas diretrizes exigem mErrorLog::createx em vez de merror_logx.
+p	xEsse feedback carece de contexto e não fornece uma referência clara à diretriz específica que está sendo violada.
+p	x✅ Feedback com referência:
+q	xDe acordo com nossos padrões de codificação, devemos usar mErrorLog::createx em vez de merror_logx para maior consistência e manutenibilidade (veja a linha 42).
+p	xEsse feedback aponta a diretriz relevante e explica o motivo da sugestão.
+h	Não Seja Repetitivo
+p	xÀs vezes, a mesma sugestão se aplica a várias partes do mesmo pull request (PR). Em vez de repetir o mesmo feedback diversas vezes, considere resumir uma única vez e referenciar onde for aplicável.
+p	xConsidere esta série de mudanças:
+c	C// File: parks.php
+c	.functionA($param1, $param2);
+c	
+c	C// File: stores.php
+c	.functionA($param1, $param2);
+c	
+c	C// File: houses.php
+c	.functionA($param1, $param2);
+c	
+p	x❌ Feedback repetitivo:
+q	xEm mfunctionAx, use parâmetros nomeados para melhor legibilidade.
+q	xEm mfunctionBx, use parâmetros nomeados para melhor legibilidade.
+q	xEm mfunctionCx, use parâmetros nomeados para melhor legibilidade.
+p	xFeedback repetitivo cria ruído e faz o autor sentir que está sendo soterrado pela mesma sugestão várias vezes.
+p	xTambém pode ser interpretado como o revisor não tendo dedicado tempo para olhar o PR como um todo, o que indica um processo de revisão ruim: copiar e colar comentários, em vez de ser mais cuidadoso e intencional.
+p	x✅ Feedback consolidado:
+q	xPara melhor legibilidade, considere usar parâmetros nomeados em mfunctionAx. O mesmo vale para mfunctionBx (arquivo: stores.php) e mfunctionCx (arquivo: houses.php).
+p	xConsolidar o feedback em um único ponto, a partir de uma das ocorrências, costuma ser bem mais eficaz e respeitoso com o tempo do autor.
+h	Não Chute: Tenha Certeza de que Funciona
+p	xNão há nada mais frustrante do que receber uma sugestão que, na prática, não funciona ou que introduz novos problemas.
+p	xVamos usar esta mudança de código como exemplo:
+c	."image-reader-dependency": 1.0
+c	
+p	x❌ Sugestão no chute:
+q	xVocê pode simplesmente trocar para 2.0, que é mais recente!
+p	xNesse cenário, o revisor sugeriu 2.0 sem validar se realmente funciona. Isso pode quebrar builds ou causar comportamentos inesperados, o que no fim desperdiça tempo tanto do autor quanto do revisor.
+p	x✅ Sugestão verificada:
+q	xTestei atualizar a dependência para 2.0, e funciona bem com nosso setup atual. Além disso, traz melhorias de performance e novas funcionalidades que podemos aproveitar.
+p	xAo testar a sugestão e dizer isso explicitamente, você transmite confiança de que o conselho é confiável e não vai introduzir novos problemas.
+p	xSe você não consegue testar, talvez a melhor decisão seja simplesmente não fazer a sugestão.
+h	Conclusão
+p	xBons code reviews são essenciais para manter software de alta qualidade e promover um ambiente colaborativo de desenvolvimento. Ao oferecer feedback claro, conciso e bem testado, revisores ajudam autores a melhorar o código de forma eficaz, respeitando tempo e esforço.
+p	xNo fim, é uma habilidade interpessoal que exige paciência, empatia e comunicação efetiva.
+p	xProvavelmente existem muitas outras dicas e boas práticas que poderiam entrar nessa lista. Estas, no entanto, fornecem uma base inicial sólida para quem quer evoluir sua capacidade de fazer code reviews.
+r	
+p	kCC BY-NC-SA 4.0d (https://creativecommons.org/licenses/by-nc-sa/4.0/)

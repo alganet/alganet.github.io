@@ -1,0 +1,144 @@
+a	2026-01-22-11-The-Five-Levels-of-PHP-8-5-Pipes2026-01-22-11-Os-Cinco-Niveis-de-Pipes-no-PHP-8-5.pt
+t	Os Cinco Níveis de Pipes no PHP 8.5
+i	Alexandre Gomes Gaigalas – 22 de Janeiro de 2026
+g	Uma imagem ilustrativa de uma linha de produção
+p	kO operador pipe do PHPd (https://www.php.net/pipe)x possibilita um estilo funcional muito legível. Abaixo descrevo cinco "níveis" conceituais de uso de pipes: da simples "linha de produção" até functors compostos.
+p	xVocê pode usar estes exemplos como modelos e estendê-los em seus próprios projetos.
+h	Nível 1: Linha de Produção
+p	xCada etapa transforma o valor em uma sequência, como uma esteira de fábrica.
+c	.$input. = .'   pipes & fun   '.;
+c	.$output. = .$input
+c	.    |> Khtml_entity_decode.(.....)
+c	.    |> Kucwords.(.....)
+c	.    |> Ktrim.(.....);
+c	
+c	Kvar_dump.(.$output.); C// string(N11C) "Pipes & Fun"
+c	
+h	Nível 2: Wrappers com Closures
+p	xEncapsule operações em closures para parametrizar comportamentos e reutilizar etapas.
+c	Kfunction. Kadd.(.int $x.): KClosure. {
+c	.    Kreturn. Kstatic. fn (.int $v.): .int. => $v + $x;
+c	.}
+c	Kfunction. Kmultiply.(.int $x.): KClosure. {
+c	.    Kreturn. Kstatic. fn (.int $v.): .int. => $v * $x;
+c	.}
+c	
+c	.$input. = N42.;
+c	.$output. = .$input
+c	.    |> Kadd.(N5.)
+c	.    |> Kmultiply.(N2.);
+c	
+c	Kvar_dump.(.$output.); C// int(N94C)
+c	
+h	Nível 3: Composição de Closures
+p	xComponha etapas em um pipeline e execute-o depois com entradas.
+p	xEssa técnica permite colocar a entrada por último e compor as etapas primeiro, o que abre oportunidades para reutilização.
+c	Kfunction. Kwith.(KClosure. .$step.): KClosure. {
+c	.    Kreturn. Kstatic. fn (KClosure. .$acc.): KClosure. => Kstatic. fn (.$v.) => $step($acc($v));
+c	.}
+c	
+c	Kfunction. Krun.(.$input.): KClosure. {
+c	.    Kreturn. Kstatic. fn (.Closure $pipeline.) => $pipeline($input);
+c	.}
+c	
+c	Kfunction. Kbegin.(): KClosure. {
+c	.    Kreturn. Kstatic. fn (.$v.) => $v;
+c	.}
+c	
+c	.$input. = N42.;
+c	.$output. = Kbegin.()
+c	.    |> Kwith.(Kadd.(N10.))
+c	.    |> Kwith.(Kmultiply.(N2.))
+c	.    |> Krun.(.$input.);
+c	
+c	Kvar_dump.(.$output.); C// int(N104C)
+c	
+h	Nível 4: Geradores como Pipelines
+p	xGeradores permitem definir etapas flexíveis, coletar mensagens ou interromper validações prematuramente.
+c	Kfunction. Kstream.(): KGenerator. {
+c	.    Kyield. Kfrom. [];
+c	.}
+c	
+c	Kfunction. Kcheck.(KClosure. .$fn., .string $message.): KClosure. {
+c	.    Kreturn. Kstatic. fn (KGenerator. .$it.): KGenerator. => Kyield. Kfrom. [
+c	.        ....$it.,
+c	.        Kstatic. fn (.$v.) => $fn($v) ? .null. : $message
+c	.    ];
+c	.}
+c	
+c	Kfunction. Kcollect.(): KClosure. {
+c	.    Kreturn. Kstatic. fn (KGenerator. .$it.): KClosure. => Kstatic. function (.$v.) use (.$it.) {
+c	.        .$messages. = [];
+c	.        Kforeach. (.$it. as .$fn.) {
+c	.            .$m. = $fn($v);
+c	.            Kif. (.$m. !== .null.) {
+c	.                .$messages.[] = .$m.;
+c	.            }
+c	.        }
+c	.        Kreturn. (Kstatic. fn () => Kyield. Kfrom. .$messages.)();
+c	.    };
+c	.}
+c	
+p	xEssa versão não só permite colocar a entrada por último, como também obter uma sequência (stream) de respostas do pipeline.
+c	.$input. = N-3.14.;
+c	.$output. = Kstream.()
+c	.    |> Kcheck.(Kis_int.(.....), .'must be an integer'.)
+c	.    |> Kcheck.(Kfn. (.$v.) => $v > N0., .'must be positive'.)
+c	.    |> Kcollect.();
+c	
+c	Kforeach. (.$output.(.$input.) as .$message.) {
+c	.    Kvar_dump.(.$message.);
+c	.}
+c	
+h	Nível 5: Objetos Functor (OOP + Funcional)
+p	xEncapsule comportamentos em objetos com m__invokex para uma API fácil de compor.
+c	Kclass. KCheck
+c	.{
+c	.    Kpublic. Kfunction. K__construct.(
+c	.        Kprivate. KClosure. .$fn.,
+c	.        Kprivate. .string $message.,
+c	.    ) {}
+c	
+c	.    Kpublic. Kfunction. K__invoke.(KGenerator. .$it.): KGenerator
+c	.    {
+c	.        Kyield. Kfrom. [
+c	.            ....$it.,
+c	.            Kfn. (.$v.) => (.$this.->.fn.)(.$v.) ? .null. : $this->.message
+c	.        ];
+c	.    }
+c	.}
+c	
+p	xO PHP é ótimo para combinar POO e programação funcional. A classe definida aqui é simples, mas você pode ir tão longe quanto quiser com herança, interfaces e traits para construir uma rica biblioteca de componentes reutilizáveis para pipelines.
+c	.$input. = [.'arr'.];
+c	.$output. = Kstream.()
+c	.    |> Knew. KCheck.(Kis_int.(.....), .'must be an integer'.)
+c	.    |> Knew. KCheck.(Kis_scalar.(.....), .'must be scalar'.)
+c	.    |> Kcollect.();
+c	
+c	Kforeach. (.$output.(.$input.) as .$message.) {
+c	.    Kvar_dump.(.$message.);
+c	.}
+c	
+h	Bônus: Helpers Estáticos para Sintaxe
+p	xUse métodos mágicos para fazer a API parecer chamadas de função estáticas.
+c	Kclass. KFunc. Kextends. KCheck
+c	.{
+c	.    Kpublic static function. K__callStatic.(.string $name., .array $arguments.): Kstatic
+c	.    {
+c	.        Kreturn. Knew. Kstatic.($name(...), ...$arguments);
+c	.    }
+c	.}
+c	
+c	.$input. = [.'arr'.];
+c	.$output. = Kstream.()
+c	.    |> KFunc.::Kis_int.(.'must be an integer'.)
+c	.    |> KFunc.::Kis_scalar.(.'must be scalar'.)
+c	.    |> Kcollect.();
+c	
+c	Kforeach. (.$output.(.$input.) as .$message.) {
+c	.    Kvar_dump.(.$message.);
+c	.}
+c	
+p	xCom cada novo recurso do PHP, há uma grande oportunidade para criar APIs mais simples, expressivas e reutilizáveis. O operador pipe é um ótimo exemplo disso, permitindo um estilo funcional que se integra bem com POO. Divirta-se experimentando esses níveis de pipes em seus próprios projetos!
+r	
+p	kCC BY-NC-SA 4.0d (https://creativecommons.org/licenses/by-nc-sa/4.0/)

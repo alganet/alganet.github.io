@@ -1,0 +1,64 @@
+a	2025-12-17-07-Polyglot-Makefiles2025-12-17-07-Makefiles-Poliglotas.pt
+t	Polyglot Makefiles
+i	Alexandre Gomes Gaigalas – December 17, 2025
+p	x While Unix-like systems typically use GNU make, Windows environments based on Microsoft toolchains, traditionally use nmake. Although alternatives like GNU make on Windows exist (MSYS2, MinGW, WSL), many projects still need to support native nmake workflows. 
+p	x Unfortunately, GNU make and nmake are similar tools with different syntax and features. This often leads to duplicated makefiles or forcing contributors to install a non-native tool. Here we explore a technique to create a single mMakefilex that works for both. 
+h	Why this is useful
+b	xOne source of truth: Common variables, targets and documentation live in a single mMakefilex. 
+b	xPlatform delegation: Tool or platform-specific rules live in small, focused include files. 
+b	xControlled complexity: The polyglot logic is isolated to a tiny, well-documented block.
+h	The key bit
+p	xThe polyglot solution for the unified mMakefilex looks like this:
+c	KSHARED_VAR. .=. Nsome_value
+c	
+c	Kshared_target:
+c	.    echo 123
+c	
+c	C# --- POLYGLOT MAGIC BEGINS
+c	C# \
+c	C!ifndef 0 # \
+c	C!include "nmake-specific.mk" # \
+c	C!else
+c	Cinclude gnu-specific.mk
+c	C# \
+c	C!endif
+c	C# --- POLYGLOT MAGIC ENDS
+p	x This single block allows each tool to include its own implementation file while sharing the same variables and targets. 
+h	How it works
+p	xThis snippet relies on subtle but well-defined differences between GNU make and nmake parsing rules.
+p	xWhat GNU make sees:
+p	x GNU make supports line continuation (m\x) inside comments. Because of this, the m!x-prefixed nmake directives become part of a multi-line comment and are ignored. 
+c	C# --- POLYGLOT MAGIC BEGINS
+c	C# \
+c	C!ifndef 0 # \
+c	C!include "nmake-specific.mk" # \
+c	C!else
+c	Kinclude. .gnu-specific.mk
+c	C# \
+c	C!endif
+c	C# --- POLYGLOT MAGIC ENDS
+p	xWhat nmake sees:
+p	x nmake does not support multi-line comments. It recognizes the m!ifndefx, m!includex, m!elsex, and m!endifx directives and evaluates the first branch. 
+p	x The condition m!ifndef 0x is intentionally chosen: m0x is not a predefined macro in nmake, so the condition is always true. This reliably selects the nmake-specific branch without depending on environment variables. 
+c	C# --- POLYGLOT MAGIC BEGINS
+c	C# \
+c	K!ifndef. N0. C# \
+c	K!include. ."nmake-specific.mk". C# \
+c	K!else
+c	Kinclude. .gnu-specific.mk
+c	C# \
+c	K!endif
+c	C# --- POLYGLOT MAGIC ENDS
+h	Typical file layout
+c	.Makefile
+c	.gnu-specific.mk
+c	.nmake-specific.mk
+h	Caveats and limitations
+b	xThis relies on GNU make’s handling of line continuation inside comments.
+b	xThe polyglot block should remain small and self-contained.
+b	xEditors or formatters that alter trailing backslashes may silently break this construct.
+h	Final thoughts
+p	x Polyglot Makefiles are a powerful technique when used sparingly. They allow a single shared build definition while preserving native workflows on each platform. 
+p	xThis technique was used in the kPHLd (https://github.com/alganet/PHL)x repository to simplify the build process. Both Unix and Windows builds share a lot of variables and targets, leveraging a single source of truth for the built objects, dependencies and more.
+r	
+p	kCC BY-NC-SA 4.0d (https://creativecommons.org/licenses/by-nc-sa/4.0/)

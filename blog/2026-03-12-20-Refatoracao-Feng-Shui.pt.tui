@@ -1,0 +1,70 @@
+a	2026-03-12-20-Feng-Shui-Refactoring2026-03-12-20-Refatoracao-Feng-Shui.pt
+t	Refatoração Feng Shui
+i	Alexandre Gomes Gaigalas – 12 de Março de 2026
+p	xSe você já trabalhou em uma base de código grande por tempo suficiente, provavelmente já viu um certo tipo de refatoração que parece produtiva mas não melhora o sistema de verdade.
+p	xAlguns arquivos são renomeados, funções mudam de lugar, diretórios e namespaces são reorganizados, mas nada muda.
+p	xO diff é grande, a estrutura parece diferente, e a descrição do pull request diz algo como "limpar estrutura do projeto". Muitas coisas mudam, mas a legibilidade não melhorou de verdade e o comportamento continua o mesmo.
+h	Como Identificar
+p	xUm refactoring feng shui reorganiza código sem melhorar sua estrutura. O sistema parece diferente, mas se comporta da mesma forma e continua igualmente difícil de entender.
+p	xUm exemplo comum é renomear sem esclarecer comportamento.
+p	xAntes:
+c	Kdef. Khandle.(.x.):
+c	.    Kreturn. Kprocess.(.x.)
+p	xDepois:
+c	Kdef. Kprocess_event.(.event.):
+c	.    Kreturn. Kprocess.(.event.)
+p	xOs nomes soam melhor, mas o problema de design não mudou: a função ainda esconde o que realmente faz. Nomes específicos como "handle", "manage", "orchestrate" e namespaces como "common" e "utils" frequentemente funcionam como ímãs para esse tipo de pseudo-refatoração.
+p	xOutro exemplo é mover código sem mudar dependências.
+p	xAntes:
+c	.services/
+c	.    billing.py
+c	.    notifications.py
+p	xDepois:
+c	.domain/
+c	.    billing_service.py
+c	.    notification_service.py
+p	xSe ambos os módulos ainda importam metade da aplicação e se chamam mutuamente de formas complexas, a arquitetura não melhorou. Os móveis apenas mudaram de lugar.
+h	Por Que Isso Acontece
+p	xEsse tipo de mudança é atraente porque transmite a intenção de melhoria. Você pode pensar que nomes melhores vão fomentar melhor modularização depois, ou que dividir algo sem desemaranhar as dependências vai levar a mais modularização no futuro.
+p	xRefatoração de verdade requer entender o sistema bem o suficiente para identificar problemas estruturais. Isso normalmente significa ler código, rastrear comportamento e formar um modelo mental antes de mexer em qualquer coisa.
+h	Boas Renomeações
+p	xAs refatorações mais úteis tendem a remover algo: duplicação, acoplamento oculto, indireção desnecessária.
+p	xÀs vezes, renomear pode de fato ser útil, como esclarecer uma regra de negócio enterrada.
+p	xAntes:
+c	Kdef. Kprocess.(.order.):
+c	.    Kif. .order..total > N100.:
+c	.        .order..discount = .order..total * N0.1
+p	xDepois:
+c	Kdef. Kapply_loyalty_discount.(.order.):
+c	.    Kif. .order..total > N100.:
+c	.        .order..discount = .order..total * N0.1
+p	xCuriosamente, esse tipo de refatoração costuma produzir diffs menores do que grandes reorganizações.
+h	Como É uma Refatoração de Verdade
+p	xRefatoração de verdade tende a simplificar como o sistema funciona, não como ele é organizado.
+p	xUm bom exemplo é remover conhecimento hard-coded que se espalha silenciosamente pelo sistema.
+p	xAntes:
+c	Kdef. Kshipping_cost.(.order.):
+c	.    Kif. .order..country == ."US".:
+c	.        Kreturn. N5
+c	.    Kreturn. N15
+p	xDepois:
+c	.SHIPPING_RATES. = {
+c	.    ."US".: N5.,
+c	.    ."INTL".: N15.,
+c	.}
+c	
+c	Kdef. Kshipping_cost.(.order.):
+c	.    .region. = ."US". Kif. .order..country == ."US". Kelse. ."INTL"
+c	.    Kreturn. .SHIPPING_RATES.[.region.]
+p	xO comportamento não mudou, mas a regra agora é visível e centralizada em vez de enterrada dentro de um condicional. Quando os preços inevitavelmente mudarem, há um lugar claro para atualizá-los.
+p	xEsse tipo de mudança raramente produz diffs dramáticos. Frequentemente envolve deletar código, colapsar camadas ou tornar relações mais explícitas.
+p	xMas elas reduzem continuamente a quantidade de trabalho necessária para entender e modificar o sistema.
+h	Uma Pequena Pergunta
+p	xAntes de começar uma refatoração, pode ajudar fazer uma pergunta simples:
+p	xQue problema concreto essa mudança vai resolver?
+p	xÀs vezes a resposta é clara: lógica duplicada desaparece, uma dependência circular é quebrada, ou um conceito de domínio se torna explícito.
+p	xOutras vezes a resposta é mais difícil de articular. A mudança afeta principalmente como o código parece.
+h	Reorganizando o Quarto
+p	xÀs vezes mover coisas de lugar de fato melhora, mas sem um propósito claro, é um sinal de alerta. Se você não consegue explicar qual problema a mudança resolve, pode ser apenas mais um desses refactorings feng shui.
+r	
+p	kCC BY-NC-SA 4.0d (https://creativecommons.org/licenses/by-nc-sa/4.0/)

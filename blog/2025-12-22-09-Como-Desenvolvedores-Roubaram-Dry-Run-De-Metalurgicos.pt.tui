@@ -1,0 +1,38 @@
+a	2025-12-22-09-How-Developers-Stole-Dry-Runs-From-Machinists2025-12-22-09-Como-Desenvolvedores-Roubaram-Dry-Run-De-Metalurgicos.pt
+t	Como Desenvolvedores Roubaram "Dry Run" De Metalúrgicos
+i	Alexandre Gomes Gaigalas – 22 de Dezembro de 2025
+p	xSe você já executou um comando com a flag m--dry-runx, provavelmente sabia o que ela fazia. O comando era executado, mas não a coisa toda.
+p	xMais especificamente, um dry run executa todas as partes, exceto as irreversíveis de uma operação. 
+h	Um Exemplo Rápido
+p	xPor exemplo, digamos que você tenha um programa de linha de comando chamado mcleanup-databasex:
+c	.$ Kcleanup-database --help
+c	.usage: cleanup-database [options]
+c	.Removes old data from the database.
+c	
+c	.Options:
+c	.--dry-run     Show what would be deleted, but don't actually delete anything
+c	.--force       Actually delete the data
+c	
+p	xQuando você executa esse programa passando a flag m--dry-runx, ele mostra o que faria sem realizar nenhuma alteração:
+c	.$ Kcleanup-database --dry-run
+c	.The following records would be deleted:
+c	.- Record ID 12345
+c	.- Record ID 67890
+c	.No changes have been made.
+c	
+p	xIsso é particularmente útil para comandos que executam ações destrutivas, como excluir arquivos ou modificar bancos de dados.
+p	xDry runs não se limitam a ferramentas de linha de comando. Eles também podem ser encontrados em diversas bibliotecas e frameworks de programação, onde permitem que desenvolvedores simulem operações sem realizar alterações permanentes.
+h	Mas Por Que "Dry Run"?
+p	xQuero dizer, por que não m--simulatex ou m--previewx? De onde vem afinal o termo "dry run"?
+p	xEle vem do mundo da usinagem.
+p	xPrimeiro, deixe-me mostrar o que realmente é um "wet run":
+g	Uma operação de wet run de uma máquina
+d	Uma máquina realizando uma operação wet run, com fluidos de lubrificação reais
+p	xsendo aplicados à
+p	xpeça.
+p	
+p	
+p	xEssas operações são chamadas de "wet" porque um fluxo constante de fluido de lubrificação é necessário para que a operação ocorra suavemente.
+p	xQuando você está testando apenas os movimentos sem realizar nenhuma alteração de fato, não há atrito nem geração de calor, portanto o fluido de lubrificação não é necessário. Isso é um dry run, e é daí que o termo vem.
+r	
+p	kCC BY-NC-SA 4.0d (https://creativecommons.org/licenses/by-nc-sa/4.0/)

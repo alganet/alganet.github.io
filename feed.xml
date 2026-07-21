@@ -21,7 +21,7 @@
     <id>tag:alganet.github.io,2025:2026-03-25-05-Teaching-AI-to-Verify-Sources</id>
     <link href="https://alganet.github.io/blog/2026-03-25-05-Teaching-AI-to-Verify-Sources.html" />
     <updated>2026-03-25T05:00:00Z</updated>
-    <summary> LLMs confidently cite documentation that doesn&apos;t exist. &amp;ldquo;According to MDN, Promise.allSettled() returns a promise that resolves when all promises have completed.&amp;rdquo; That sounds right. But MDN actually says &amp;ldquo;fulfills when all of the input&apos;s promises settle&amp;rdquo;. Different verb, different semantics. A human might not catch this. But a tool...</summary>
+    <summary> LLMs confidently cite documentation that doesn&apos;t exist. “According to MDN, Promise.allSettled() returns a promise that resolves when all promises have completed.” That sounds right. But MDN actually says “fulfills when all of the input&apos;s promises settle”. Different verb, different semantics. A human might not catch this. But a tool...</summary>
     <author>
       <name>Alexandre Gomes Gaigalas</name>
     </author>

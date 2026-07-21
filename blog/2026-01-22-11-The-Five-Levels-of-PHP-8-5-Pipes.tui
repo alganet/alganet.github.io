@@ -1,0 +1,144 @@
+a	2026-01-22-11-The-Five-Levels-of-PHP-8-5-Pipes2026-01-22-11-Os-Cinco-Niveis-de-Pipes-no-PHP-8-5.pt
+t	The Five Levels of PHP 8.5 Pipes
+i	Alexandre Gomes Gaigalas – January 22, 2026
+g	An illustrative image of a production pipeline
+p	kPHP's pipe operatord (https://www.php.net/pipe)x unlocks a very readable, functional style. Below I walk through five conceptual "levels" of using pipes: from the simple production line to composed functor objects.
+p	xYou can use these as templates that you can extend upon in your own projects.
+h	Level 1: The Production Line
+p	xEach step transforms the value in sequence, like a factory conveyor belt.
+c	.$input. = .'   pipes & fun   '.;
+c	.$output. = .$input
+c	.    |> Khtml_entity_decode.(.....)
+c	.    |> Kucwords.(.....)
+c	.    |> Ktrim.(.....);
+c	
+c	Kvar_dump.(.$output.); C// string(N11C) "Pipes & Fun"
+c	
+h	Level 2: Closure Wrappers
+p	xWrap operations in closures so you can parameterize behavior and reuse steps.
+c	Kfunction. Kadd.(.int $x.): KClosure. {
+c	.    Kreturn. Kstatic. fn (.int $v.): .int. => $v + $x;
+c	.}
+c	Kfunction. Kmultiply.(.int $x.): KClosure. {
+c	.    Kreturn. Kstatic. fn (.int $v.): .int. => $v * $x;
+c	.}
+c	
+c	.$input. = N42.;
+c	.$output. = .$input
+c	.    |> Kadd.(N5.)
+c	.    |> Kmultiply.(N2.);
+c	
+c	Kvar_dump.(.$output.); C// int(N94C)
+c	
+h	Level 3: Closure Composition
+p	xCompose steps into a pipeline and run it later against inputs.
+p	xThis technique allows you to put the input last and compose the steps first, which opens opportunities for reusability.
+c	Kfunction. Kwith.(KClosure. .$step.): KClosure. {
+c	.    Kreturn. Kstatic. fn (KClosure. .$acc.): KClosure. => Kstatic. fn (.$v.) => $step($acc($v));
+c	.}
+c	
+c	Kfunction. Krun.(.$input.): KClosure. {
+c	.    Kreturn. Kstatic. fn (.Closure $pipeline.) => $pipeline($input);
+c	.}
+c	
+c	Kfunction. Kbegin.(): KClosure. {
+c	.    Kreturn. Kstatic. fn (.$v.) => $v;
+c	.}
+c	
+c	.$input. = N42.;
+c	.$output. = Kbegin.()
+c	.    |> Kwith.(Kadd.(N10.))
+c	.    |> Kwith.(Kmultiply.(N2.))
+c	.    |> Krun.(.$input.);
+c	
+c	Kvar_dump.(.$output.); C// int(N104C)
+c	
+h	Level 4: Generators as Pipelines
+p	xGenerators let you define flexible steps, collect messages, or short-circuit validations.
+c	Kfunction. Kstream.(): KGenerator. {
+c	.    Kyield. Kfrom. [];
+c	.}
+c	
+c	Kfunction. Kcheck.(KClosure. .$fn., .string $message.): KClosure. {
+c	.    Kreturn. Kstatic. fn (KGenerator. .$it.): KGenerator. => Kyield. Kfrom. [
+c	.        ....$it.,
+c	.        Kstatic. fn (.$v.) => $fn($v) ? .null. : $message
+c	.    ];
+c	.}
+c	
+c	Kfunction. Kcollect.(): KClosure. {
+c	.    Kreturn. Kstatic. fn (KGenerator. .$it.): KClosure. => Kstatic. function (.$v.) use (.$it.) {
+c	.        .$messages. = [];
+c	.        Kforeach. (.$it. as .$fn.) {
+c	.            .$m. = $fn($v);
+c	.            Kif. (.$m. !== .null.) {
+c	.                .$messages.[] = .$m.;
+c	.            }
+c	.        }
+c	.        Kreturn. (Kstatic. fn () => Kyield. Kfrom. .$messages.)();
+c	.    };
+c	.}
+c	
+p	xThis version not only allows you to set the input last, but also obtain a stream of responses from the pipeline.
+c	.$input. = N-3.14.;
+c	.$output. = Kstream.()
+c	.    |> Kcheck.(Kis_int.(.....), .'must be an integer'.)
+c	.    |> Kcheck.(Kfn. (.$v.) => $v > N0., .'must be positive'.)
+c	.    |> Kcollect.();
+c	
+c	Kforeach. (.$output.(.$input.) as .$message.) {
+c	.    Kvar_dump.(.$message.);
+c	.}
+c	
+h	Level 5: Functor Objects (OOP + Functional)
+p	xWrap behavior in objects with m__invokex for a smooth composer-friendly API.
+c	Kclass. KCheck
+c	.{
+c	.    Kpublic. Kfunction. K__construct.(
+c	.        Kprivate. KClosure. .$fn.,
+c	.        Kprivate. .string $message.,
+c	.    ) {}
+c	
+c	.    Kpublic. Kfunction. K__invoke.(KGenerator. .$it.): KGenerator
+c	.    {
+c	.        Kyield. Kfrom. [
+c	.            ....$it.,
+c	.            Kfn. (.$v.) => (.$this.->.fn.)(.$v.) ? .null. : $this->.message
+c	.        ];
+c	.    }
+c	.}
+c	
+p	xPHP is great for combining OOP and functional programming. The class we defined here is simple, however, you can go as far as you like with inheritance, interfaces, and traits to build a rich library of reusable pipeline components. 
+c	.$input. = [.'arr'.];
+c	.$output. = Kstream.()
+c	.    |> Knew. KCheck.(Kis_int.(.....), .'must be an integer'.)
+c	.    |> Knew. KCheck.(Kis_scalar.(.....), .'must be scalar'.)
+c	.    |> Kcollect.();
+c	
+c	Kforeach. (.$output.(.$input.) as .$message.) {
+c	.    Kvar_dump.(.$message.);
+c	.}
+c	
+h	Bonus: Static Helpers for Syntactic Sugar
+p	xUse magic to make the API feel like static function calls.
+c	Kclass. KFunc. Kextends. KCheck
+c	.{
+c	.    Kpublic static function. K__callStatic.(.string $name., .array $arguments.): Kstatic
+c	.    {
+c	.        Kreturn. Knew. Kstatic.($name(...), ...$arguments);
+c	.    }
+c	.}
+c	
+c	.$input. = [.'arr'.];
+c	.$output. = Kstream.()
+c	.    |> KFunc.::Kis_int.(.'must be an integer'.)
+c	.    |> KFunc.::Kis_scalar.(.'must be scalar'.)
+c	.    |> Kcollect.();
+c	
+c	Kforeach. (.$output.(.$input.) as .$message.) {
+c	.    Kvar_dump.(.$message.);
+c	.}
+c	
+p	xWith every new PHP feature, there's a great opportunity to make simpler APIs that are more expressive and reusable. The pipe operator is a great example of that, enabling a functional style that integrates well with OOP. Enjoy experimenting with these levels of pipes in your own projects! 
+r	
+p	kCC BY-NC-SA 4.0d (https://creativecommons.org/licenses/by-nc-sa/4.0/)

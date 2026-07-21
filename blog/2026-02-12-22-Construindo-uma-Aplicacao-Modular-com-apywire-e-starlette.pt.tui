@@ -1,0 +1,110 @@
+a	2026-02-12-22-Building-a-Modular-Application-with-apywire-and-starlette2026-02-12-22-Construindo-uma-Aplicacao-Modular-com-apywire-e-starlette.pt
+t	Construindo uma Aplicação Modular com apywire e starlette
+i	Alexandre Gomes Gaigalas – 12 de Fevereiro de 2026
+p	xEste post explica como usar o apywire para construir uma aplicação modular com injeção de dependências usando starlette. Vamos passo a passo para conectar serviços, handlers e um banco de dados usando um mconfig.yamlx declarativo.
+p	xO código completo deste tutorial está disponível em kgithub.com/alganet/apywire-starletted (https://github.com/alganet/apywire-starlette)x.
+h	O problema
+p	xEm muitas aplicações web Python, a cola entre dependências (conexões com banco, serviços e controllers) é feita manualmente no ponto de entrada da aplicação ou usando frameworks que dependem muito de reflection em tempo de execução e decorators. Isso pode causar:
+b	xCódigo fortemente acoplado: difícil de testar e refatorar.
+b	xOverhead em tempo de execução: reflection atrasa inicialização e o tempo de resposta de requisições.
+b	xDependências implícitas: o grafo de dependências fica difícil de visualizar.
+p	xO apywire resolve isso oferecendo uma maneira declarativa de definir o grafo de dependências em um arquivo YAML, que é então compilado em código Python eficiente e transparente.
+h	Passo 1: Os componentes
+p	xPrimeiro, definimos nossos componentes como classes Python simples. Note que elas não dependem de mapywirex nem de nenhum framework de DI — apenas declaram o que precisam em m__init__x.
+h	Serviços (src/services.py)
+c	Kclass. LUserService.:
+c	.    Kdef. F__init__.(.self., .db.):
+c	.        .self...db. = .db
+c	
+c	.    Kdef. Fget_user.(.self., .screen_name.: Lstr.):
+c	.        C# ... lógica pra obter o usuário ...
+c	.        Kpass
+c	
+c	Kclass. LMigrationService.:
+c	.    Kdef. F__init__.(.self., .db.):
+c	.        .self...db. = .db
+c	
+c	.    Kdef. Frun.(.self.):
+c	.        C# ... lógica pra executar as migrações ...
+c	.        Kpass
+c	
+h	Handlers (src/handlers.py)
+p	xOs handlers (controllers) são callables simples que recebem dependências.
+c	Kfrom. Lstarlette.responses. Kimport. LJSONResponse
+c	Kfrom. Lstarlette.requests. Kimport. LRequest
+c	Kimport. Lservices
+c	
+c	Kclass. LUserHandler.:
+c	.    Kdef. F__init__.(.self., .users.: Lservices.UserService.):
+c	.        .self...users. = .users
+c	
+c	.    Kasync. Kdef. F__call__.(.self., .scope., .receive., .send.):
+c	.        .request. = LRequest.(.scope., .receive.)
+c	.        .screen_name. = .request..path_params[S"screen_name".]
+c	.        .user. = .self...users..Fget_user.(.screen_name.)
+c	.        C# ... retorna a resposta ...
+c	
+h	Passo 2: A ligação (config.yaml)
+p	xAqui acontece a mágica. Declaramos nosso grafo de dependências em mconfig.yamlx.
+c	C# 1. Define a conexão com o banco de dados. Usa APSW diretamente, sem necessidade de wrapper.
+c	Lapsw.Connection. .dbO:
+c	.  AfilenameO:. S"db.sqlite"
+c	
+c	C# 2. Conecta os serviços. Injetamos o 'db' definido acima nos nossos serviços.
+c	Lservices.UserService. .usersO:
+c	.  .dbO:. O{.dbO}
+c	
+c	Lservices.MigrationService. .migrationsO:
+c	.  .dbO:. O{.dbO}
+c	
+c	C# 3. Conecta os handlers. Injetamos o serviço 'users' no UserHandler.
+c	Lhandlers.UserHandler. .user_handlerO:
+c	.  .usersO:. O{.usersO}
+c	
+c	Lhandlers.HomeHandler. .home_handlerO:. O{O}
+c	
+c	C# 4. Define as rotas. Vinculamos o 'user_handler' a um path.
+c	Lstarlette.routing.Route. .user_routeO:
+c	.  ApathO:. S"/users/O{.screen_nameO}S"
+c	.  AendpointO:. O{.user_handlerO}
+c	.  AmethodsO:. O[S"GET"O]
+c	
+c	Lstarlette.routing.Route. .hello_routeO:
+c	.  ApathO:. S"/"
+c	.  AendpointO:. O{.home_handlerO}
+c	
+c	C# 5. A Aplicação - Montamos a aplicação com nossas rotas.
+c	Lstarlette.applications.starlette. .appO:
+c	.  AroutesO:
+c	.    O-. O{.user_routeO}
+c	.    O-. O{.hello_routeO}
+c	
+p	xPrincipais observações:
+b	m{db}x: referencia o componente chamado mdbx.
+b	xNomes totalmente qualificados: usamos mmodule.ClassNamex para especificar tipos.
+b	xSem mudanças no código: não alteramos as classes Python para fazer o wiring.
+h	Passo 3: Compilação
+p	xO apywire compila esse YAML em um arquivo Python (msrc/container.pyx). Esse código gerado é o que sua aplicação realmente usa — ele lida com carregamento preguiçoso e garante que singletons sejam compartilhados corretamente.
+p	xPara compilar:
+c	.python src/app.py --compile
+p	xIsso gera msrc/container.pyx. Você não edita esse arquivo, mas pode inspecioná‑lo para ver exatamente como sua aplicação foi ligada — é apenas código Python comum!
+h	Passo 4: Executando a aplicação
+p	xO entrypoint msrc/app.pyx simplesmente importa o container compilado e o utiliza.
+c	Kfrom. Lcontainer. Kimport. Lcompiled
+c	
+c	Kdef. Fcreate_app.():
+c	.    Kreturn. Lcompiled..app()
+c	
+c	Kif. .__name__. == S"__main__".:
+c	.    C# ... lógica da CLI ...
+c	.    Luvicorn..Frun.(S"app:create_app"., factory=KTrue.)
+c	
+p	xComo mcompiledx é importado de um arquivo gerado, não há overhead de framework em tempo de execução.
+h	Conclusão
+p	xAo isolar o wiring em mconfig.yamlx, alcançamos:
+b	xArquitetura limpa: a lógica de negócio não conhece o framework.
+b	xPerformance: a compilação "assenta" o grafo de dependências em código otimizado.
+b	xFlexibilidade: trocar a implementação do banco ou de um serviço é apenas uma mudança de configuração.
+p	xExperimente o kapywired (https://github.com/alganet/apywire)x no seu próximo projeto Python!
+r	
+p	kCC BY-NC-SA 4.0d (https://creativecommons.org/licenses/by-nc-sa/4.0/)

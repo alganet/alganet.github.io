@@ -1,0 +1,36 @@
+a	2025-12-22-09-How-Developers-Stole-Dry-Runs-From-Machinists2025-12-22-09-Como-Desenvolvedores-Roubaram-Dry-Run-De-Metalurgicos.pt
+t	How Developers Stole "Dry Runs" From Machinists
+i	Alexandre Gomes Gaigalas – December 22, 2025
+p	xIf you’ve ever run a command with a m--dry-runx flag, you probably knew what it did. It ran the thing, but not the whole thing.
+p	xMore specifically, a dry run runs all but the irreversible parts of an operation.
+h	A Quick Example
+p	xFor example, let's say you have a command-line program called mcleanup-databasex:
+c	.$ Kcleanup-database --help
+c	.usage: cleanup-database [options]
+c	.Removes old data from the database.
+c	
+c	.Options:
+c	.--dry-run     Show what would be deleted, but don't actually delete anything
+c	.--force       Actually delete the data
+c	
+p	xWhen you run such program passing the m--dry-runx flag, it will show you what it would do without making any changes:
+c	.$ Kcleanup-database --dry-run
+c	.The following records would be deleted:
+c	.- Record ID 12345
+c	.- Record ID 67890
+c	.No changes have been made.
+c	
+p	xThis is particularly useful for commands that perform destructive actions, such as deleting files or modifying databases.
+p	xDry runs are not limited to command-line tools. They can also be found in various programming libraries and frameworks, where they allow developers to simulate operations without making permanent changes.
+h	But Why "Dry Run"?
+p	xI mean, why not m--simulatex or m--previewx? Where does the term "dry run" even come from?
+p	xIt comes from the world of machining.
+p	xFirst, let me show you what a "wet run" actually is:
+g	A wet run of a machine
+d	A machine performing a "wet" run operation, with actual lubrication fluids being applied to the piece.
+p	
+p	
+p	xThese operations are "wet" in the sense that a constant flow of lubrication fluid is needed to run the operation smoothly.
+p	xWhen you are testing the motions without actually performing any change, there is no friction or heat, so the lubrication fluid is not needed. This is a dry run, and that's where the term comes from.
+r	
+p	kCC BY-NC-SA 4.0d (https://creativecommons.org/licenses/by-nc-sa/4.0/)
