@@ -116,8 +116,9 @@ _started=no
 _built_w=-1                     # width the content buffer was last wrapped at (resize cache)
 _lang_x=0                       # screen column where the masthead language switch begins
 _scroll_drawn=0                 # the _scroll value the body was last painted at (scroll-shift cache)
+_ent_hover_drawn=0              # the _ent_hover value the body was last painted at (hover-repaint cache)
 _geom_drawn=                    # body geometry at that paint ("_ci_r:_ci_h:_colc:_colw")
-_body_dirty=1                   # 1 = something other than _scroll changed; next body paint must be full
+_body_dirty=1                   # 1 = something other than _scroll/_ent_hover changed; next body paint must be full
 
 # ─── Layout — a centered column, no chrome ───────────────────────────
 _MAXCOL=76                      # max readable column width (≈ the site's 40em measure)
@@ -374,7 +375,9 @@ _open ()   # $1=view  [$2=base]
 {
 	_view=$1
 	test "$1" = post && _post_base=$2
-	_scroll=0; _sel=0; _csel=0; _copyflash=0
+	# Hover belongs to the page whose entries it indexes: dropping it here keeps
+	# _hover_body's two rows (and their _ent_line_* lookups) on one page's entries.
+	_scroll=0; _sel=0; _csel=0; _copyflash=0; _ent_hover=0
 	_load; _build_content
 	_report_page
 	tuish_request_redraw -1
@@ -420,27 +423,43 @@ _view_html ()
 }
 
 # ─── Rendering ───────────────────────────────────────────────────────
-_render ()      { _lay; tuish_begin; tuish_draw_fill 1 1 "$_W" "$_H" bg=$C_BG; _draw_masthead; _draw_body; tuish_end; }
-_render_mast () { _lay; tuish_begin; _draw_masthead; tuish_end; }
+# A frame is buffered into one string and written once — but ONE write is not one
+# repaint. Hosted, the guest's stdio hands stdout to the browser in ~4 KiB pieces,
+# each its own postMessage → term.write, and xterm.js renders whatever it has at
+# the next animation frame: a full-screen paint reaches the eye as the erase first
+# and the text a frame later — a visible blink. DECSET 2026 (synchronized output)
+# tells the terminal to hold the screen between BSU and ESU, so the pieces land as
+# one update. xterm.js implements it (with a 1s safety timeout); terminals that do
+# not simply ignore an unknown private mode, so native mode is unaffected.
+_sync_begin () { tuish_begin; _tuish_write '\033[?2026h'; }
+_sync_end ()   { _tuish_write '\033[?2026l'; tuish_end; }
+
+_render ()      { _lay; _sync_begin; tuish_draw_fill 1 1 "$_W" "$_H" bg=$C_BG; _draw_masthead; _draw_body; _sync_end; }
+_render_mast () { _lay; _sync_begin; _draw_masthead; _sync_end; }
 
 # A scroll is the common body redraw. Rather than repaint every visible line,
 # shift the rows that stay on screen with the terminal's own scroll region and
-# paint only the few that scrolled into view (_scroll_body). Fall back to a full
-# _draw_body when the body changed for a non-scroll reason (_body_dirty), the
-# geometry moved (resize/rebuild), or the jump clears the whole screen anyway.
+# paint only the few that scrolled into view (_scroll_body). A hover change moves
+# one tint between two entry rows, so it repaints just those (_hover_body) — the
+# two cases compose, since a wheel and a mouse move can coalesce into one frame.
+# Fall back to a full _draw_body when the body changed for another reason
+# (_body_dirty), the geometry moved (resize/rebuild), or the jump clears the whole
+# screen anyway.
 _render_body ()
 {
 	_lay
-	tuish_begin
+	_sync_begin
 	local _d=$(( _scroll - _scroll_drawn )) _ad
 	_ad=${_d#-}
-	if test "$_d" -ne 0 && test "$_body_dirty" -eq 0 \
+	if test "$_body_dirty" -eq 0 \
 	   && test "$_geom_drawn" = "${_ci_r}:${_ci_h}:${_colc}:${_colw}" \
 	   && test "$_ad" -lt "$_ci_h"
-	then _scroll_body "$_d"
+	then
+		test "$_d" -ne 0 && _scroll_body "$_d"
+		_hover_body
 	else _draw_body
 	fi
-	tuish_end
+	_sync_end
 }
 
 # A rule (─) drawn as text so it carries the app background — tuish_draw_hline
@@ -509,10 +528,37 @@ _draw_body ()
 	_draw_cb_focus
 	_draw_scrollbar
 	# Record what is now on screen so a following scroll can shift instead of
-	# repaint (see _render_body / _scroll_body).
+	# repaint (see _render_body / _scroll_body) and a following hover can repaint
+	# two rows instead of the body (_hover_body).
 	_scroll_drawn=$_scroll
+	_ent_hover_drawn=$_ent_hover
 	_geom_drawn="${_ci_r}:${_ci_h}:${_colc}:${_colw}"
 	_body_dirty=0
+}
+
+# Repaint one entry's row in place, from the content buffer — the canvas must be
+# active. Silently skips entry 0 ("none") and any entry scrolled out of view.
+_paint_entry_row ()   # $1 = entry index (0 = none)
+{
+	test "$1" -ge 1 || return 0
+	local _ln _i; eval "_ln=\$_ent_line_$1"
+	_i=$(( _ln - _scroll - 1 ))
+	test "$_i" -ge 0 && test "$_i" -lt "$_ci_h" || return 0
+	_paint_row "$_i"
+}
+
+# Moving the mouse between entries changes exactly two rows: the one losing the
+# tint and the one gaining it. Repainting the whole body for that wrote several
+# kilobytes per mouse move — enough to reach the browser split across writes, and
+# so to flash the erased body before the text caught up. Paint the two rows.
+_hover_body ()
+{
+	test "$_ent_hover" -ne "$_ent_hover_drawn" || return 0
+	tuish_canvas "$_ci_r" "$_colc" "$_colw" "$_ci_h"
+	_paint_entry_row "$_ent_hover_drawn"
+	_paint_entry_row "$_ent_hover"
+	tuish_canvas_off
+	_ent_hover_drawn=$_ent_hover
 }
 
 # Shift the body with the terminal scroll region and repaint only the rows that
@@ -802,7 +848,9 @@ _hover ()
 	local _x=$TUISH_MOUSE_X _y=$TUISH_MOUSE_Y _eh=0
 	if test "$_x" -ge "$_colc" && test "$_x" -lt $(( _colc + _colw )) && test "$_y" -ge "$_ci_r"
 	then _ent_at "$_y"; _eh=$_ehit; fi
-	if test "$_eh" -ne "$_ent_hover"; then _ent_hover=$_eh; _body_dirty=1; tuish_request_redraw 2; fi
+	# No _body_dirty: the tint moved between two rows, and _hover_body repaints
+	# exactly those (see _render_body).
+	if test "$_eh" -ne "$_ent_hover"; then _ent_hover=$_eh; tuish_request_redraw 2; fi
 }
 
 # ─── Idle: first paint ───────────────────────────────────────────────
