@@ -56,6 +56,71 @@ tuish_print ()
 	test $_tuish_printf -eq 1 && case "$_p" in *%*) _p="${_p//\%/%%}";; esac
 	_tuish_write "$_p"
 }
+# _tuish_clip_avail COL  ->  _tuish_avail
+# TERMINAL COLUMNS drawable from logical COL rightward. The single clip authority:
+# tuish_text, tuish_clear_*, and the draw.sh box/line clamps all route through it
+# instead of hand-clamping to TUISH_VIEW_COLS (which let content bleed past a hosted
+# region's right edge).
+#
+# It answers in ABSOLUTE COLUMNS because that is the unit its consumers spend —
+# tuish_str_left/tuish_str_window take a display-column budget, tuish_clear_region
+# writes that many literal spaces. The bounds it must respect do NOT natively share
+# that unit: TUISH_VIEW_COLS is viewport-logical columns, while _tx_lcmax is in the
+# CURRENT cell space, which under a CWxCH canvas is CANVAS CELLS at an offset. A
+# min() over the raw numbers mixes the two and is wrong in BOTH directions — it
+# halved a CW=2 canvas's text, and let a canvas at a high _tx_off_c write past the
+# screen. So each bound is mapped through the SAME affine transform tuish_vmove
+# uses, and only then compared:
+#
+#   start = VIEW_LEFT + off_c + (COL-1)*cw + 1     first column of cell COL
+#   last  = min( VIEW_LEFT + VIEW_COLS,            the region's right edge
+#                VIEW_LEFT + off_c + lcmax*cw,     last column of the last cell
+#                                                  tuish_vmove will accept
+#                TUISH_COLUMNS )                   the physical screen
+#
+# Each bound is skipped when it is not KNOWN: TUISH_VIEW_COLS is 0 until a viewport
+# is set (and stays 0 when viewport.sh is not sourced), TUISH_COLUMNS is 0 until
+# tuish_update_size runs. With none of them known the answer is _TUISH_NOCLIP — large
+# enough to mean "no trim", finite so callers can still detect it. Folding
+# TUISH_COLUMNS in is what lets tuish_clear_to_edge be a single call: its old "no
+# viewport, so use the whole terminal" fallback is now just the case where the region
+# term is absent and the physical term wins.
+#
+# It reports a FACT, not a policy. _tuish_wrap ("do not trim text, let the terminal
+# wrap") lives at the call sites that mean it — tuish_text, and the five draw.sh
+# clamps, which already tested it. An ERASE never honours it: an unclamped clear under
+# autowrap spills its spaces onto the next row, outside the region.
+#
+# _tuish_avail is TERMINAL COLUMNS, never cells. draw.sh positions in cells but writes
+# glyph runs, and a terminal advances one column per glyph whatever _tx_cw is, so
+# columns is right there too. What stays wrong at CW>1 is draw.sh's OWN geometry (it
+# places a box's right border at cell col+W-1, a cw-scaled distance, but draws a run W
+# columns long) — pre-existing and orthogonal; this helper can no longer over-permit
+# it. A cell budget, if ever needed, is _tuish_avail / _tx_cw (floored — a partly
+# visible cell is not drawable). Never negative.
+_TUISH_NOCLIP=99999
+_tuish_clip_avail ()
+{
+	local _ca_s=$(( TUISH_VIEW_LEFT + _tx_off_c + ($1 - 1) * _tx_cw + 1 ))
+	local _ca_e=$_TUISH_NOCLIP _ca_c
+	if test $TUISH_VIEW_COLS -gt 0
+	then
+		_ca_c=$(( TUISH_VIEW_LEFT + TUISH_VIEW_COLS ))
+		test $_ca_c -lt $_ca_e && _ca_e=$_ca_c
+	fi
+	_ca_c=$(( TUISH_VIEW_LEFT + _tx_off_c + _tx_lcmax * _tx_cw ))
+	test $_ca_c -lt $_ca_e && _ca_e=$_ca_c
+	test $TUISH_COLUMNS -gt 0 && test $TUISH_COLUMNS -lt $_ca_e && _ca_e=$TUISH_COLUMNS
+	# Nothing REAL bounded us: no viewport, no known screen width, and _tx_lcmax still
+	# at its ±99999 "no clip" default, which is a sentinel rather than a column anyone
+	# means. Answer exactly _TUISH_NOCLIP so callers can recognise it — measuring the
+	# width instead would make COL=5 report 99995, which reads as a bound and had
+	# tuish_clear_to_edge erase a hundred thousand spaces.
+	test $_ca_e -ge $_TUISH_NOCLIP && { _tuish_avail=$_TUISH_NOCLIP; return 0; }
+	_tuish_avail=$(( _ca_e - _ca_s + 1 ))
+	test $_tuish_avail -lt 0 && _tuish_avail=0
+	return 0
+}
 # tuish_text ROW COL TEXT [fg=N] [bg=N] [maxwidth=N]
 # The single text-placement entry point. Positions at viewport/canvas (ROW,COL)
 # via tuish_vmove and prints TEXT, optionally coloured and width-clipped. Works
@@ -67,7 +132,7 @@ tuish_print ()
 # the plain form stays a pure place-and-print.
 tuish_text ()
 {
-	local _tt_row=$1 _tt_col=$2 _tt_text="$3" _tt_maxw=-1 _tt_fg=-1 _tt_bg=-1
+	local _tt_row=$1 _tt_col=$2 _tt_text="$3" _tt_maxw=-1 _tt_fg=-1 _tt_bg=-1 _tt_esc=0
 	shift 3
 	while test $# -gt 0
 	do
@@ -80,45 +145,83 @@ tuish_text ()
 	done
 
 	# Display-width clipping needs str.sh; without it, place + colour verbatim
-	# and let the terminal clip at the screen edge.
+	# and let the terminal clip at the screen edge. All right-edge trims go through
+	# _tuish_clip_avail (the true visible window), never TUISH_VIEW_COLS, so text
+	# clips at a hosted region's edge rather than bleeding to the screen edge.
 	if type tuish_str_width >/dev/null 2>&1
 	then
-		# Whole placement off the right of the viewport: nothing to draw.
-		if test $_tuish_wrap -eq 0 && test $TUISH_VIEW_COLS -gt 0 \
-		   && test $_tt_col -gt $TUISH_VIEW_COLS
-		then return 0; fi
-
-		# str helpers take a variable NAME — pass _tt_text directly.
-		tuish_str_width _tt_text
-		local _tt_w=$TUISH_SWIDTH
-
-		if test $_tt_maxw -ge 0 && test $_tt_w -gt $_tt_maxw
-		then
-			tuish_str_left _tt_text $_tt_maxw
-			_tt_text=$TUISH_SLEFT
-			_tt_w=$_tt_maxw
-		fi
-
-		# Left-edge clip: trim leading characters when COL < 1.
-		if test $_tt_col -lt 1
-		then
-			tuish_str_right _tt_text $((1 - _tt_col))
-			_tt_text=$TUISH_SRIGHT
-			_tt_col=1
-			tuish_str_width _tt_text
-			_tt_w=$TUISH_SWIDTH
-		fi
-
-		# Right-edge clip: trim to the columns that fit.
-		if test $_tuish_wrap -eq 0 && test $TUISH_VIEW_COLS -gt 0
-		then
-			local _tt_avail=$((TUISH_VIEW_COLS - _tt_col + 1))
-			if test $_tt_w -gt $_tt_avail
+		case "$_tt_text" in
+		*"${_tuish_chr_27}["*)
+			# Escape-aware path: the text carries SGR runs, whose bytes tuish_str_width
+			# would miscount as visible columns and could be split mid-sequence. Do the
+			# left+right clip in ONE SGR-correct slice via tuish_str_window (offset =
+			# leading cells to drop, window = cells that fit). Force a trailing reset
+			# below: a colour run's own reset may have been past the right cut.
+			# Keyed on ESC '[' specifically — CSI is the only escape form
+			# tuish_str_window knows how to skip, so an OSC or SS3 in the text stays on
+			# the plain path it has always taken instead of being sliced as columns.
+			local _tt_off=0
+			if test $_tt_col -lt 1
+			then _tt_off=$((1 - _tt_col)); _tt_col=1; fi
+			# _tuish_clip_avail reports the columns that EXIST; whether text honours
+			# them is this caller's policy, and _tuish_wrap=1 means it does not.
+			local _tt_win=$_TUISH_NOCLIP
+			if test $_tuish_wrap -eq 0
+			then _tuish_clip_avail $_tt_col; _tt_win=$_tuish_avail; fi
+			# maxwidth counts from the string's own start, exactly as on the plain path
+			# below (which truncates to maxwidth BEFORE trimming the scrolled-off head),
+			# so the two paths clip a left-scrolled field to the same cells.
+			if test $_tt_maxw -ge 0
 			then
-				tuish_str_left _tt_text $_tt_avail
-				_tt_text=$TUISH_SLEFT
+				local _tt_mw=$(( _tt_maxw - _tt_off ))
+				test $_tt_mw -lt $_tt_win && _tt_win=$_tt_mw
 			fi
-		fi
+			test $_tt_win -lt 1 && return 0
+			tuish_str_window _tt_text $_tt_off $_tt_win
+			_tt_text=$TUISH_SWINDOW
+			_tt_esc=1
+			;;
+		*)
+			# Plain fast path: no embedded SGR, so display width == tuish_str_width.
+			# Whole placement off the right of the visible window: nothing to draw.
+			if test $_tuish_wrap -eq 0 && test $TUISH_VIEW_COLS -gt 0 \
+			   && test $_tt_col -gt $_tx_lcmax
+			then return 0; fi
+
+			# str helpers take a variable NAME — pass _tt_text directly.
+			tuish_str_width _tt_text
+			local _tt_w=$TUISH_SWIDTH
+
+			if test $_tt_maxw -ge 0 && test $_tt_w -gt $_tt_maxw
+			then
+				tuish_str_left _tt_text $_tt_maxw
+				_tt_text=$TUISH_SLEFT
+				_tt_w=$_tt_maxw
+			fi
+
+			# Left-edge clip: trim leading characters when COL < 1.
+			if test $_tt_col -lt 1
+			then
+				tuish_str_right _tt_text $((1 - _tt_col))
+				_tt_text=$TUISH_SRIGHT
+				_tt_col=1
+				tuish_str_width _tt_text
+				_tt_w=$TUISH_SWIDTH
+			fi
+
+			# Right-edge clip: trim to the columns that fit the visible window.
+			# _tuish_wrap=1 is this caller opting out — let the terminal wrap instead.
+			if test $_tuish_wrap -eq 0
+			then
+				_tuish_clip_avail $_tt_col
+				if test $_tt_w -gt $_tuish_avail
+				then
+					tuish_str_left _tt_text $_tuish_avail
+					_tt_text=$TUISH_SLEFT
+				fi
+			fi
+			;;
+		esac
 
 		test -z "$_tt_text" && return 0
 	fi
@@ -129,7 +232,7 @@ tuish_text ()
 		test "$_tt_bg" != -1 && { _tuish_color_params bg "$_tt_bg"; tuish_sgr "$_tuish_cparams"; }
 		tuish_print "$_tt_text"
 	fi
-	if test "$_tt_fg" != -1 || test "$_tt_bg" != -1
+	if test "$_tt_fg" != -1 || test "$_tt_bg" != -1 || test $_tt_esc -eq 1
 	then tuish_sgr_reset; fi
 }
 tuish_print_at ()       { tuish_text "$1" "$2" "$3"; }
@@ -356,12 +459,15 @@ tuish_move_left ()      { _tuish_write "\033[${1:-1}D"; }
 tuish_clear_to_edge ()
 {
 	local _cte_c=${2:-1}
-	# TUISH_VIEW_COLS is 0 until a viewport is set (and stays 0 when viewport.sh
-	# is not sourced at all); the whole terminal width is the drawable area then.
-	local _cte_max=$TUISH_VIEW_COLS
-	test $_cte_max -le 0 && _cte_max=$TUISH_COLUMNS
-	local _cte_w=$(( _cte_max - _cte_c + 1 ))
-	test $_cte_w -gt 0 && tuish_clear_region "$1" "$_cte_c" "$_cte_w" 1
+	# One call. This hand-rolled the same three bounds (TUISH_VIEW_COLS, a
+	# TUISH_COLUMNS fallback for the no-viewport profile, and _tx_lcmax) in logical
+	# units; _tuish_clip_avail now resolves all three in terminal columns, so this is
+	# a straight delegation.
+	_tuish_clip_avail "$_cte_c"
+	# Nothing bounds us at all — no viewport AND no known screen width. Erase nothing:
+	# an erase must never guess how wide the world is.
+	test $_tuish_avail -ge $_TUISH_NOCLIP && return 0
+	test $_tuish_avail -gt 0 && tuish_clear_region "$1" "$_cte_c" "$_tuish_avail" 1
 	return 0
 }
 
@@ -371,6 +477,14 @@ tuish_clear_to_edge ()
 tuish_clear_region ()
 {
 	local _cr_r=$1 _cr_c=$2 _cr_w=$3 _cr_h=$4 _cr_i=0
+	# Clamp the width to the true visible window (every row shares _cr_c): an
+	# unclamped clear erases past a hosted region's right edge into the host's chrome.
+	# Unconditional — an erase does not honour _tuish_wrap. Autowrap would only mean
+	# the overrun lands on the NEXT row instead of the screen edge; either way it is
+	# outside the region, and there is nothing to "wrap" when the payload is blanks.
+	_tuish_clip_avail $_cr_c
+	test $_cr_w -gt $_tuish_avail && _cr_w=$_tuish_avail
+	test $_cr_w -lt 1 && return 0
 	# Row of _cr_w spaces via the shared base-module primitive (term.sh and
 	# str.sh both build repeated strings but each depends only on tui.sh).
 	_tuish_repeat ' ' "$_cr_w"

@@ -681,24 +681,46 @@ _tuish_ctx_seat ()   # $1=abs_row $2=abs_col0 $3=W $4=H [$5=clip_row $6=clip_col
 	TUISH_VIEW_ROWS=$4
 	TUISH_VIEW_COLS=$3
 
+	local _r0=1 _r1=$4 _c0=1 _c1=$3
 	if test $# -ge 8
 	then
 		# Express the clip window in the CHILD's logical cells (the inverse of the
 		# tuish_vmove map: row = abs - VIEW_TOP + 1, col = abs - VIEW_LEFT), then
 		# intersect with the child's own extent. An empty intersection is fine — the
 		# child is entirely off-pane and simply draws nothing.
-		local _r0=$(( $5 - $1 + 1 ))          # first visible logical row
-		local _r1=$(( $5 + $8 - 1 - $1 + 1 )) # last  visible logical row
-		local _c0=$(( $6 + 1 - $2 ))          # first visible logical col
-		local _c1=$(( $6 + $7 - $2 ))         # last  visible logical col
+		_r0=$(( $5 - $1 + 1 ))          # first visible logical row
+		_r1=$(( $5 + $8 - 1 - $1 + 1 )) # last  visible logical row
+		_c0=$(( $6 + 1 - $2 ))          # first visible logical col
+		_c1=$(( $6 + $7 - $2 ))         # last  visible logical col
 		test $_r0 -lt 1 && _r0=1
 		test $_c0 -lt 1 && _c0=1
 		test $_r1 -gt $4 && _r1=$4
 		test $_c1 -gt $3 && _c1=$3
-		_tuish_ctx_region "$1" "$2" "$3" "$4" "$_r0" "$_r1" "$_c0" "$_c1"
-	else
-		_tuish_ctx_region "$1" "$2" "$3" "$4" 1 "$4" 1 "$3"
 	fi
+	# Intersect with the SCREEN, in this context's logical cells (same pullback). A
+	# host may seat a child anywhere in ITS frame, and the clip above is the child's
+	# own extent intersected with nothing else — so a region seated near an edge
+	# handed out cells that are not on the terminal at all. Nothing downstream
+	# re-checks: tuish_vmove clips the LOGICAL cell and only then maps, and it bounds
+	# the absolute ROW against TUISH_LINES but the absolute COLUMN against nothing.
+	#
+	# Here rather than in tuish_vmove: this runs once per seat, vmove runs once per
+	# drawn cell, and its success path is a single test today. The root already gets
+	# this for free — _tuish_viewport_own_region seats it to exactly 1..LINES x
+	# 1..COLUMNS pulled back the same way — so this is the hosted half of that.
+	#
+	# Guarded on nonzero dimensions: TUISH_LINES/COLUMNS are 0 until tuish_update_size
+	# runs (a term.sh-only profile, and every unit suite that stubs the device), and
+	# clamping to 0 there would refuse every cell.
+	local _s0=$(( 2 - $1 ))
+	test $_r0 -lt $_s0 && _r0=$_s0
+	_s0=$(( 1 - $2 ))
+	test $_c0 -lt $_s0 && _c0=$_s0
+	if test $TUISH_LINES -gt 0
+	then _s0=$(( TUISH_LINES - $1 + 1 )); test $_r1 -gt $_s0 && _r1=$_s0; fi
+	if test $TUISH_COLUMNS -gt 0
+	then _s0=$(( TUISH_COLUMNS - $2 )); test $_c1 -gt $_s0 && _c1=$_s0; fi
+	_tuish_ctx_region "$1" "$2" "$3" "$4" "$_r0" "$_r1" "$_c0" "$_c1"
 }
 
 # Create AND activate a child context bound to a region of the CURRENTLY ACTIVE
@@ -1356,9 +1378,19 @@ _tuish_init_term ()
 	trap 'exit 130' INT
 	trap 'exit 143' TERM
 	trap 'exit 129' HUP
+	# NOTE: busybox stty validates the WHOLE argument list before applying any of
+	# it, and it has no `discard` control char — so a single `discard undef` makes
+	# the entire call fail and (with the 2>/dev/null) silently leave the terminal
+	# in cooked mode: echo on, canonical on, arrows echoing as ^[OA. On a dev box
+	# `stty` is GNU coreutils and accepts it, so this only bites a busybox-only
+	# system (the exact target for a shell-driven console distro). Keep the raw
+	# setup in one call every stty accepts; disable VDISCARD (Ctrl-O) as a
+	# best-effort follow-up. `raw` already clears IEXTEN, so VDISCARD is inert
+	# regardless — the second call is belt-and-suspenders where it is supported.
 	stty raw -echo -ctlecho -isig -icanon -ixon -ixoff -tostop -ocrnl \
 		-icrnl -inlcr -igncr \
-		intr undef quit undef werase undef discard undef time 0 2>/dev/null
+		intr undef quit undef werase undef time 0 2>/dev/null
+	stty discard undef 2>/dev/null || :
 	_tuish_stty="$(stty -g)"
 
 	trap '_tuish_signal=resize; _tuish_precols=$TUISH_COLUMNS' WINCH 2>/dev/null || :
