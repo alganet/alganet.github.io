@@ -12,6 +12,7 @@ _tuish_str_loaded=1
 #   tuish_str_len/left/right/char - character-level string ops (byte-mode UTF-8)
 #   tuish_str_width              - display width (columns)
 #   tuish_str_window             - visible slice of a horizontal column-window
+#   tuish_str_pad                - fit to exactly N display columns
 #   tuish_str_repeat             - O(log n) string repetition
 #   _tuish_char_width()          - codepoint → display width
 #   _tuish_byte_val/utf8_len/char_byte_off - UTF-8 internals
@@ -19,6 +20,76 @@ _tuish_str_loaded=1
 # Dependencies: _tuish_ord() (from src/ord.sh)
 #
 # Requires LC_ALL=C (set by compat.sh) for byte-oriented string indexing.
+
+# ─── Decode memo (exact-match MRU) ───────────────────────────────
+# Every function below opens with an ASCII fast path and falls back to a
+# byte-by-byte UTF-8 decode. The gap between the two is not a constant factor:
+# measured on this tree, tuish_str_width costs 16us on 64 ASCII columns and
+# 4499us on a 60-column box rule (60x U+2500) — and ONE non-ASCII byte forfeits
+# the fast path for the whole string, so a 20-column label with a single '┤' in
+# it costs 498us. tuish_text runs a width on EVERY text draw (term.sh), and the
+# default draw backend is unicode, so a UTF-8 app pays milliseconds per label
+# before a byte reaches the terminal. That is the 266ms frame docs/event.md
+# sizes TUISH_DEFER_MAX against.
+#
+# What makes it cacheable is that the expensive strings are the REPEATED ones:
+# rules, borders, box chrome and fixed labels are redrawn verbatim every frame,
+# while the content that genuinely differs row to row is usually prose, which
+# takes the ASCII path anyway and is already 16us. So a handful of slots is
+# enough — this is not a general cache, it is a guard against re-deriving the
+# same chrome N times per frame and again next frame.
+#
+# The key is the EXACT string (tagged, and with the numeric arguments folded in
+# where they change the answer), compared by `case` with the pattern quoted so
+# it matches literally — a rule made of '*' or '?' must not glob onto a
+# different entry. The value can therefore never be wrong: the only failure mode
+# is a miss, which costs the comparisons and then runs the decoder that was
+# going to run anyway.
+#
+# Only the SLOW paths consult it. An ASCII string never looks itself up and
+# never evicts anything, so the fast path stays exactly as cheap as it was.
+#
+# Plain globals, and they have to be: the whole point is to outlive the call that
+# filled them. That also keeps _tuish_memo_get/_put off compat.sh's
+# _tuish_fnfix_skip — they declare nothing, and they take the key by VALUE rather
+# than by variable name, so converting them to ksh-style scoping changes nothing.
+# The functions that CONSULT the memo take a name and are on that list already.
+_tuish_memo_k0='' _tuish_memo_k1='' _tuish_memo_k2='' _tuish_memo_k3=''
+_tuish_memo_k4='' _tuish_memo_k5='' _tuish_memo_k6='' _tuish_memo_k7=''
+_tuish_memo_v0='' _tuish_memo_v1='' _tuish_memo_v2='' _tuish_memo_v3=''
+_tuish_memo_v4='' _tuish_memo_v5='' _tuish_memo_v6='' _tuish_memo_v7=''
+_tuish_memo_val=''
+
+# _tuish_memo_get KEY -> 0 and _tuish_memo_val on a hit, 1 on a miss.
+# Slots start empty and every real key carries a non-empty tag, so an untouched
+# slot cannot be hit by a lookup of the empty string.
+_tuish_memo_get ()
+{
+	case "$1" in
+	"$_tuish_memo_k0") _tuish_memo_val=$_tuish_memo_v0; return 0;;
+	"$_tuish_memo_k1") _tuish_memo_val=$_tuish_memo_v1; return 0;;
+	"$_tuish_memo_k2") _tuish_memo_val=$_tuish_memo_v2; return 0;;
+	"$_tuish_memo_k3") _tuish_memo_val=$_tuish_memo_v3; return 0;;
+	"$_tuish_memo_k4") _tuish_memo_val=$_tuish_memo_v4; return 0;;
+	"$_tuish_memo_k5") _tuish_memo_val=$_tuish_memo_v5; return 0;;
+	"$_tuish_memo_k6") _tuish_memo_val=$_tuish_memo_v6; return 0;;
+	"$_tuish_memo_k7") _tuish_memo_val=$_tuish_memo_v7; return 0;;
+	esac
+	return 1
+}
+
+# _tuish_memo_put KEY VALUE — insert at the front, drop the oldest.
+_tuish_memo_put ()
+{
+	_tuish_memo_k7=$_tuish_memo_k6; _tuish_memo_v7=$_tuish_memo_v6
+	_tuish_memo_k6=$_tuish_memo_k5; _tuish_memo_v6=$_tuish_memo_v5
+	_tuish_memo_k5=$_tuish_memo_k4; _tuish_memo_v5=$_tuish_memo_v4
+	_tuish_memo_k4=$_tuish_memo_k3; _tuish_memo_v4=$_tuish_memo_v3
+	_tuish_memo_k3=$_tuish_memo_k2; _tuish_memo_v3=$_tuish_memo_v2
+	_tuish_memo_k2=$_tuish_memo_k1; _tuish_memo_v2=$_tuish_memo_v1
+	_tuish_memo_k1=$_tuish_memo_k0; _tuish_memo_v1=$_tuish_memo_v0
+	_tuish_memo_k0=$1;              _tuish_memo_v0=$2
+}
 
 # ─── String utilities (byte-mode UTF-8 decoding) ─────────────────
 # All take a variable NAME to avoid subshell overhead.
@@ -87,6 +158,30 @@ tuish_str_repeat ()
 	TUISH_SREPEATED=$_tuish_rep
 }
 
+# tuish_str_pad VAR WIDTH -> TUISH_SPADDED
+# VAR's value fitted to exactly WIDTH display COLUMNS: space-padded when it is
+# narrower, sliced when it is wider.
+#
+# The string counterpart of `tuish_text ... width=N` (term.md). Use that one when the
+# field is the whole write; use this one when the row is assembled from several pieces
+# and printed as a unit, which is the case that was hand-rolling a pad loop.
+#
+# Columns, not characters — it goes through tuish_str_window, so it counts a CJK
+# ideograph as the two columns it occupies, skips SGR runs rather than counting their
+# bytes, and drops (never splits) a wide glyph that would straddle the cut. That last
+# case leaves the slice a column short of WIDTH, which the pad then makes up, so the
+# result is WIDTH columns either way.
+tuish_str_pad ()
+{
+	tuish_str_window "$1" 0 "$2"
+	TUISH_SPADDED=$TUISH_SWINDOW
+	if test $TUISH_SWINDOW_W -lt $2
+	then
+		_tuish_repeat ' ' $(( $2 - TUISH_SWINDOW_W ))
+		TUISH_SPADDED="${TUISH_SPADDED}${_tuish_rep}"
+	fi
+}
+
 # ─── Text width (display columns) ────────────────────────────────
 # UTF-8 decode → codepoint → width classification.
 # Result in TUISH_SWIDTH. Takes a variable NAME.
@@ -98,6 +193,8 @@ tuish_str_width ()
 	# Fast path: under LC_ALL=C, [:print:] is exactly 0x20-0x7E.
 	# All printable ASCII chars have width 1, so width = byte count.
 	case "$_tuish_sw_str" in *[![:print:]]*) ;; *) TUISH_SWIDTH=$_tuish_sw_len; return;; esac
+	if _tuish_memo_get "w $_tuish_sw_str"
+	then TUISH_SWIDTH=$_tuish_memo_val; return; fi
 	# Slow path: decode UTF-8 inline over the local value. Working on the
 	# value (not a variable name) lets us read bytes with direct
 	# ${_tuish_sw_str:i:1} substrings, avoiding per-byte eval/indirection — the
@@ -146,10 +243,17 @@ tuish_str_width ()
 		_tuish_sw_w=$((_tuish_sw_w + _tuish_cw))
 	done
 	TUISH_SWIDTH=$_tuish_sw_w
+	_tuish_memo_put "w $_tuish_sw_str" "$_tuish_sw_w"
 }
 
 # ─── Horizontal window (display columns) ─────────────────────────
-# tuish_str_window VAR OFFSET WIDTH -> TUISH_SWINDOW
+# tuish_str_window VAR OFFSET WIDTH -> TUISH_SWINDOW, TUISH_SWINDOW_W
+#
+# TUISH_SWINDOW_W is the display width of the slice, which is <= WIDTH and not
+# recoverable by measuring the result: the slice may carry SGR runs (zero columns,
+# arbitrary bytes) and a wide char that would have crossed the right edge is dropped
+# rather than split, leaving the slice a column short. A caller padding the slice out
+# to a field needs the number the slicer already knows.
 #
 # The slice of VAR visible in a horizontal window OFFSET columns from the left,
 # WIDTH columns wide — i.e. the characters occupying display columns
@@ -169,11 +273,22 @@ tuish_str_window ()
 	case "$_tuish_wn_str" in *[![:print:]]*) ;; *)
 		TUISH_SWINDOW=''
 		test "$_tuish_wn_off" -lt "$_tuish_wn_len" && TUISH_SWINDOW="${_tuish_wn_str:$_tuish_wn_off:$_tuish_wn_w}"
+		# Every char is one column here, so the byte count IS the width.
+		TUISH_SWINDOW_W=${#TUISH_SWINDOW}
 		return 0;;
 	esac
+	# Both the offset and the width change the answer, so both are in the key. The
+	# entry holds "<width> <slice>" — the width is not derivable from the slice (see
+	# the header), so caching the slice alone would lose it.
+	if _tuish_memo_get "n$2,$3 $_tuish_wn_str"
+	then
+		TUISH_SWINDOW_W=${_tuish_memo_val%% *}
+		TUISH_SWINDOW=${_tuish_memo_val#* }
+		return 0
+	fi
 	# Slow path: decode UTF-8 (mirrors tuish_str_width), tracking the running
 	# display column _tuish_wn_col (the start column of the current char).
-	local _tuish_wn_i=0 _tuish_wn_col=0 _tuish_wn_b0 _tuish_wn_b1 _tuish_wn_b2 _tuish_wn_cp _tuish_wn_n _tuish_wn_ch _tuish_wn_j _tuish_wn_out=''
+	local _tuish_wn_i=0 _tuish_wn_col=0 _tuish_wn_b0 _tuish_wn_b1 _tuish_wn_b2 _tuish_wn_cp _tuish_wn_n _tuish_wn_ch _tuish_wn_j _tuish_wn_out='' _tuish_wn_ow=0
 	while test $_tuish_wn_i -lt $_tuish_wn_len
 	do
 		_tuish_ord "${_tuish_wn_str:$_tuish_wn_i:1}"; _tuish_wn_b0=$_tuish_code
@@ -222,15 +337,18 @@ tuish_str_window ()
 		elif test $_tuish_wn_col -ge $_tuish_wn_end
 		then break                               # entirely right (and all after)
 		elif test $_tuish_wn_col -lt $_tuish_wn_off
-		then _tuish_wn_out="${_tuish_wn_out} "  # left straddle: visible right half
+		then _tuish_wn_out="${_tuish_wn_out} "; _tuish_wn_ow=$((_tuish_wn_ow + 1))  # left straddle: visible right half
 		elif test $((_tuish_wn_col + _tuish_cw)) -gt $_tuish_wn_end
 		then break                               # right straddle: does not fit, drop
 		else _tuish_wn_out="${_tuish_wn_out}${_tuish_wn_ch}"   # fully inside
+		     _tuish_wn_ow=$((_tuish_wn_ow + _tuish_cw))
 		fi
 		_tuish_wn_col=$((_tuish_wn_col + _tuish_cw))
 		_tuish_wn_i=$((_tuish_wn_i + _tuish_wn_n))
 	done
 	TUISH_SWINDOW=$_tuish_wn_out
+	TUISH_SWINDOW_W=$_tuish_wn_ow
+	_tuish_memo_put "n$2,$3 $_tuish_wn_str" "$_tuish_wn_ow $_tuish_wn_out"
 }
 
 # ─── Codepoint width classification ──────────────────────────────
@@ -515,6 +633,12 @@ _tuish_utf8_len ()
 # Result in _tuish_boff.
 _tuish_char_byte_off ()
 {
+	# The one decode behind tuish_str_left/right/char's slow paths, so memoing
+	# here covers all three. The count is part of the key: the same string
+	# answers differently for a different character offset.
+	eval "local _bo_s=\"\${$1}\""
+	if _tuish_memo_get "o$2 $_bo_s"
+	then _tuish_boff=$_tuish_memo_val; return; fi
 	local _bo_i=0 _bo_ci=0
 	while test $_bo_ci -lt $2
 	do
@@ -524,4 +648,5 @@ _tuish_char_byte_off ()
 		_bo_ci=$((_bo_ci + 1))
 	done
 	_tuish_boff=$_bo_i
+	_tuish_memo_put "o$2 $_bo_s" "$_bo_i"
 }

@@ -423,19 +423,17 @@ _view_html ()
 }
 
 # ─── Rendering ───────────────────────────────────────────────────────
-# A frame is buffered into one string and written once — but ONE write is not one
-# repaint. Hosted, the guest's stdio hands stdout to the browser in ~4 KiB pieces,
-# each its own postMessage → term.write, and xterm.js renders whatever it has at
-# the next animation frame: a full-screen paint reaches the eye as the erase first
-# and the text a frame later — a visible blink. DECSET 2026 (synchronized output)
-# tells the terminal to hold the screen between BSU and ESU, so the pieces land as
-# one update. xterm.js implements it (with a 1s safety timeout); terminals that do
-# not simply ignore an unknown private mode, so native mode is unaffected.
-_sync_begin () { tuish_begin; _tuish_write '\033[?2026h'; }
-_sync_end ()   { _tuish_write '\033[?2026l'; tuish_end; }
-
-_render ()      { _lay; _sync_begin; tuish_draw_fill 1 1 "$_W" "$_H" bg=$C_BG; _draw_masthead; _draw_body; _sync_end; }
-_render_mast () { _lay; _sync_begin; _draw_masthead; _sync_end; }
+# A frame is buffered into one string and written once — and tuish now wraps that
+# write in DECSET 2026 itself (see tuish/src/tui.sh, _tuish_sink), so the browser
+# receiving stdout in ~4 KiB postMessage pieces still shows the frame as one
+# update instead of the erase first and the text a frame later.
+#
+# This file used to do that here, by reaching into tuish's private _tuish_write
+# from outside the library. Now that the framework owns it, the local wrapper is
+# not just redundant — it nests a second BSU/ESU pair inside the framework's, and
+# the app has no business declaring where a device write begins.
+_render ()      { _lay; tuish_begin; tuish_draw_fill 1 1 "$_W" "$_H" bg=$C_BG; _draw_masthead; _draw_body; tuish_end; }
+_render_mast () { _lay; tuish_begin; _draw_masthead; tuish_end; }
 
 # A scroll is the common body redraw. Rather than repaint every visible line,
 # shift the rows that stay on screen with the terminal's own scroll region and
@@ -448,7 +446,7 @@ _render_mast () { _lay; _sync_begin; _draw_masthead; _sync_end; }
 _render_body ()
 {
 	_lay
-	_sync_begin
+	tuish_begin
 	local _d=$(( _scroll - _scroll_drawn )) _ad
 	_ad=${_d#-}
 	if test "$_body_dirty" -eq 0 \
@@ -459,7 +457,7 @@ _render_body ()
 		_hover_body
 	else _draw_body
 	fi
-	_sync_end
+	tuish_end
 }
 
 # A rule (─) drawn as text so it carries the app background — tuish_draw_hline
@@ -549,8 +547,13 @@ _paint_entry_row ()   # $1 = entry index (0 = none)
 
 # Moving the mouse between entries changes exactly two rows: the one losing the
 # tint and the one gaining it. Repainting the whole body for that wrote several
-# kilobytes per mouse move — enough to reach the browser split across writes, and
-# so to flash the erased body before the text caught up. Paint the two rows.
+# kilobytes per mouse move.
+#
+# The FLASH half of that is gone: tuish wraps each device write in synchronized
+# output now, so a body repaint split across postMessages no longer shows the
+# erase before the text. What is left is the bytes, which in this lane are
+# postMessages to the browser at mouse-motion rate — still worth not sending.
+# Paint the two rows.
 _hover_body ()
 {
 	test "$_ent_hover" -ne "$_ent_hover_drawn" || return 0
