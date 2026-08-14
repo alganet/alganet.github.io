@@ -24,7 +24,11 @@ DEST=terminal
 # The tuish modules the reader sources — in dependency order. clip.sh provides
 # OSC-52 copy for the "copy code snippet" feature. host.sh (app-in-app hosting) is
 # excluded: the blog reader embeds no live apps.
-MODULES="compat ord tui term canvas event hid viewport str draw keybind buf clip"
+# hl.sh must precede md.sh: md.sh uses it when present and degrades without it.
+# Both are also sourced by build.sh, straight out of this vendored copy — so the
+# HTML and the terminal are rendered by the same parser bytes, not merely the same
+# parser in principle.
+MODULES="compat ord tui term canvas event hid viewport str draw keybind buf clip hl md"
 
 rm -rf "$DEST/tuish" "$DEST/vendor"
 mkdir -p "$DEST/tuish/src" "$DEST/vendor/wasi-sh/src" "$DEST/vendor/wasi-sh/dist"
