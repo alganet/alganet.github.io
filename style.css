@@ -19,25 +19,14 @@
   --h1-shadow-mobile: 1px 1px #a7b0b8, 2px 2px #b8c1c9;
   --surface-code: #fbfcfd;
   --surface-inline: #f5f7fa;
-  --surface-code-output: rgba(0, 0, 0, 0.035);
   --code-border: #c7ced6;
   --code-statement: #1d7a2c;
-  --code-argument: #5a636d;
   --code-comment: #2f8a55;
   --code-number: #49525c;
   --code-keyword: #1f7b32;
   --code-string: #0b6767;
   --code-function: #2356a7;
-  --code-class: #66489c;
-  --code-tag: #9a3d30;
-  --code-attr: #916700;
   --code-operator: #4d5660;
-  --code-builtin: #9b4b93;
-  --code-boolean: #8f2118;
-  --code-stdout: #0a6f6f;
-  --code-stderr: #b24d3e;
-  --code-result: #255aab;
-  --code-output-text: #55606a;
   --control-bg: #edf2f7;
   --control-bg-hover: #e1e8f0;
 }
@@ -195,17 +184,25 @@ pre code {
   background: none;
 }
 
-pre .code-statement, pre del {
-  color: var(--code-statement);
-}
+/* Syntax highlighting.
+   These six classes are the entire set the generic lexer emits — it has no grammar
+   to tell a class from a builtin, so the finer distinctions the hand-written markup
+   used to draw (argument, class, tag, builtin, boolean, stdout, result) no longer
+   have anything to produce them. */
+pre .code-comment { color: var(--code-comment); }
+pre .code-number { color: var(--code-number); }
+pre .code-keyword { color: var(--code-keyword); font-weight: 600; }
+pre .code-string { color: var(--code-string); }
+pre .code-function { color: var(--code-function); }
+pre .code-punctuation { color: var(--code-operator); }
 
-pre .code-argument {
-  color: var(--code-argument);
-}
-
-pre .code-comment, pre ins {
-  color: var(--code-comment);
-}
+/* Diff blocks. The markers come from ::before, not the text: a ```diff fence keeps
+   its +/- in the source, and the renderer strips them so they are not printed
+   twice. --code-comment and --code-statement are shared with the token colours
+   above so an added or removed line reads the same in the terminal, which paints
+   the same two. */
+pre ins { color: var(--code-comment); }
+pre del { color: var(--code-statement); }
 
 ins, del {
   text-decoration: none;
@@ -220,34 +217,6 @@ pre del::before {
   content: "- ";
   font-weight: bold;
 }
-
-pre .code-number {
-  color: var(--code-number);
-}
-
-/* Light theme token colors */
-pre .code-keyword { color: var(--code-keyword); font-weight: 600; }
-pre .code-string { color: var(--code-string); }
-pre .code-function { color: var(--code-function); }
-pre .code-class { color: var(--code-class); }
-pre .code-tag { color: var(--code-tag); }
-pre .code-attr { color: var(--code-attr); }
-pre .code-operator, pre .code-punctuation { color: var(--code-operator); }
-pre .code-builtin { color: var(--code-builtin); font-style: italic; }
-pre .code-boolean { color: var(--code-boolean); font-weight: 600; }
-
-/* Code execution/output helpers (light theme) */
-pre .code-output {
-  color: var(--code-output-text);
-  background: var(--surface-code-output);
-  display: block;
-  padding: 0.5em;
-  margin-top: 0.6em;
-  border-radius: 0.25em;
-}
-pre .code-stdout { color: var(--code-stdout); }
-pre .code-stderr { color: var(--code-stderr); font-weight: 700; } /* keep error color red */
-pre .code-result { color: var(--code-result); font-weight: 700; }
 
 blockquote.review {
   border: 0.1em solid var(--border-muted);
@@ -447,25 +416,14 @@ p, ul, ol {
   --h1-shadow-mobile: 1px 1px #36414b, 2px 2px #3e4953;
   --surface-code: #1c222a;
   --surface-inline: #2b333d;
-  --surface-code-output: rgba(255, 255, 255, 0.045);
   --code-border: #434e5a;
   --code-statement: #f08a76;
-  --code-argument: #bdc7d2;
   --code-comment: #58d27b;
   --code-number: #a9b4bf;
   --code-keyword: #f08a76;
   --code-string: #4fd1c2;
   --code-function: #7abffe;
-  --code-class: #d1b3ff;
-  --code-tag: #f8a495;
-  --code-attr: #ffc478;
   --code-operator: #b8c2cd;
-  --code-builtin: #ffb2df;
-  --code-boolean: #ff9b9b;
-  --code-stdout: #4fd1c2;
-  --code-stderr: #ff7f7f;
-  --code-result: #7abffe;
-  --code-output-text: #c3ccd6;
   --control-bg: #29313b;
   --control-bg-hover: #323d49;
 }

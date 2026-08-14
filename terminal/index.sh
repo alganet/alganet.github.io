@@ -84,18 +84,16 @@ C_CODE='195:204:214'            # --code-output-text #c3ccd6  (default code text
 C_INLINE='79:209:194'           # --code-string     #4fd1c2  (inline code)
 C_SELBG='42:50:60'              # focused/hovered link tint
 
-# Code syntax colours — the site's dark-theme --code-* palette. Mapped from the
-# posts' <span class="code-*"> classes (see build.sh _cmap / reader _paint_code).
-CC_KW='240:138:118'             # statement / keyword  #f08a76
+# Code syntax colours — the site's dark-theme --code-* palette, and exactly the six
+# hl.sh's generic lexer can emit. It has no grammar to tell a class from a builtin,
+# so the finer distinctions the hand-written markup once drew have nothing left to
+# produce them; style.css lost the same entries in the same pass.
+CC_KW='240:138:118'             # keyword              #f08a76
 CC_STR='79:209:194'             # string               #4fd1c2
 CC_CMT='88:210:123'             # comment              #58d27b
-CC_FN='122:191:254'             # function / result    #7abffe
-CC_CLS='209:179:255'            # class                #d1b3ff
+CC_FN='122:191:254'             # function             #7abffe
 CC_NUM='169:180:191'            # number               #a9b4bf
-CC_ATTR='255:196:120'           # attr                 #ffc478
 CC_OP='184:194:205'             # operator / punct     #b8c2cd
-CC_BI='255:178:223'             # builtin              #ffb2df
-CC_ERR='255:127:127'            # stderr               #ff7f7f
 
 # ─── State ───────────────────────────────────────────────────────────
 _lang=en                        # en | pt
