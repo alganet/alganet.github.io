@@ -186,7 +186,13 @@ check_one() {
                 *counts*) printf '  old %s\n  new %s\n' "$(counts "$_TMP/old.html")" "$(counts "$_TMP/new.html")" ;;
             esac
             case $_bad in
-                *links*)  printf '  --- links ---\n';  diff <(links "$_TMP/old.html") <(links "$_TMP/new.html") | head -20 ;;
+                *links*)
+                    # Temp files rather than <(…): process substitution is a bash
+                    # extension and this has to run under dash and busybox too.
+                    printf '  --- links ---\n'
+                    links "$_TMP/old.html" > "$_TMP/old.links"
+                    links "$_TMP/new.html" > "$_TMP/new.links"
+                    diff "$_TMP/old.links" "$_TMP/new.links" | head -20 ;;
             esac
         fi
     else

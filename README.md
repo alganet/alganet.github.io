@@ -33,6 +33,11 @@ quits). `curl … | sh` works too — it re-execs through `/dev/tty` so the keyb
 
 ## Scripts
 
+Every script here runs under **bash, dash and busybox sh**, and produces
+byte-identical output whichever one you use — the generated files are committed,
+so a build that differed by interpreter would have two people's diffs reverting
+each other.
+
 ### `build.sh`
 
 Used to regenerate the site from its HTML templates and posts.
