@@ -106,8 +106,11 @@ lshtml_header ()
         *.css)
             CONTENT_TYPE="Content-Type: text/css; charset=UTF-8"
             ;;
-        *.js)
+        *.js|*.mjs)
             CONTENT_TYPE="Content-Type: application/javascript"
+            ;;
+        *.wasm)
+            CONTENT_TYPE="Content-Type: application/wasm"
             ;;
         *.png)
             CONTENT_TYPE="Content-Type: image/png"
