@@ -5,24 +5,14 @@
 <script defer src="/script.js?23"></script>
 <h1><a href= />alganet</a></h1>
 <nav class=lang><a href="/blog/2026-01-08-23-A-true-hello-world-LLM-pipeline.html" class=selected>English</a> <a href="/blog/2026-01-08-23-Um-verdadeiro-hello-world-para-LLM-pipelines.pt.html">Português</a> <a class=shell href="/terminal/?p=post:2026-01-08-23-A-true-hello-world-LLM-pipeline&amp;lang=en" title="View this page in the terminal">$ <b></b></a></nav>
-
 <h2>A true 'hello world' LLM pipeline</h2>
 <p class=info><em>Alexandre Gomes Gaigalas</em> – <em>January 8, 2026</em></p>
-<p>For a while now, I've been searching for the simplest, <em>useful</em> LLM pipeline example. Some kind of
-<strong>hello world</strong> that beginners can quickly understand and iterate upon.
-</p>
-<p>I also want something for software engineers, not data scientists. Software engineers are a different breed, and
-although they need to eventually learn the machine learning fundamentals involved if they want to move forward in
-this area, they often prefer to start with practical, hands-on examples.</p>
-<p>Therefore, a true 'hello world' LLM pipeline should be simple, practical, and accessible. I can't honestly ask
-engineers to rent a machine or spend cloud credits running a simple hello world. <strong>There must be a better
-way</strong>.</p>
+<p>For a while now, I've been searching for the simplest, <em>useful</em> LLM pipeline example. Some kind of <strong>hello world</strong> that beginners can quickly understand and iterate upon. </p>
+<p>I also want something for software engineers, not data scientists. Software engineers are a different breed, and although they need to eventually learn the machine learning fundamentals involved if they want to move forward in this area, they often prefer to start with practical, hands-on examples.</p>
+<p>Therefore, a true 'hello world' LLM pipeline should be simple, practical, and accessible. I can't honestly ask engineers to rent a machine or spend cloud credits running a simple hello world. <strong>There must be a better way</strong>.</p>
 <h3>What about X or Z?</h3>
-<p>There are many existing claims of "small" pipelines out there, but they don't qualify as true 'hello world' stuff.
-</p>
-<p>For example, <a href="https://github.com/karpathy/nanochat">Karpathy's nanochat</a> claims to be very small, but that
-is quite relative. For someone already immersed in the industry, it is indeed very small. However, for a complete
-beginner, it is a huge undertaking requiring specialized hardware, money, and considerable time and effort.</p>
+<p>There are many existing claims of "small" pipelines out there, but they don't qualify as true 'hello world' stuff. </p>
+<p>For example, <a href="https://github.com/karpathy/nanochat">Karpathy's nanochat</a> claims to be very small, but that is quite relative. For someone already immersed in the industry, it is indeed very small. However, for a complete beginner, it is a huge undertaking requiring specialized hardware, money, and considerable time and effort.</p>
 <p>To run nanochat, you need a very powerful commercial GPU. You cannot buy those (in 2025) unless you're a company. All you can do is rent them.</p>
 <p>Karpathy himself claims you can run nanochat for $100. Would you pay $100 for a hello world?</p>
 <h3>Hunting For Good Examples</h3>
@@ -43,20 +33,20 @@ beginner, it is a huge undertaking requiring specialized hardware, money, and co
 <p>The <a href="https://github.com/alganet/wordgen">wordgen repository</a> contains the code and examples for this single-word, full pipeline approach.</p>
 <p>You can run it in minutes on CPU, or even seconds if you have a decent gaming GPU.</p>
 <p>It's as simple as this:</p>
-<pre class=codeblock><code>python train.py</code></pre>
+<pre class="codeblock"><code>python train<span class="code-punctuation">.</span>py</code></pre>
 <p>Run it and you'll see the training steps, getting some words in the end:</p>
-<pre class=codeblock><code>...
-Generating samples...
-Generated word 1: coales
-Generated word 2: tereed
-Generated word 3: healable
-Generated word 4: thines
-Generated word 5: unitlerable
-Generated word 6: loteroformated
-Generated word 7: rearmaz
-Generated word 8: Debrowing
-Generated word 9: unpatates
-Generated word 10: unatined</code></pre>
+<pre class="codeblock"><code><span class="code-punctuation">...</span>
+Generating samples<span class="code-punctuation">...</span>
+Generated word <span class="code-number">1</span><span class="code-punctuation">: </span>coales
+Generated word <span class="code-number">2</span><span class="code-punctuation">: </span>tereed
+Generated word <span class="code-number">3</span><span class="code-punctuation">: </span>healable
+Generated word <span class="code-number">4</span><span class="code-punctuation">: </span>thines
+Generated word <span class="code-number">5</span><span class="code-punctuation">: </span>unitlerable
+Generated word <span class="code-number">6</span><span class="code-punctuation">: </span>loteroformated
+Generated word <span class="code-number">7</span><span class="code-punctuation">: </span>rearmaz
+Generated word <span class="code-number">8</span><span class="code-punctuation">: </span>Debrowing
+Generated word <span class="code-number">9</span><span class="code-punctuation">: </span>unpatates
+Generated word <span class="code-number">10</span><span class="code-punctuation">: </span>unatined</code></pre>
 <p>Most importantly, this first run doesn't generate a completely garbled Shakespeare. It instead generates plausible English-like words.</p>
 <h3>Stuff You Can Do With It</h3>
 <p>First, you should run it as it is. It will do the whole thing from downloading the data to generating words in a matter of minutes, and you'll see the results immediately.</p>

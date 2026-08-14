@@ -46,7 +46,7 @@ else
 		|| { echo "need curl or wget" >&2; exit 1; }
 	_src=$(mktemp -d) || { echo "mktemp failed" >&2; exit 1; }
 	_TMPF="${_src}/.page"
-	for _m in compat ord tui term canvas event hid viewport str draw keybind buf clip
+	for _m in compat ord tui term canvas event hid viewport str draw keybind buf clip hl md
 	do _fetch "${_BASE}/terminal/tuish/src/${_m}.sh" > "${_src}/${_m}.sh" \
 		|| { echo "failed to fetch ${_m}.sh" >&2; rm -rf "$_src"; exit 1; }
 	done
@@ -65,8 +65,10 @@ fi
 . "${_src}/keybind.sh"
 . "${_src}/buf.sh"
 . "${_src}/clip.sh"
+. "${_src}/hl.sh"
+. "${_src}/md.sh"
 
-_US=$(printf '\037')            # field delimiter inside .tui records
+_US=$(printf '\037')            # field delimiter inside a record's payload
 
 # ─── Palette — the site's own dark theme (style.css :root[data-theme=dark]) ──
 C_BG='23:27:32'                 # --bg-base         #171b20
@@ -98,9 +100,8 @@ CC_ERR='255:127:127'            # stderr               #ff7f7f
 # ─── State ───────────────────────────────────────────────────────────
 _lang=en                        # en | pt
 _view=home                      # home | list | post
-_post_base=                     # post basename (the .tui/.html stem) when _view=post
-_en_base=                       # this post's EN basename  (from the 'a' pair record)
-_pt_base=                       # this post's PT basename
+_post_base=                     # post basename (the .md/.html stem) when _view=post
+_alt_base=                      # the OTHER language's basename (front matter 'alt')
 _return=home                    # where 'back' goes from a post
 _scroll=0                       # content scroll offset (top line, 0-based)
 _content_h=0                    # rows in the content buffer
@@ -149,9 +150,9 @@ if test "$_NATIVE" -eq 1; then _croot="$_BASE"; else _croot="${TUISH_CONTENT:-/c
 _cpath ()
 {
 	case $_view in
-		home) echo "${_croot}/index$(_suf).tui";;
-		list) echo "${_croot}/blog$(_suf).tui";;
-		post) echo "${_croot}/blog/${_post_base}.tui";;
+		home) echo "${_croot}/index$(_suf).md";;
+		list) echo "${_croot}/blog$(_suf).md";;
+		post) echo "${_croot}/blog/${_post_base}.md";;
 	esac
 }
 _hpath ()
@@ -163,34 +164,49 @@ _hpath ()
 	esac
 }
 
+# md.sh's sink. Records land straight in the `raw` buffer; two are intercepted on
+# the way past — the front matter, which is page metadata rather than content, and
+# the title, which the terminal also wants for its window title.
+tuish_md_emit ()
+{
+	case $1 in
+		f)
+			case ${2%%${_US}*} in
+				alt) _alt_base="${2#*${_US}}";;
+			esac
+			return 0;;
+		t)  _ptitle="$2";;
+	esac
+	tuish_buf_append raw "$1	$2"
+	return 0
+}
+
 _load ()
 {
 	tuish_buf_init raw
-	_en_base=''; _pt_base=''; _ptitle=''
-	local _f _l _sty
+	_alt_base=''; _ptitle=''
+	local _f
 	_f=$(_cpath)
 	# Native: sub-curl the page to a temp file, then read it exactly like a mounted
-	# one (a file redirect, never a pipe — the parse loop must stay in this shell).
+	# one (a file redirect, never a pipe — the parse loop must stay in this shell,
+	# which is also why the sink above writes globals instead of printing).
 	if test "$_NATIVE" -eq 1
 	then _fetch "$_f" > "$_TMPF" 2>/dev/null || : ; _f=$_TMPF; fi
 	if test -f "$_f" && test -s "$_f"
 	then
-		while IFS= read -r _l || test -n "$_l"
-		do
-			_sty="${_l%%	*}"
-			if test "$_sty" = a
-			then
-				_l="${_l#*	}"
-				_en_base="${_l%%${_US}*}"
-				_pt_base="${_l#*${_US}}"
-			else
-				test "$_sty" = t && _ptitle="${_l#*	}"
-				tuish_buf_append raw "$_l"
-			fi
-		done < "$_f"
+		TUISH_MD_BYLINE=1
+		# Entry inference on the index and list pages ONLY. A post that links to
+		# another post would otherwise gain a navigable entry, and _focus_move
+		# treats entries and code blocks as exclusive — one stray entry silently
+		# disables Tab-to-code-block for that whole page.
+		case $_view in
+			post) TUISH_MD_ENTRIES=0; tuish_md_file "$_f" post;;
+			list) TUISH_MD_ENTRIES=1; tuish_md_file "$_f" post;;
+			*)    TUISH_MD_ENTRIES=1; tuish_md_file "$_f" section;;
+		esac
 	else
-		tuish_buf_append raw "h	Not found"
-		tuish_buf_append raw "p	x${_US}This page has no shell version yet."
+		tuish_buf_append raw "h2	Not found"
+		tuish_buf_append raw "p	x${_US}This page could not be loaded."
 	fi
 	tuish_buf_count raw; _raw_h=$TUISH_BUF_COUNT
 }
@@ -248,6 +264,7 @@ _wrap ()
 	case $_sty in
 		p) _pf="x${_US}   "; _indf=3;;
 		b) _pf="A${_US}  • "; _pc="x${_US}    "; _indf=4; _indc=4;;
+		n) _pf="A${_US}  ${_ordn}. "; _pc="x${_US}    "; _indf=$(( ${#_ordn} + 4 )); _indc=4;;
 		q) _pf="d${_US}▏ "; _pc="d${_US}▏ "; _indf=2; _indc=2;;
 	esac
 	_words_from_payload "$2"
@@ -280,7 +297,7 @@ _build_content ()
 {
 	_text_w
 	tuish_buf_init content
-	_ent_n=0 _cb_n=0
+	_ent_n=0 _cb_n=0 _ordn=0
 	local _i=1 _raw _sty _pay _incode=0
 	while test $_i -le "$_raw_h"
 	do
@@ -304,8 +321,8 @@ _build_content ()
 			fi
 		fi
 		case $_sty in
-			p|q) _wrap "$_sty" "$_pay";;
-			b)   _wrap b "$_pay";;
+			p|q|b) _ordn=0; _link_urls "$_pay"; _wrap "$_sty" "$_LINKED";;
+			n)     _ordn=$(( _ordn + 1 )); _link_urls "$_pay"; _wrap n "$_LINKED";;
 			e)   _ent_n=$(( _ent_n + 1 ))
 			     local _b="${_pay%%${_US}*}" _r2="${_pay#*${_US}}"
 			     local _t="${_r2%%${_US}*}" _d="${_r2#*${_US}}"
@@ -314,11 +331,13 @@ _build_content ()
 			     eval "_ent_line_$_ent_n=\$TUISH_BUF_COUNT" ;;
 			t)   tuish_buf_append content "t	$_pay"; tuish_buf_append content "_	";;
 			i)   tuish_buf_append content "i	$_pay"; tuish_buf_append content "r	"; tuish_buf_append content "_	";;
-			h)   tuish_buf_append content "_	"; tuish_buf_append content "h	$_pay"; tuish_buf_append content "_	";;
+			h2|h3|h4|h5)
+			     tuish_buf_append content "_	"; tuish_buf_append content "h	$_pay"; tuish_buf_append content "_	";;
 			c)   tuish_buf_append content "c	$_pay";;
-			g)   tuish_buf_append content "g	$_pay";;
+			g)   tuish_buf_append content "g	${_pay%%${_US}*}";;
 			d)   tuish_buf_append content "d	$_pay";;
-			r)   tuish_buf_append content "r	";;
+			r)   _ordn=0; tuish_buf_append content "r	";;
+			cb|qb) : ;;      # block-open markers; the runs above already bracket them
 			*)   tuish_buf_append content "_	";;
 		esac
 		_i=$(( _i + 1 ))
@@ -333,6 +352,53 @@ _build_content ()
 	if test "$_cb_n" -gt 0
 	then test "$_csel" -lt 1 && _csel=1; test "$_csel" -gt "$_cb_n" && _csel=$_cb_n
 	else _csel=0; fi
+	return 0
+}
+
+# _link_urls PAYLOAD -> _LINKED: turn each raw 'u' segment into the dim " (url)"
+# suffix this reader shows after a link's text.
+#
+# THIS MUST HAPPEN BEFORE WRAPPING, not at paint time. md.sh emits the URL as a
+# bare 'u' segment ahead of the link text, because that is what makes a link's
+# extent unambiguous. But _words_from_payload MEASURES every word as it builds it,
+# so a URL that only grew its parentheses — and moved to the other side of the
+# text — during painting would leave every wrapped line holding a link mis-measured
+# and overflowing the column.
+_link_urls ()
+{
+	_LINKED='' _linklast=''
+	local _rest=$1 _sty _txt _url='' _in=0
+	while test -n "$_rest"
+	do
+		_sty="${_rest%%${_US}*}"; _rest="${_rest#*${_US}}"
+		case $_rest in
+			*${_US}*) _txt="${_rest%%${_US}*}"; _rest="${_rest#*${_US}}";;
+			*)        _txt="$_rest"; _rest='';;
+		esac
+		case $_sty in
+			u)   if test "$_in" -eq 1; then _link_put d " ($_url)"; fi
+			     _url="$_txt" _in=1; continue;;
+			# Only PLAIN text closes a link. 'm', 'k', 'e' and 's' can all appear
+			# INSIDE one — [`printf` instead](url) opens with inline code — and
+			# treating 'm' as a terminator put the URL before the link text
+			# instead of after it. The HTML renderer closes on 'x' alone too, so
+			# the two stay in agreement.
+			x)   if test "$_in" -eq 1; then _link_put d " ($_url)"; _in=0; fi;;
+		esac
+		_link_put "$_sty" "$_txt"
+	done
+	if test "$_in" -eq 1; then _link_put d " ($_url)"; fi
+	return 0
+}
+
+_link_put ()
+{
+	test -n "$2" || return 0
+	if test "$1" = "$_linklast"
+	then _LINKED="${_LINKED}$2"; return 0; fi
+	if test -n "$_LINKED"; then _LINKED="${_LINKED}${_US}"; fi
+	_LINKED="${_LINKED}$1${_US}$2"
+	_linklast="$1"
 	return 0
 }
 
@@ -396,11 +462,12 @@ _toggle_lang ()
 {
 	if test "$_view" = post
 	then
-		local _new
-		if test "$_lang" = en; then _new=$_pt_base; else _new=$_en_base; fi
-		test -n "$_new" || return 0
+		# Front matter names only the OTHER language's file, which is all this
+		# ever needed — the old 'a' record carried both basenames and the second
+		# was always the page you were already on.
+		test -n "$_alt_base" || return 0
 		test "$_lang" = en && _lang=pt || _lang=en
-		_open post "$_new"
+		_open post "$_alt_base"
 	else
 		test "$_lang" = en && _lang=pt || _lang=en
 		_open "$_view"
@@ -633,8 +700,16 @@ _paint_pieces ()   # $1=row $2=col $3=payload $4=maxwidth
 			*)        _txt="$_rest"; _rest='';;
 		esac
 		test "$_col" -ge "$_end" && break
+		# 'e' and 's' arm an ATTRIBUTE rather than pick a colour. Each run below
+		# passes fg=, and tuish_text resets SGR whenever it applied a colour — so
+		# the attribute is cleared for us at the end of the run and cannot bleed
+		# into the rest of the line. (_btext, which arms bold for a whole heading,
+		# gets away with never resetting because the heading IS the whole line.)
 		case $_sty in
-			k) _fg=$C_LINK;; d) _fg=$C_FAINT;; m) _fg=$C_INLINE;; A) _fg=$C_H2;; *) _fg=$C_FG;;
+			k) _fg=$C_LINK;; d) _fg=$C_FAINT;; m) _fg=$C_INLINE;; A) _fg=$C_H2;;
+			s) _fg=$C_FG; tuish_bold;;
+			e) _fg=$C_FG; tuish_italic;;
+			*) _fg=$C_FG;;
 		esac
 		tuish_text "$_r" "$_col" "$_txt" fg=$_fg bg=$C_BG maxwidth=$(( _end - _col ))
 		tuish_str_width _txt; _tw=$TUISH_SWIDTH
@@ -655,10 +730,14 @@ _paint_code ()   # $1=row $2=col $3=payload $4=maxwidth
 			*)        _txt="$_rest"; _rest='';;
 		esac
 		test "$_col" -ge "$_end" && break
+		# hl.sh's generic set. '+' and '-' are whole diff lines and reuse the two
+		# colours style.css already gives <ins>/<del> on the HTML side, so a diff
+		# reads the same in both places.
 		case $_sty in
-			K) _fg=$CC_KW;; S) _fg=$CC_STR;; C) _fg=$CC_CMT;; F) _fg=$CC_FN;;
-			L) _fg=$CC_CLS;; N) _fg=$CC_NUM;; A) _fg=$CC_ATTR;; O) _fg=$CC_OP;;
-			B) _fg=$CC_BI;; E) _fg=$CC_ERR;; *) _fg=$C_CODE;;
+			K) _fg=$CC_KW;;  S) _fg=$CC_STR;; C) _fg=$CC_CMT;; F) _fg=$CC_FN;;
+			N) _fg=$CC_NUM;; O) _fg=$CC_OP;;
+			+) _fg=$CC_CMT;; -) _fg=$CC_KW;;
+			*) _fg=$C_CODE;;
 		esac
 		tuish_text "$_r" "$_col" "$_txt" fg=$_fg bg=$C_CODEBG maxwidth=$(( _end - _col ))
 		tuish_str_width _txt; _tw=$TUISH_SWIDTH

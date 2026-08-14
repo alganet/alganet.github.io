@@ -1,5 +1,9 @@
 #!/usr/bin/env sh
 
+# newpost.sh — scaffold an EN/PT post pair and rebuild.
+#
+#   ./newpost.sh "My New Entry" "Meu Novo Post"
+
 set -euf
 
 post_title="${1:-}"
@@ -11,29 +15,45 @@ if test -z "${post_title_pt:-}"; then
 fi
 
 post_date="$(date +%Y-%m-%d-%H)"
-base_filename="${post_date}-$(
-    echo "$post_title" |
-        iconv -f utf-8 -t ascii//translit |
-        sed -E 's/[^A-Za-z0-9]+/-/g'
-)";
-base_filename_pt="${post_date}-$(
-    echo "$post_title_pt" |
-        iconv -f utf-8 -t ascii//translit |
-        sed -E 's/[^A-Za-z0-9]+/-/g'
-)";
+slug() {
+    echo "$1" | iconv -f utf-8 -t ascii//translit | sed -E 's/[^A-Za-z0-9]+/-/g'
+}
+base="${post_date}-$(slug "$post_title")"
+base_pt="${post_date}-$(slug "$post_title_pt")"
 
-cat <<-@ > "blog/${base_filename}.html"
-<h2>$post_title</h2>
-<p class=info></p>
-<p>Hello, world!</p>
-<hr class=end>
+# Only `author` is written here. build.sh fills in alt, date and lang on every run
+# — they are derived from the filename and the sibling, so typing them would just
+# be one more thing that can go stale.
+year="$(date +%Y)"
+
+cat > "blog/${base}.md" <<-@
+	<!--
+	SPDX-FileCopyrightText: $year Alexandre Gomes Gaigalas <alganet@gmail.com>
+
+	SPDX-License-Identifier: CC-BY-NC-SA-4.0
+	-->
+	---
+	author: Alexandre Gomes Gaigalas
+	---
+
+	# $post_title
+
+	Hello, world!
 @
 
-cat <<-@ > "blog/${base_filename_pt}.pt.html"
-<h2>$post_title_pt</h2>
-<p class=info></p>
-<p>Olá, mundo!</p>
-<hr class=end>
+cat > "blog/${base_pt}.pt.md" <<-@
+	<!--
+	SPDX-FileCopyrightText: $year Alexandre Gomes Gaigalas <alganet@gmail.com>
+
+	SPDX-License-Identifier: CC-BY-NC-SA-4.0
+	-->
+	---
+	author: Alexandre Gomes Gaigalas
+	---
+
+	# $post_title_pt
+
+	Olá, mundo!
 @
 
 sh build.sh

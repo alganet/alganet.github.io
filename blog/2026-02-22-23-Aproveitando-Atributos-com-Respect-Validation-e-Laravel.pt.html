@@ -5,7 +5,6 @@
 <script defer src="/script.js?23"></script>
 <h1><a href=/index.pt.html>alganet</a></h1>
 <nav class=lang><a href="/blog/2026-02-22-23-Leveraging-Attributes-With-Respect-Validation-and-Laravel.html">English</a> <a href="/blog/2026-02-22-23-Aproveitando-Atributos-com-Respect-Validation-e-Laravel.pt.html" class=selected>Português</a> <a class=shell href="/terminal/?p=post:2026-02-22-23-Aproveitando-Atributos-com-Respect-Validation-e-Laravel.pt&amp;lang=pt" title="View this page in the terminal">$ <b></b></a></nav>
-
 <h2>Aproveitando Atributos com Respect\Validation e Laravel</h2>
 <p class=info><em>Alexandre Gomes Gaigalas</em> – <em>22 de Fevereiro de 2026</em></p>
 <p>O exemplo completo deste post está disponível no <a href="https://github.com/alganet/attributes-laravel-validation">GitHub</a>.</p>
@@ -22,67 +21,67 @@
 <p><code>PitchDraft</code> é essa definição autoritativa.</p>
 <h3>Contrato de Domínio</h3>
 <p><code>PitchDraft</code> declara validações diretamente nos parâmetros tipados do construtor usando atributos do Respect.</p>
-<pre class="codeblock"><code><span class="code-statement">final</span> <span class="code-statement">readonly</span> <span class="code-statement">class</span> <span class="code-class">PitchDraft</span>
-{
-    <span class="code-statement">public</span> <span class="code-statement">function</span> <span class="code-function">__construct</span>(
-        #[<span class="code-class">Named</span>('Speaker Name', <span class="code-statement">new</span> <span class="code-class">AllOf</span>(<span class="code-statement">new</span> <span class="code-class">StringType</span>, <span class="code-statement">new</span> <span class="code-class">Length</span>(<span class="code-statement">new</span> <span class="code-class">Between</span>(4, 60))))]
-        <span class="code-statement">public</span> <span class="code-statement">string</span> <span class="code-argument">$speaker_name</span>,
+<pre class="codeblock"><code>final readonly <span class="code-keyword">class</span> PitchDraft
+<span class="code-punctuation">{</span>
+    <span class="code-keyword">public</span> <span class="code-keyword">function</span> <span class="code-function">__construct</span><span class="code-punctuation">(</span>
+<span class="code-punctuation">        #[</span><span class="code-function">Named</span><span class="code-punctuation">(</span><span class="code-string">'Speaker Name'</span><span class="code-punctuation">, </span><span class="code-keyword">new</span> <span class="code-function">AllOf</span><span class="code-punctuation">(</span><span class="code-keyword">new</span> StringType<span class="code-punctuation">, </span><span class="code-keyword">new</span> <span class="code-function">Length</span><span class="code-punctuation">(</span><span class="code-keyword">new</span> <span class="code-function">Between</span><span class="code-punctuation">(</span><span class="code-number">4</span><span class="code-punctuation">, </span><span class="code-number">60</span><span class="code-punctuation">))))]</span>
+        <span class="code-keyword">public</span> string<span class="code-punctuation"> $</span>speaker_name<span class="code-punctuation">,</span>
 
-        #[<span class="code-class">Named</span>('Speaker Email', <span class="code-statement">new</span> <span class="code-class">Email</span>)]
-        <span class="code-statement">public</span> <span class="code-statement">string</span> <span class="code-argument">$speaker_email</span>,
+<span class="code-punctuation">        #[</span><span class="code-function">Named</span><span class="code-punctuation">(</span><span class="code-string">'Speaker Email'</span><span class="code-punctuation">, </span><span class="code-keyword">new</span> Email<span class="code-punctuation">)]</span>
+        <span class="code-keyword">public</span> string<span class="code-punctuation"> $</span>speaker_email<span class="code-punctuation">,</span>
 
-        #[<span class="code-class">Named</span>('Talk Title', <span class="code-statement">new</span> <span class="code-class">ShortCircuit</span>(<span class="code-statement">new</span> <span class="code-class">Length</span>(<span class="code-statement">new</span> <span class="code-class">Between</span>(12, 90)), <span class="code-statement">new</span> <span class="code-class">Contains</span>('Laravel')))]
-        <span class="code-statement">public</span> <span class="code-statement">string</span> <span class="code-argument">$talk_title</span>,
+<span class="code-punctuation">        #[</span><span class="code-function">Named</span><span class="code-punctuation">(</span><span class="code-string">'Talk Title'</span><span class="code-punctuation">, </span><span class="code-keyword">new</span> <span class="code-function">ShortCircuit</span><span class="code-punctuation">(</span><span class="code-keyword">new</span> <span class="code-function">Length</span><span class="code-punctuation">(</span><span class="code-keyword">new</span> <span class="code-function">Between</span><span class="code-punctuation">(</span><span class="code-number">12</span><span class="code-punctuation">, </span><span class="code-number">90</span><span class="code-punctuation">)), </span><span class="code-keyword">new</span> <span class="code-function">Contains</span><span class="code-punctuation">(</span><span class="code-string">'Laravel'</span><span class="code-punctuation">)))]</span>
+        <span class="code-keyword">public</span> string<span class="code-punctuation"> $</span>talk_title<span class="code-punctuation">,</span>
 
-        #[<span class="code-class">Named</span>('Talk Duration', <span class="code-statement">new</span> <span class="code-class">AllOf</span>(<span class="code-statement">new</span> <span class="code-class">IntVal</span>, <span class="code-statement">new</span> <span class="code-class">Between</span>(20, 45)))]
-        <span class="code-statement">public</span> <span class="code-statement">int</span> <span class="code-argument">$talk_duration_minutes</span>,
+<span class="code-punctuation">        #[</span><span class="code-function">Named</span><span class="code-punctuation">(</span><span class="code-string">'Talk Duration'</span><span class="code-punctuation">, </span><span class="code-keyword">new</span> <span class="code-function">AllOf</span><span class="code-punctuation">(</span><span class="code-keyword">new</span> IntVal<span class="code-punctuation">, </span><span class="code-keyword">new</span> <span class="code-function">Between</span><span class="code-punctuation">(</span><span class="code-number">20</span><span class="code-punctuation">, </span><span class="code-number">45</span><span class="code-punctuation">)))]</span>
+        <span class="code-keyword">public</span> int<span class="code-punctuation"> $</span>talk_duration_minutes<span class="code-punctuation">,</span>
 
-        #[<span class="code-class">Named</span>('Skill Level', <span class="code-statement">new</span> <span class="code-class">Templated</span>('Skill level must be either {{haystack|list:or}}.', <span class="code-statement">new</span> <span class="code-class">In</span>([<span class="code-string">'intermediate'</span>, <span class="code-string">'advanced'</span>]))) ]
-        <span class="code-statement">public</span> <span class="code-statement">string</span> <span class="code-argument">$skill_level</span>,
-    ) {}
-}
+<span class="code-punctuation">        #[</span><span class="code-function">Named</span><span class="code-punctuation">(</span><span class="code-string">'Skill Level'</span><span class="code-punctuation">, </span><span class="code-keyword">new</span> <span class="code-function">Templated</span><span class="code-punctuation">(</span><span class="code-string">'Skill level must be either {{haystack|list:or}}.'</span><span class="code-punctuation">, </span><span class="code-keyword">new</span> <span class="code-function">In</span><span class="code-punctuation">([</span><span class="code-string">'intermediate'</span><span class="code-punctuation">, </span><span class="code-string">'advanced'</span><span class="code-punctuation">]))) ]</span>
+        <span class="code-keyword">public</span> string<span class="code-punctuation"> $</span>skill_level<span class="code-punctuation">,</span>
+<span class="code-punctuation">    ) {}</span>
+<span class="code-punctuation">}</span>
 </code></pre>
 <p>Isso mantém a composição de regras explícita (<code>AllOf</code>, <code>ShortCircuit</code>, <code>Between</code>, <code>Each</code>) e localiza a customização de mensagens (<code>Named</code>, <code>Templated</code>).</p>
 <h3>Borda das Requests</h3>
 <p>Requests de formulário lidam com sanitização e conversão, e então constroem o DTO.</p>
-<pre class="codeblock"><code><span class="code-statement">public</span> <span class="code-statement">function</span> <span class="code-function">toPitchDraft</span>(): <span class="code-class">PitchDraft</span>
-{
-    <span class="code-argument">$sanitized</span> = $this-><span class="code-function">validated</span>();
+<pre class="codeblock"><code><span class="code-keyword">public</span> <span class="code-keyword">function</span> <span class="code-function">toPitchDraft</span><span class="code-punctuation">(): </span>PitchDraft
+<span class="code-punctuation">{</span>
+<span class="code-punctuation">    $</span>sanitized<span class="code-punctuation"> = $</span>this<span class="code-punctuation">-&gt;</span><span class="code-function">validated</span><span class="code-punctuation">();</span>
 
-    <span class="code-statement">return</span> <span class="code-statement">new</span> <span class="code-class">PitchDraft</span>(
-        speaker_name: <span class="code-function">trim</span>(<span class="code-statement">(string</span>) ($sanitized['speaker_name'] ?? '')),
-        speaker_email: <span class="code-function">trim</span>(<span class="code-statement">(string</span>) ($sanitized['speaker_email'] ?? '')),
-        talk_title: <span class="code-function">trim</span>(<span class="code-statement">(string</span>) ($sanitized['talk_title'] ?? '')),
-        talk_duration_minutes: $this-><span class="code-function">normalizeDuration</span>($sanitized['talk_duration_minutes'] ?? <span class="code-statement">null</span>),
-        skill_level: <span class="code-function">trim</span>(<span class="code-statement">(string</span>) ($sanitized['skill_level'] ?? '')),
-        highlights: <span class="code-function">array_values</span>(<span class="code-function">array_filter</span>(<span class="code-function">array_map</span>('trim', $sanitized['highlights'] ?? []))),
-    );
-}
+    <span class="code-keyword">return</span> <span class="code-keyword">new</span> <span class="code-function">PitchDraft</span><span class="code-punctuation">(</span>
+        speaker_name<span class="code-punctuation">: </span><span class="code-function">trim</span><span class="code-punctuation">((</span>string<span class="code-punctuation">) ($</span>sanitized<span class="code-punctuation">[</span><span class="code-string">'speaker_name'</span><span class="code-punctuation">] ?? </span><span class="code-string">''</span><span class="code-punctuation">)),</span>
+        speaker_email<span class="code-punctuation">: </span><span class="code-function">trim</span><span class="code-punctuation">((</span>string<span class="code-punctuation">) ($</span>sanitized<span class="code-punctuation">[</span><span class="code-string">'speaker_email'</span><span class="code-punctuation">] ?? </span><span class="code-string">''</span><span class="code-punctuation">)),</span>
+        talk_title<span class="code-punctuation">: </span><span class="code-function">trim</span><span class="code-punctuation">((</span>string<span class="code-punctuation">) ($</span>sanitized<span class="code-punctuation">[</span><span class="code-string">'talk_title'</span><span class="code-punctuation">] ?? </span><span class="code-string">''</span><span class="code-punctuation">)),</span>
+        talk_duration_minutes<span class="code-punctuation">: $</span>this<span class="code-punctuation">-&gt;</span><span class="code-function">normalizeDuration</span><span class="code-punctuation">($</span>sanitized<span class="code-punctuation">[</span><span class="code-string">'talk_duration_minutes'</span><span class="code-punctuation">] ?? </span><span class="code-keyword">null</span><span class="code-punctuation">),</span>
+        skill_level<span class="code-punctuation">: </span><span class="code-function">trim</span><span class="code-punctuation">((</span>string<span class="code-punctuation">) ($</span>sanitized<span class="code-punctuation">[</span><span class="code-string">'skill_level'</span><span class="code-punctuation">] ?? </span><span class="code-string">''</span><span class="code-punctuation">)),</span>
+        highlights<span class="code-punctuation">: </span><span class="code-function">array_values</span><span class="code-punctuation">(</span><span class="code-function">array_filter</span><span class="code-punctuation">(</span><span class="code-function">array_map</span><span class="code-punctuation">(</span><span class="code-string">'trim'</span><span class="code-punctuation">, $</span>sanitized<span class="code-punctuation">[</span><span class="code-string">'highlights'</span><span class="code-punctuation">] ?? []))),</span>
+<span class="code-punctuation">    );</span>
+<span class="code-punctuation">}</span>
 </code></pre>
 <p>Os atributos da request permanecem focados em comportamento HTTP, tal como <code>#[RedirectToRoute]</code>.</p>
 <h3>Adaptador para Exceções do Laravel</h3>
 <p>Exceções do Respect\Validation são convertidas para ValidationException do Laravel uma vez, em um pequeno adaptador.</p>
-<pre class="codeblock"><code><span class="code-statement">final</span> <span class="code-statement">class</span> <span class="code-class">RespectAttributeValidator</span>
-{
-    <span class="code-statement">public</span> <span class="code-statement">function</span> <span class="code-function">validate</span>(<span class="code-statement">object</span> $dto): <span class="code-statement">void</span>
-    {
-        <span class="code-statement">try</span> {
-            <span class="code-class">v</span>::<span class="code-function">attributes</span>()-><span class="code-function">assert</span>($dto);
-        } <span class="code-statement">catch</span> (<span class="code-class">RespectValidationException</span> $exception) {
-            $messages = $exception-><span class="code-function">getMessages</span>();
-            <span class="code-function">unset</span>($messages['__root__']);
+<pre class="codeblock"><code>final <span class="code-keyword">class</span> RespectAttributeValidator
+<span class="code-punctuation">{</span>
+    <span class="code-keyword">public</span> <span class="code-keyword">function</span> <span class="code-function">validate</span><span class="code-punctuation">(</span>object<span class="code-punctuation"> $</span>dto<span class="code-punctuation">): </span><span class="code-keyword">void</span>
+<span class="code-punctuation">    {</span>
+        <span class="code-keyword">try</span><span class="code-punctuation"> {</span>
+            v<span class="code-punctuation">::</span><span class="code-function">attributes</span><span class="code-punctuation">()-&gt;</span><span class="code-function">assert</span><span class="code-punctuation">($</span>dto<span class="code-punctuation">);</span>
+<span class="code-punctuation">        } </span><span class="code-keyword">catch</span><span class="code-punctuation"> (</span>RespectValidationException<span class="code-punctuation"> $</span>exception<span class="code-punctuation">) {</span>
+<span class="code-punctuation">            $</span>messages<span class="code-punctuation"> = $</span>exception<span class="code-punctuation">-&gt;</span><span class="code-function">getMessages</span><span class="code-punctuation">();</span>
+            <span class="code-function">unset</span><span class="code-punctuation">($</span>messages<span class="code-punctuation">[</span><span class="code-string">'__root__'</span><span class="code-punctuation">]);</span>
 
-            <span class="code-statement">throw</span> <span class="code-class">ValidationException</span>::<span class="code-function">withMessages</span>($messages);
-        }
-    }
-}
+            throw ValidationException<span class="code-punctuation">::</span><span class="code-function">withMessages</span><span class="code-punctuation">($</span>messages<span class="code-punctuation">);</span>
+<span class="code-punctuation">        }</span>
+<span class="code-punctuation">    }</span>
+<span class="code-punctuation">}</span>
 </code></pre>
 <p>Isso preserva o comportamento padrão de resposta do Laravel para fluxos web e de API. Se seu projeto tiver várias classes DTO, você pode usar este mesmo adaptador para todas elas.</p>
 <h3>Reutilizando Um Único Mapeamento de Payload</h3>
 <p><code>PitchDraft::toAttributes()</code> é reutilizado tanto para persistência quanto para saída de API.</p>
 <ul>
-<li>caminho de persistência: <code>Pitch::create($draft->toAttributes())</code></li>
-<li>caminho de resposta: <code>$pitch->toDraft()->toAttributes()</code></li>
+<li>caminho de persistência: <code>Pitch::create($draft-&gt;toAttributes())</code></li>
+<li>caminho de resposta: <code>$pitch-&gt;toDraft()-&gt;toAttributes()</code></li>
 </ul>
 <p>Usar uma única função de mapeamento evita listas de campos duplicadas e mantém os payloads de escrita/leitura alinhados.</p>
 <h3>Notas Operacionais</h3>

@@ -11,7 +11,7 @@
     <id>tag:alganet.github.io,2025:2026-07-21-00-Bash-para-Frontend-no-Navegador.pt</id>
     <link href="https://alganet.github.io/blog/2026-07-21-00-Bash-para-Frontend-no-Navegador.pt.html" />
     <updated>2026-07-21T00:00:00Z</updated>
-    <summary> O título é bait. E, irritantemente, é verdade. Se você tiver um terminal disponível, roda isso: O que aparece não é uma captura de tela do site nem um dump de texto, mas o próprio site, feito navegável, de modo que as setas scrollam, o Tab percorre os links, o Enter abre um post, e a tecla y copia um trecho de código. Se você preferir ficar só no navegador, o mesmo programa roda ali também, seja na versão terminal do site ou pelo pequeno interruptor $ [] ali no canto superior de cada...</summary>
+    <summary>O título é bait. E, irritantemente, é verdade. Se você tiver um terminal disponível, roda isso: O que aparece não é uma captura de tela do site nem um dump de texto, mas o próprio site, feito navegável, de modo que as setas scrollam, o Tab percorre os links, o Enter abre um post, e a tecla...</summary>
     <author>
       <name>Alexandre Gomes Gaigalas</name>
     </author>
@@ -21,7 +21,7 @@
     <id>tag:alganet.github.io,2025:2026-06-28-12-POSIX-Nao-E-Um-Shell.pt</id>
     <link href="https://alganet.github.io/blog/2026-06-28-12-POSIX-Nao-E-Um-Shell.pt.html" />
     <updated>2026-06-28T12:00:00Z</updated>
-    <summary> Quando alguém diz &quot;escreva em shell POSIX para garantir portabilidade&quot;, a intenção é boa. POSIX é uma especificação. Não um programa. O que de fato executa o seu script é o bash, o dash, o ash, o ksh, o yash, ou um entre uma dúzia de outros. Cada um implementa o POSIX com suas próprias lacunas, extensões e acidentes...</summary>
+    <summary>Quando alguém diz &quot;escreva em shell POSIX para garantir portabilidade&quot;, a intenção é boa. POSIX é uma especificação. Não um programa. O que de fato executa o seu script é o bash, o dash, o ash, o ksh, o yash, ou um entre uma dúzia de outros. Cada um implementa o POSIX com suas próprias...</summary>
     <author>
       <name>Alexandre Gomes Gaigalas</name>
     </author>
@@ -31,7 +31,7 @@
     <id>tag:alganet.github.io,2025:2026-03-25-05-Ensinando-IA-a-Verificar-Fontes.pt</id>
     <link href="https://alganet.github.io/blog/2026-03-25-05-Ensinando-IA-a-Verificar-Fontes.pt.html" />
     <updated>2026-03-25T05:00:00Z</updated>
-    <summary> LLMs citam documentação que não existe com total confiança. “De acordo com o MDN, Promise.allSettled() retorna uma promise que resolve quando todas as promises são completadas (“returns a promise that resolves when all promises have...</summary>
+    <summary>LLMs citam documentação que não existe com total confiança. “De acordo com o MDN, Promise.allSettled() retorna uma promise que resolve quando todas as promises são completadas (“returns a promise that resolves when all promises have completed”).” Isso parece correto. Mas o MDN na...</summary>
     <author>
       <name>Alexandre Gomes Gaigalas</name>
     </author>
@@ -41,7 +41,7 @@
     <id>tag:alganet.github.io,2025:2026-03-23-20-O-Plugue-Universal--Conectando-Containers-a-Callables.pt</id>
     <link href="https://alganet.github.io/blog/2026-03-23-20-O-Plugue-Universal--Conectando-Containers-a-Callables.pt.html" />
     <updated>2026-03-23T20:00:00Z</updated>
-    <summary> A PSR-11 resolveu um problema importante no PHP: nos deu uma tomada universal para containers de dependência. Qualquer framework, qualquer biblioteca, qualquer aplicação pode expor seus serviços através da ContainerInterface, e qualquer consumidor pode obtê-los sem se preocupar com a...</summary>
+    <summary>A PSR-11 resolveu um problema importante no PHP: nos deu uma tomada universal para containers de dependência. Qualquer framework, qualquer biblioteca, qualquer aplicação pode expor seus serviços através da ContainerInterface, e qualquer consumidor pode obtê-los sem se preocupar com a...</summary>
     <author>
       <name>Alexandre Gomes Gaigalas</name>
     </author>
@@ -51,7 +51,7 @@
     <id>tag:alganet.github.io,2025:2026-03-12-20-Refatoracao-Feng-Shui.pt</id>
     <link href="https://alganet.github.io/blog/2026-03-12-20-Refatoracao-Feng-Shui.pt.html" />
     <updated>2026-03-12T20:00:00Z</updated>
-    <summary> Se você já trabalhou em uma base de código grande por tempo suficiente, provavelmente já viu um certo tipo de refatoração que parece produtiva mas não melhora o sistema de verdade. Alguns arquivos são renomeados, funções mudam de lugar, diretórios e namespaces são reorganizados, mas nada...</summary>
+    <summary>Se você já trabalhou em uma base de código grande por tempo suficiente, provavelmente já viu um certo tipo de refatoração que parece produtiva mas não melhora o sistema de verdade. Alguns arquivos são renomeados, funções mudam de lugar, diretórios e namespaces são reorganizados, mas...</summary>
     <author>
       <name>Alexandre Gomes Gaigalas</name>
     </author>
@@ -61,7 +61,7 @@
     <id>tag:alganet.github.io,2025:2026-02-22-23-Aproveitando-Atributos-com-Respect-Validation-e-Laravel.pt</id>
     <link href="https://alganet.github.io/blog/2026-02-22-23-Aproveitando-Atributos-com-Respect-Validation-e-Laravel.pt.html" />
     <updated>2026-02-22T23:00:00Z</updated>
-    <summary> O exemplo completo deste post está disponível no GitHub. Lógica de validação muitas vezes acaba distribuída entre regras da request, verificações em controladores, helpers de modelos e serializadores. Desse jeito, as validações para o mesmo campo podem divergir com o...</summary>
+    <summary>O exemplo completo deste post está disponível no GitHub. Lógica de validação muitas vezes acaba distribuída entre regras da request, verificações em controladores, helpers de modelos e serializadores. Desse jeito, as validações para o mesmo campo podem divergir com o tempo. Este exemplo...</summary>
     <author>
       <name>Alexandre Gomes Gaigalas</name>
     </author>
@@ -71,7 +71,7 @@
     <id>tag:alganet.github.io,2025:2026-02-22-15-Bootstrapping-Nao-E-Paranoia-de-Seguranca.pt</id>
     <link href="https://alganet.github.io/blog/2026-02-22-15-Bootstrapping-Nao-E-Paranoia-de-Seguranca.pt.html" />
     <updated>2026-02-22T15:00:00Z</updated>
-    <summary> Bootstrapping de compiladores é um assunto frequentemente discutido sob o mesmo ângulo: paranóia de segurança. Nessa perspectiva, seu único propósito é se defender contra a classe de ataques descrita por Ken Thompson em Reflections on Trusting Trust. Se um compilador estiver comprometido, ele pode perpetuar esse defeito indefinidamente, mesmo quando seu código-fonte parece...</summary>
+    <summary>Bootstrapping de compiladores é um assunto frequentemente discutido sob o mesmo ângulo: paranóia de segurança. Nessa perspectiva, seu único propósito é se defender contra a classe de ataques descrita por Ken Thompson em Reflections on Trusting Trust. Se um compilador estiver comprometido,...</summary>
     <author>
       <name>Alexandre Gomes Gaigalas</name>
     </author>
@@ -81,7 +81,7 @@
     <id>tag:alganet.github.io,2025:2026-02-12-22-Construindo-uma-Aplicacao-Modular-com-apywire-e-starlette.pt</id>
     <link href="https://alganet.github.io/blog/2026-02-12-22-Construindo-uma-Aplicacao-Modular-com-apywire-e-starlette.pt.html" />
     <updated>2026-02-12T22:00:00Z</updated>
-    <summary> Este post explica como usar o apywire para construir uma aplicação modular com injeção de dependências usando starlette. Vamos passo a passo para conectar serviços, handlers e um banco de dados usando um config.yaml declarativo. O código completo deste tutorial está disponível em...</summary>
+    <summary>Este post explica como usar o apywire para construir uma aplicação modular com injeção de dependências usando starlette. Vamos passo a passo para conectar serviços, handlers e um banco de dados usando um config.yaml declarativo. O código completo deste tutorial está disponível em...</summary>
     <author>
       <name>Alexandre Gomes Gaigalas</name>
     </author>
@@ -91,7 +91,7 @@
     <id>tag:alganet.github.io,2025:2026-02-11-02-Validando-Estrutura-Markdown-em-uma-Unica-Expressao-Declarativa.pt</id>
     <link href="https://alganet.github.io/blog/2026-02-11-02-Validando-Estrutura-Markdown-em-uma-Unica-Expressao-Declarativa.pt.html" />
     <updated>2026-02-11T02:00:00Z</updated>
-    <summary> Em 2010, comecei um pequeno projeto chamado Respect\Validation. À primeira vista, é uma biblioteca simpática que usa interfaces fluentes para validar valores simples: No entanto, isso é apenas a ponta do iceberg do que esta biblioteca é capaz de...</summary>
+    <summary>Em 2010, comecei um pequeno projeto chamado Respect\Validation. À primeira vista, é uma biblioteca simpática que usa interfaces fluentes para validar valores simples: No entanto, isso é apenas a ponta do iceberg do que esta biblioteca é capaz de fazer. Ao longo dos anos, a usei não só para...</summary>
     <author>
       <name>Alexandre Gomes Gaigalas</name>
     </author>
@@ -101,7 +101,7 @@
     <id>tag:alganet.github.io,2025:2026-01-22-11-Os-Cinco-Niveis-de-Pipes-no-PHP-8-5.pt</id>
     <link href="https://alganet.github.io/blog/2026-01-22-11-Os-Cinco-Niveis-de-Pipes-no-PHP-8-5.pt.html" />
     <updated>2026-01-22T11:00:00Z</updated>
-    <summary> O operador pipe do PHP possibilita um estilo funcional muito legível. Abaixo descrevo cinco &quot;níveis&quot; conceituais de uso de pipes: da simples &quot;linha de produção&quot; até functors compostos. Você pode usar estes exemplos como modelos e estendê-los em seus próprios...</summary>
+    <summary>O operador pipe do PHP possibilita um estilo funcional muito legível. Abaixo descrevo cinco &quot;níveis&quot; conceituais de uso de pipes: da simples &quot;linha de produção&quot; até functors compostos. Você pode usar estes exemplos como modelos e estendê-los em seus próprios projetos. Cada etapa transforma...</summary>
     <author>
       <name>Alexandre Gomes Gaigalas</name>
     </author>
@@ -111,7 +111,7 @@
     <id>tag:alganet.github.io,2025:2026-01-19-14-Como-Fazer-Bons-Code-Reviews.pt</id>
     <link href="https://alganet.github.io/blog/2026-01-19-14-Como-Fazer-Bons-Code-Reviews.pt.html" />
     <updated>2026-01-19T14:00:00Z</updated>
-    <summary> Bons code reviews são uma arte. Leva anos, e às vezes décadas, para aprender a fazer direito. A coisa mais importante, nossa diretiva principal, é ser gentil e construtivo. Habilidades Os outros ingredientes são conhecimento técnico e atenção aos detalhes. A seguir estão algumas das dicas mais importantes que englobam esses...</summary>
+    <summary>Bons code reviews são uma arte. Leva anos, e às vezes décadas, para aprender a fazer direito. A coisa mais importante, nossa diretiva principal, é ser gentil e construtivo. Habilidades interpessoais são um dos ingredientes-chave para sustentar uma boa prática de revisão de código ao longo...</summary>
     <author>
       <name>Alexandre Gomes Gaigalas</name>
     </author>
@@ -121,7 +121,7 @@
     <id>tag:alganet.github.io,2025:2026-01-08-23-Um-verdadeiro-hello-world-para-LLM-pipelines.pt</id>
     <link href="https://alganet.github.io/blog/2026-01-08-23-Um-verdadeiro-hello-world-para-LLM-pipelines.pt.html" />
     <updated>2026-01-08T23:00:00Z</updated>
-    <summary> Já faz algum tempo que venho procurando o exemplo mais simples e, ao mesmo tempo, útil de pipeline para Quero também algo pensado para engenheiros de software, não para cientistas de dados. Engenheiros de software são um Portanto, um verdadeiro &apos;hello world&apos; de pipeline para LLMs deve ser simples, prático e acessível. Honestamente, não dá pra pedir pra um engenheiro alugar uma máquina ou gastar créditos na nuvem para rodar um simples...</summary>
+    <summary>Já faz algum tempo que venho procurando o exemplo mais simples e, ao mesmo tempo, útil de pipeline para LLMs. Algo como um hello world que iniciantes possam entender rapidamente e sobre o qual possam iterar. Quero também algo pensado para engenheiros de software, não para cientistas de dados....</summary>
     <author>
       <name>Alexandre Gomes Gaigalas</name>
     </author>
@@ -131,7 +131,7 @@
     <id>tag:alganet.github.io,2025:2025-12-22-09-Como-Desenvolvedores-Roubaram-Dry-Run-De-Metalurgicos.pt</id>
     <link href="https://alganet.github.io/blog/2025-12-22-09-Como-Desenvolvedores-Roubaram-Dry-Run-De-Metalurgicos.pt.html" />
     <updated>2025-12-22T09:00:00Z</updated>
-    <summary> Se você já executou um comando com a flag --dry-run, provavelmente sabia o que ela fazia. O comando era Mais especificamente, um dry run executa todas as partes, exceto as Por exemplo, digamos que você tenha um programa de linha de comando chamado...</summary>
+    <summary>Se você já executou um comando com a flag --dry-run, provavelmente sabia o que ela fazia. O comando era executado, mas não a coisa toda. Mais especificamente, um dry run executa todas as partes, exceto as irreversíveis de uma operação.  Por exemplo, digamos que você tenha um programa de...</summary>
     <author>
       <name>Alexandre Gomes Gaigalas</name>
     </author>
@@ -141,7 +141,7 @@
     <id>tag:alganet.github.io,2025:2025-12-17-07-Makefiles-Poliglotas.pt</id>
     <link href="https://alganet.github.io/blog/2025-12-17-07-Makefiles-Poliglotas.pt.html" />
     <updated>2025-12-17T07:00:00Z</updated>
-    <summary>   A solução poliglota para o Makefile unificado é mais ou menos assim:  Este trecho baseia-se em diferenças sutis, mas bem definidas, entre as regras de processamento do GNU make e do O que o GNU make vê:  O que o nmake vê:    Esta técnica foi usada no repositório PHL para simplificar o processo...</summary>
+    <summary> Enquanto sistemas do tipo Unix normalmente usam GNU make, ambientes Windows baseados nas ferramentas da Microsoft tradicionalmente usam o nmake. Embora existam alternativas como o GNU make no Windows (MSYS2, MinGW, WSL), muitos projetos ainda precisam suportar fluxos de trabalho nativos com o...</summary>
     <author>
       <name>Alexandre Gomes Gaigalas</name>
     </author>
@@ -151,7 +151,7 @@
     <id>tag:alganet.github.io,2025:2025-05-26-15-Ola.pt</id>
     <link href="https://alganet.github.io/blog/2025-05-26-15-Ola.pt.html" />
     <updated>2025-05-26T15:00:00Z</updated>
-    <summary> Já faz algum tempo que eu queria começar um blog técnico. Decidi transformar este site HTML simples e feito à mão em É o mais próximo de HTML puro possível. Crio as postagens escrevendo o HTML na mão, e há um script Decidi não usar nenhuma forma de markdown ou templates para a solução. No entanto, minha solução...</summary>
+    <summary>Já faz algum tempo que eu queria começar um blog técnico. Decidi transformar este site HTML simples e feito à mão em uma plataforma para isso. É o mais próximo de HTML puro possível. Crio as postagens escrevendo o HTML na mão, e há um script shell de 80 linhas (por enquanto) que gerencia...</summary>
     <author>
       <name>Alexandre Gomes Gaigalas</name>
     </author>
