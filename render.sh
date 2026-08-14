@@ -230,12 +230,29 @@ _seg_text ()   # PAYLOAD -> _STEXT, styles dropped, a link's URL left out
 	return 0
 }
 
+# Byte length, the same number under every shell.
+#
+# ${#var} counts BYTES on dash and CHARACTERS on bash and zsh. A Portuguese excerpt
+# therefore measured 320 one way and 300 the other, so the 300 threshold fired
+# under one shell and not the other — and whichever shell last ran build.sh
+# rewrote feed.pt.xml. A generator whose output depends on its interpreter cannot
+# be committed, because every contributor's diff disagrees with the last one's.
+#
+# Bytes rather than characters is an arbitrary choice between two defensible ones;
+# what matters is that it is the same choice everywhere.
+_blen ()   # TEXT -> _BLEN
+{
+	_BLEN=$(printf '%s' "$1" | LC_ALL=C wc -c | tr -d ' ')
+	return 0
+}
+
 _scan_emit ()
 {
 	case $1 in
 		t) SCAN_TITLE="$2" ;;
 		p)
-			if test "${#SCAN_EXCERPT}" -lt 300
+			_blen "$SCAN_EXCERPT"
+			if test "$_BLEN" -lt 300
 			then _seg_text "$2"; SCAN_EXCERPT="$SCAN_EXCERPT $_STEXT"
 			fi ;;
 	esac
@@ -252,9 +269,13 @@ scan_md ()
 	tuish_md_meta author; SCAN_AUTHOR="$TUISH_MD_META"
 	tuish_md_meta alt;    SCAN_ALT="$TUISH_MD_META"
 	SCAN_EXCERPT="${SCAN_EXCERPT# }"
-	if test "${#SCAN_EXCERPT}" -gt 300
+	_blen "$SCAN_EXCERPT"
+	if test "$_BLEN" -gt 300
 	then
-		SCAN_EXCERPT="$(printf '%s' "$SCAN_EXCERPT" | cut -c 1-300)"
+		# -b, not -c: GNU cut's -c is bytes anyway, but saying so removes the
+		# question. Cutting mid-character is safe because trimming back to the last
+		# space discards the partial bytes along with the partial word.
+		SCAN_EXCERPT="$(printf '%s' "$SCAN_EXCERPT" | LC_ALL=C cut -b 1-300)"
 		SCAN_EXCERPT="${SCAN_EXCERPT% *}..."
 	fi
 	return 0
