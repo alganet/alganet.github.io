@@ -31,8 +31,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # enablement: true flips the Pages source from branch to Actions on the
-      # first run, so this needs no click in repo settings.
+      # enablement: true only CREATES a Pages site when none exists. It does
+      # not change the build type of a site that is already enabled, so it
+      # cannot move an existing repo off branch serving — that is a one-time
+      # change under Settings -> Pages -> Source -> GitHub Actions.
+      #
+      # Until that is set, GitHub's own "pages build and deployment" job keeps
+      # running on every push and publishes the raw branch, which has no
+      # terminal/dist/ in it because the bundle is gitignored. The two deploys
+      # then race and the terminal 404s whenever the branch build lands last.
       - uses: actions/configure-pages@v6
         with:
           enablement: true

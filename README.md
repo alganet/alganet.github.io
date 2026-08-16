@@ -84,7 +84,11 @@ This will produce something like `blog/2026-02-23-12-My-New-Entry.md` and
 
 ## Publishing
 
-The site is automatically published to GitHub Pages by `.github/workflows/deploy.yml` on every push to `master`. The workflow builds `terminal/dist/` and uploads the whole tree — the terminal reads this site's own markdown and shell sources at runtime, so they are deployed content, not build inputs. Deployed content is available at:
+The site is automatically published to GitHub Pages by `.github/workflows/deploy.yml` on every push to `master`. The workflow builds `terminal/dist/` and uploads the whole tree — the terminal reads this site's own markdown and shell sources at runtime, so they are deployed content, not build inputs.
+
+This requires **Settings → Pages → Source** to be set to **GitHub Actions**. On "Deploy from a branch" GitHub also runs its own builder, which publishes the raw branch — and `terminal/dist/` is not committed, so the terminal 404s whenever that build lands after the workflow's.
+
+Deployed content is available at:
 
 **https://alganet.github.io/**
 
