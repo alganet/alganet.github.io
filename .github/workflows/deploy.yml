@@ -33,7 +33,7 @@ jobs:
 
       # enablement: true flips the Pages source from branch to Actions on the
       # first run, so this needs no click in repo settings.
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
         with:
           enablement: true
 
