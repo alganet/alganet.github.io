@@ -61,7 +61,7 @@ jobs:
           rm -rf node_modules
           echo "deploying $(find . -path ./.git -prune -o -type f -print | wc -l) files"
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: .
 
