@@ -51,7 +51,15 @@ matter (`alt`, `date`, `lang`) and writes `terminal/content.json`.
 
 ### `vendor.sh`
 
-Snapshots the shell-TUI *engine* into `terminal/`: the [tui.sh](https://github.com/alganet/tuish) toolkit and the [wasi-sh](https://github.com/alganet/wasi-sh) runtime (busybox-on-wasm) from the sibling checkouts `../tuish` and `../wasi-sh`. Run `./vendor.sh` only when tuish or wasi-sh themselves change; the vendored snapshot is committed.
+Snapshots the [tui.sh](https://github.com/alganet/tuish) toolkit into `terminal/` from the sibling checkout `../tuish`. Run `sh vendor.sh` only when tuish itself changes; the vendored snapshot is committed.
+
+The browser half of the engine — [wasi-sh](https://github.com/alganet/wasi-sh) (busybox-on-wasm) and [xterm.js](https://xtermjs.org) — comes from npm instead, declared in `package.json` and bundled into `terminal/dist/` by `tools/build-terminal.mjs`:
+
+```sh
+npm ci && npm run build:terminal
+```
+
+`terminal/dist/` is **not** committed; the deploy workflow builds it. tuish stays vendored because the name `tuish` on npm belongs to an unrelated project.
 
 `build.sh` sources the **vendored** `md.sh` and `hl.sh` rather than `../tuish/src`,
 so the HTML is produced by the same bytes the browser mounts, and a clean checkout
@@ -76,7 +84,7 @@ This will produce something like `blog/2026-02-23-12-My-New-Entry.md` and
 
 ## Publishing
 
-The site is automatically published via GitHub Pages from the `main` branch. Deployed content is available at:
+The site is automatically published to GitHub Pages by `.github/workflows/deploy.yml` on every push to `master`. The workflow builds `terminal/dist/` and uploads the whole tree — the terminal reads this site's own markdown and shell sources at runtime, so they are deployed content, not build inputs. Deployed content is available at:
 
 **https://alganet.github.io/**
 
