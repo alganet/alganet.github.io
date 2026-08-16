@@ -1,0 +1,81 @@
+# What turns a Dependabot PR from "the manifest changed" into "the terminal
+# still builds". Nothing here deploys; deploy.yml does that on master.
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch: {}
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  terminal:
+    name: Build terminal bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      # build-terminal.mjs already fails on an empty output; this checks the
+      # set of files the page actually asks for by name, so a rename in the
+      # build script cannot quietly ship a page that 404s.
+      - name: Build
+        run: |
+          npm run build:terminal
+          for f in app.js worker.mjs xterm.css busybox.wasm; do
+            [ -s "terminal/dist/$f" ] || { echo "::error::missing terminal/dist/$f"; exit 1; }
+          done
+
+      # index.html is hand-written and the bundle is not, so nothing but this
+      # keeps the two in agreement.
+      - name: Check index.html references what the build emits
+        run: |
+          grep -q 'src="./dist/app.js"' terminal/index.html || { echo "::error::index.html does not load ./dist/app.js"; exit 1; }
+          grep -q 'href="./dist/xterm.css"' terminal/index.html || { echo "::error::index.html does not link ./dist/xterm.css"; exit 1; }
+          if grep -q 'vendor/' terminal/index.html; then echo "::error::index.html still references the removed vendor/ tree"; exit 1; fi
+
+  shell:
+    name: Site generator
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      # The repo's central invariant: every script runs under bash, dash and
+      # busybox sh and produces byte-identical output, because the generated
+      # files are committed and a build that differed by interpreter would have
+      # two people's diffs reverting each other.
+      - name: Syntax-check under every supported shell
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq dash busybox
+          for f in build.sh render.sh vendor.sh newpost.sh serve.sh tools/*.sh; do
+            for sh in bash dash "busybox sh"; do
+              $sh -n "$f" || { echo "::error::$f fails to parse under $sh"; exit 1; }
+            done
+          done
+
+      # Catches generated HTML that was never regenerated after a .md edit.
+      # Invoked as `sh build.sh` because the scripts are not executable — the
+      # README documents them that way too.
+      - name: build.sh output is committed and current
+        run: |
+          sh build.sh
+          git diff --exit-code || {
+            echo "::error::build.sh produced changes — run 'sh build.sh' and commit the result"
+            exit 1
+          }

@@ -1,0 +1,69 @@
+# Publishes the site to GitHub Pages.
+#
+# Pages used to serve the master branch directly, which worked because every
+# generated file was committed. terminal/dist/ is not — it needs npm and
+# esbuild — so the build has to happen somewhere, and it happens here.
+name: Deploy
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never cancel a deploy midway; queue behind the running one instead.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # enablement: true flips the Pages source from branch to Actions on the
+      # first run, so this needs no click in repo settings.
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build terminal bundle
+        run: |
+          npm run build:terminal
+          for f in app.js worker.mjs xterm.css busybox.wasm; do
+            [ -s "terminal/dist/$f" ] || { echo "::error::missing terminal/dist/$f"; exit 1; }
+          done
+
+      # The WHOLE tree, deliberately. The terminal is a shell reading this
+      # site's own sources at runtime: it mounts the blog markdown from the
+      # repo root, fetches terminal/index.sh, and fetchTree's terminal/tuish/
+      # src/*.sh. Pruning "source" files would serve a reader with nothing to
+      # read. node_modules is excluded because nothing fetches it.
+      - name: Package the site
+        run: |
+          rm -rf node_modules
+          echo "deploying $(find . -path ./.git -prune -o -type f -print | wc -l) files"
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
