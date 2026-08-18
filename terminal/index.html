@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<!-- alganet.github.io — the shell version.
+<!-- alganet.dev — the shell version.
 
      This page is a thin terminal host. The site itself is index.sh, a pure-shell
      TUI (tui.sh) running on busybox ash compiled to wasm via wasi-sh, painting to
@@ -10,12 +10,22 @@
      HTML by ../build.sh, mounted read-only at /content. xterm.js is only a screen,
      a keyboard, and — via the web-links addon — clickable URLs.
 
-     Interactive sessions need cross-origin isolation for SharedArrayBuffer; GitHub
-     Pages sends no COOP/COEP, so coi-serviceworker.js injects them and reloads
-     once. Its scope is /terminal/ only, so the plain HTML site at / is untouched. -->
-<!-- Cross-origin isolation for SharedArrayBuffer. credentialless COEP keeps the
-     wasm/SAB path working while still allowing cross-origin subresources that don't
-     send CORP (Google Analytics, and the CDN assets) to load. -->
+     Interactive sessions need cross-origin isolation for SharedArrayBuffer. It now
+     arrives on the response: a Cloudflare Transform Rule sets COOP/COEP on
+     /terminal/* (see README, "The domain"). GitHub Pages cannot send headers, so
+     before the domain moved to Cloudflare this was done entirely by the service
+     worker below. -->
+<!-- coi-serviceworker is now the FALLBACK, not the mechanism. When the edge headers
+     are honoured it sees crossOriginIsolated and returns without registering — no
+     worker, no reload. It still earns its place on browsers where `credentialless`
+     does NOT yield isolation (Safari, mainly): there it registers, detects the
+     failure, and reloads once with require-corp, which a static header cannot do.
+     That degrade path is why deleting this file is not a no-op.
+
+     credentialless is the preferred mode because it keeps the wasm/SAB path working
+     while still allowing cross-origin subresources that send no CORP (Google
+     Analytics) to load; the require-corp degrade trades those away to stay isolated.
+     Scope is /terminal/ only, so the plain HTML site at / is untouched. -->
 <script>window.coi = { coepCredentialless: () => true };</script>
 <script src="./coi-serviceworker.js"></script>
 <!-- Google Analytics — same property as the HTML site (script.js); skip locally. -->
@@ -65,7 +75,7 @@
 <div id="term"></div>
 <div id="fx"></div>
 <div id="boot">
-  <div class="mark"><b>alganet.github.io</b></div>
+  <div class="mark"><b>alganet.dev</b></div>
   <div class="bar"><i></i></div>
   <div class="sub">booting the shell version in your browser…</div>
 </div>

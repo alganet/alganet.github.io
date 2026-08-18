@@ -17,7 +17,7 @@ The title is bait. It is also, annoyingly, true.
 If you have a terminal within reach, run this:
 
 ```
-bash -c "$(curl -fsSL https://alganet.github.io/terminal/index.sh)"
+bash -c "$(curl -fsSL https://alganet.dev/terminal/index.sh)"
 ```
 
 What comes back is not a screenshot of the site and not a dump of its text, but the site itself, made navigable, so that the arrow keys scroll it, Tab steps between its links, Enter opens a post, and the `y` key copies a code snippet to your clipboard. If you would rather stay in a browser, the same program runs there as well, either at the [terminal version of the site](/terminal/) or through the small `$ []` switcher tucked into the corner of every page.

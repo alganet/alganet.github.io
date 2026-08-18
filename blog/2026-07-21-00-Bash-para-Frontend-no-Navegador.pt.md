@@ -17,7 +17,7 @@ O título é bait. E, irritantemente, é verdade.
 Se você tiver um terminal disponível, roda isso:
 
 ```
-bash -c "$(curl -fsSL https://alganet.github.io/terminal/index.sh)"
+bash -c "$(curl -fsSL https://alganet.dev/terminal/index.sh)"
 ```
 
 O que aparece não é uma captura de tela do site nem um dump de texto, mas o próprio site, feito navegável, de modo que as setas scrollam, o Tab percorre os links, o Enter abre um post, e a tecla `y` copia um trecho de código. Se você preferir ficar só no navegador, o mesmo programa roda ali também, seja na [versão terminal do site](/terminal/) ou pelo pequeno interruptor `$ []` ali no canto superior de cada página.

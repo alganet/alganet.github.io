@@ -32,6 +32,16 @@ _EOL="
 _TAB=$(printf '\t')
 _US=$(printf '\037')
 
+# Where the site is served. Only the feeds need absolute URLs — every link in the
+# HTML is root-relative, so the pages themselves do not care what the domain is.
+SITE_URL="https://alganet.dev"
+
+# The Atom <id> of a feed and of every entry is an IDENTITY, not an address: change
+# one and every reader shows the post as new again. These ids were minted under the
+# old domain and stay minted under it. A tag: URI never has to resolve, so this is
+# correct rather than merely expedient — and it must NOT be updated to SITE_URL.
+FEED_TAG_DOMAIN="alganet.github.io"
+
 # Every markdown file carries its licence. The posts have always said CC BY-NC-SA
 # in their footer; saying it in the source as well is what makes the claim survive
 # a file being read on its own, and what a tool like REUSE can actually check.
@@ -304,9 +314,9 @@ do
         echo '<feed xmlns="http://www.w3.org/2005/Atom">'
         echo "  <title>$(xml_escape "Blog — alganet")</title>"
         echo "  <subtitle>$(xml_escape "$FEED_SUBTITLE")</subtitle>"
-        echo "  <id>tag:alganet.github.io,2025:feed${LANG_SUFFIX}</id>"
-        echo '  <link href="https://alganet.github.io/" />'
-        echo "  <link href=\"https://alganet.github.io/feed${LANG_SUFFIX}.xml\" rel=\"self\" />"
+        echo "  <id>tag:${FEED_TAG_DOMAIN},2025:feed${LANG_SUFFIX}</id>"
+        echo "  <link href=\"${SITE_URL}/\" />"
+        echo "  <link href=\"${SITE_URL}/feed${LANG_SUFFIX}.xml\" rel=\"self\" />"
         echo "  <updated>$_updated_iso</updated>"
     } > "$FEED_FILE"
 
@@ -318,8 +328,8 @@ do
         {
             echo '  <entry>'
             echo "    <title>$(xml_escape "$SCAN_TITLE")</title>"
-            echo "    <id>tag:alganet.github.io,2025:${base}</id>"
-            echo "    <link href=\"https://alganet.github.io/blog/${base}.html\" />"
+            echo "    <id>tag:${FEED_TAG_DOMAIN},2025:${base}</id>"
+            echo "    <link href=\"${SITE_URL}/blog/${base}.html\" />"
             echo "    <updated>$_iso</updated>"
             echo "    <summary>$(xml_escape "$SCAN_EXCERPT")</summary>"
             echo '    <author>'

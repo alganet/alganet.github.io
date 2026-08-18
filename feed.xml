@@ -3,13 +3,13 @@
   <title>Blog — alganet</title>
   <subtitle>Technical articles on software development</subtitle>
   <id>tag:alganet.github.io,2025:feed</id>
-  <link href="https://alganet.github.io/" />
-  <link href="https://alganet.github.io/feed.xml" rel="self" />
+  <link href="https://alganet.dev/" />
+  <link href="https://alganet.dev/feed.xml" rel="self" />
   <updated>2026-07-21T00:00:00Z</updated>
   <entry>
     <title>Bash for Browser Frontend</title>
     <id>tag:alganet.github.io,2025:2026-07-21-00-Bash-for-Browser-Frontend</id>
-    <link href="https://alganet.github.io/blog/2026-07-21-00-Bash-for-Browser-Frontend.html" />
+    <link href="https://alganet.dev/blog/2026-07-21-00-Bash-for-Browser-Frontend.html" />
     <updated>2026-07-21T00:00:00Z</updated>
     <summary>The title is bait. It is also, annoyingly, true. If you have a terminal within reach, run this: What comes back is not a screenshot of the site and not a dump of its text, but the site itself, made navigable, so that the arrow keys scroll it, Tab steps between its links, Enter opens a post, and the...</summary>
     <author>
@@ -19,7 +19,7 @@
   <entry>
     <title>POSIX Is Not A Shell</title>
     <id>tag:alganet.github.io,2025:2026-06-28-12-POSIX-Is-Not-A-Shell</id>
-    <link href="https://alganet.github.io/blog/2026-06-28-12-POSIX-Is-Not-A-Shell.html" />
+    <link href="https://alganet.dev/blog/2026-06-28-12-POSIX-Is-Not-A-Shell.html" />
     <updated>2026-06-28T12:00:00Z</updated>
     <summary>When someone says &quot;write it in POSIX shell for portability,&quot; they mean well. POSIX is a specification. Not a program. The thing that actually runs your script is bash, dash, ash, ksh, yash, or one of a dozen others. They each implement POSIX with their own gaps, extensions, and historical accidents.</summary>
     <author>
@@ -29,7 +29,7 @@
   <entry>
     <title>Teaching AI to Verify Its Sources</title>
     <id>tag:alganet.github.io,2025:2026-03-25-05-Teaching-AI-to-Verify-Sources</id>
-    <link href="https://alganet.github.io/blog/2026-03-25-05-Teaching-AI-to-Verify-Sources.html" />
+    <link href="https://alganet.dev/blog/2026-03-25-05-Teaching-AI-to-Verify-Sources.html" />
     <updated>2026-03-25T05:00:00Z</updated>
     <summary>LLMs confidently cite documentation that doesn&apos;t exist. “According to MDN, Promise.allSettled() returns a promise that resolves when all promises have completed.” That sounds right. But MDN actually says “fulfills when all of the input&apos;s promises settle”. Different verb, different...</summary>
     <author>
@@ -39,7 +39,7 @@
   <entry>
     <title>The Universal Plug: Connecting Containers to Callables</title>
     <id>tag:alganet.github.io,2025:2026-03-23-20-The-Universal-Plug--Connecting-Containers-to-Callables</id>
-    <link href="https://alganet.github.io/blog/2026-03-23-20-The-Universal-Plug--Connecting-Containers-to-Callables.html" />
+    <link href="https://alganet.dev/blog/2026-03-23-20-The-Universal-Plug--Connecting-Containers-to-Callables.html" />
     <updated>2026-03-23T20:00:00Z</updated>
     <summary>PSR-11 solved an important problem in PHP: it gave us a universal socket for dependency containers. Any framework, any library, any application can expose its services through ContainerInterface, and any consumer can pull from it without caring about the implementation. But there&apos;s a gap. You have...</summary>
     <author>
@@ -49,7 +49,7 @@
   <entry>
     <title>Feng Shui Refactoring</title>
     <id>tag:alganet.github.io,2025:2026-03-12-20-Feng-Shui-Refactoring</id>
-    <link href="https://alganet.github.io/blog/2026-03-12-20-Feng-Shui-Refactoring.html" />
+    <link href="https://alganet.dev/blog/2026-03-12-20-Feng-Shui-Refactoring.html" />
     <updated>2026-03-12T20:00:00Z</updated>
     <summary>If you&apos;ve worked on a large codebase long enough, you&apos;ve probably seen a certain kind of refactoring that feels productive but doesn&apos;t actually improve the system. Some files get renamed, functions move around, directories and namespaces are reorganized, but nothing changes. The diff is large, the...</summary>
     <author>
@@ -59,7 +59,7 @@
   <entry>
     <title>Leveraging Attributes With Respect\Validation and Laravel</title>
     <id>tag:alganet.github.io,2025:2026-02-22-23-Leveraging-Attributes-With-Respect-Validation-and-Laravel</id>
-    <link href="https://alganet.github.io/blog/2026-02-22-23-Leveraging-Attributes-With-Respect-Validation-and-Laravel.html" />
+    <link href="https://alganet.dev/blog/2026-02-22-23-Leveraging-Attributes-With-Respect-Validation-and-Laravel.html" />
     <updated>2026-02-22T23:00:00Z</updated>
     <summary>The full example for this blog post is available on GitHub. Validation logic often ends up distributed across request rules, controller checks, model helpers, and serializers. In that arrangement, constraints for the same field can diverge over time. This example uses a single domain object as the...</summary>
     <author>
@@ -69,7 +69,7 @@
   <entry>
     <title>Bootstrapping Is Not Security Paranoia</title>
     <id>tag:alganet.github.io,2025:2026-02-22-15-Bootstrapping-Is-Not-Security-Paranoia</id>
-    <link href="https://alganet.github.io/blog/2026-02-22-15-Bootstrapping-Is-Not-Security-Paranoia.html" />
+    <link href="https://alganet.dev/blog/2026-02-22-15-Bootstrapping-Is-Not-Security-Paranoia.html" />
     <updated>2026-02-22T15:00:00Z</updated>
     <summary>Bootstrapping compilers are often discussed from the same angle: security paranoia. In this framing, their only purpose is to defend against the class of attacks described in Ken Thompson’s Reflections on Trusting Trust. If a compiler is compromised, it can perpetuate that compromise...</summary>
     <author>
@@ -79,7 +79,7 @@
   <entry>
     <title>Building a Modular Application with apywire and starlette</title>
     <id>tag:alganet.github.io,2025:2026-02-12-22-Building-a-Modular-Application-with-apywire-and-starlette</id>
-    <link href="https://alganet.github.io/blog/2026-02-12-22-Building-a-Modular-Application-with-apywire-and-starlette.html" />
+    <link href="https://alganet.dev/blog/2026-02-12-22-Building-a-Modular-Application-with-apywire-and-starlette.html" />
     <updated>2026-02-12T22:00:00Z</updated>
     <summary>This blog post explains how to use apywire to build a modular, dependency-injected starlette application. We’ll go step-by-step to wire up services, handlers, and a database using a declarative config.yaml. The complete code for this tutorial is available at github.com/alganet/apywire-starlette....</summary>
     <author>
@@ -89,7 +89,7 @@
   <entry>
     <title>Validating Markdown Structure in a Single Declarative Expression</title>
     <id>tag:alganet.github.io,2025:2026-02-11-02-Validating-Markdown-Structure-in-a-Single-Declarative-Expression</id>
-    <link href="https://alganet.github.io/blog/2026-02-11-02-Validating-Markdown-Structure-in-a-Single-Declarative-Expression.html" />
+    <link href="https://alganet.dev/blog/2026-02-11-02-Validating-Markdown-Structure-in-a-Single-Declarative-Expression.html" />
     <updated>2026-02-11T02:00:00Z</updated>
     <summary>Back in 2010, I started this little project called Respect\Validation. At first glance, it&apos;s a cute little library that uses fluent interfaces to validate simple values: However, that&apos;s just the tip of the iceberg of what this library can actually do. Over the years, I&apos;ve used it to not only...</summary>
     <author>
@@ -99,7 +99,7 @@
   <entry>
     <title>The Five Levels of PHP 8.5 Pipes</title>
     <id>tag:alganet.github.io,2025:2026-01-22-11-The-Five-Levels-of-PHP-8-5-Pipes</id>
-    <link href="https://alganet.github.io/blog/2026-01-22-11-The-Five-Levels-of-PHP-8-5-Pipes.html" />
+    <link href="https://alganet.dev/blog/2026-01-22-11-The-Five-Levels-of-PHP-8-5-Pipes.html" />
     <updated>2026-01-22T11:00:00Z</updated>
     <summary>PHP&apos;s pipe operator unlocks a very readable, functional style. Below I walk through five conceptual &quot;levels&quot; of using pipes: from the simple production line to composed functor objects. You can use these as templates that you can extend upon in your own projects. Each step transforms the value in...</summary>
     <author>
@@ -109,7 +109,7 @@
   <entry>
     <title>How To Make Good Code Reviews</title>
     <id>tag:alganet.github.io,2025:2026-01-19-14-How-To-Make-Good-Code-Reviews</id>
-    <link href="https://alganet.github.io/blog/2026-01-19-14-How-To-Make-Good-Code-Reviews.html" />
+    <link href="https://alganet.dev/blog/2026-01-19-14-How-To-Make-Good-Code-Reviews.html" />
     <updated>2026-01-19T14:00:00Z</updated>
     <summary>Good code reviews are an art. It takes years or sometimes decades to learn how to do them well. The most important thing, our prime directive, is to be kind and constructive. Soft skills are one of the key ingredients for a sustained good code review practice. The other ingredients are technical...</summary>
     <author>
@@ -119,7 +119,7 @@
   <entry>
     <title>A true &apos;hello world&apos; LLM pipeline</title>
     <id>tag:alganet.github.io,2025:2026-01-08-23-A-true-hello-world-LLM-pipeline</id>
-    <link href="https://alganet.github.io/blog/2026-01-08-23-A-true-hello-world-LLM-pipeline.html" />
+    <link href="https://alganet.dev/blog/2026-01-08-23-A-true-hello-world-LLM-pipeline.html" />
     <updated>2026-01-08T23:00:00Z</updated>
     <summary>For a while now, I&apos;ve been searching for the simplest, useful LLM pipeline example. Some kind of hello world that beginners can quickly understand and iterate upon.  I also want something for software engineers, not data scientists. Software engineers are a different breed, and although they need...</summary>
     <author>
@@ -129,7 +129,7 @@
   <entry>
     <title>How Developers Stole &quot;Dry Runs&quot; From Machinists</title>
     <id>tag:alganet.github.io,2025:2025-12-22-09-How-Developers-Stole-Dry-Runs-From-Machinists</id>
-    <link href="https://alganet.github.io/blog/2025-12-22-09-How-Developers-Stole-Dry-Runs-From-Machinists.html" />
+    <link href="https://alganet.dev/blog/2025-12-22-09-How-Developers-Stole-Dry-Runs-From-Machinists.html" />
     <updated>2025-12-22T09:00:00Z</updated>
     <summary>If you’ve ever run a command with a --dry-run flag, you probably knew what it did. It ran the thing, but not the whole thing. More specifically, a dry run runs all but the irreversible parts of an operation. For example, let&apos;s say you have a command-line program called cleanup-database: When you...</summary>
     <author>
@@ -139,7 +139,7 @@
   <entry>
     <title>Polyglot Makefiles</title>
     <id>tag:alganet.github.io,2025:2025-12-17-07-Polyglot-Makefiles</id>
-    <link href="https://alganet.github.io/blog/2025-12-17-07-Polyglot-Makefiles.html" />
+    <link href="https://alganet.dev/blog/2025-12-17-07-Polyglot-Makefiles.html" />
     <updated>2025-12-17T07:00:00Z</updated>
     <summary> While Unix-like systems typically use GNU make, Windows environments based on Microsoft toolchains, traditionally use nmake. Although alternatives like GNU make on Windows exist (MSYS2, MinGW, WSL), many projects still need to support native nmake workflows.   Unfortunately, GNU make and nmake are...</summary>
     <author>
@@ -149,7 +149,7 @@
   <entry>
     <title>Hello Blog</title>
     <id>tag:alganet.github.io,2025:2025-05-26-15-Hello</id>
-    <link href="https://alganet.github.io/blog/2025-05-26-15-Hello.html" />
+    <link href="https://alganet.dev/blog/2025-05-26-15-Hello.html" />
     <updated>2025-05-26T15:00:00Z</updated>
     <summary>For a while now, I&apos;ve been wanting to start a technical blog. I decided to transform this simple, hand-crafted HTML website into a platform for it. It is as close as pure HTML as you can get. I create posts by writing the HTML by hand, and there is a 80-line (at the time of writing) shell script...</summary>
     <author>
