@@ -120,8 +120,8 @@ nav.lang a.selected {
    just under the theme toggle. Green-on-black monospace regardless of theme. */
 nav.lang a.shell {
   position: fixed;
-  top: 3.5em;
-  right: 1em;
+  top: 1.4em;
+  right: 3.5em;
   z-index: 10;
   display: inline-flex;
   align-items: center;
@@ -130,7 +130,6 @@ nav.lang a.shell {
   line-height: 1;
   color: #3fb950;
   background: #000;
-  border: 1px solid #2c3a2c;
   border-radius: 4px;
   padding: 0.28em 0.42em;
   text-decoration: none;
@@ -397,6 +396,9 @@ p, ul, ol {
     width: 1.9em;
     height: 1.9em;
     font-size: 1em;
+  }
+  nav.lang a.shell {
+    top: 1.25em;
   }
 
   p, ul, ol {
