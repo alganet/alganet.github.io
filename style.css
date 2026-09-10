@@ -37,14 +37,35 @@ html {
 }
 
 /* Fixed gradient on its own compositor layer; avoids the per-frame
-   repaint that background-attachment: fixed triggers (Safari jank). */
+   repaint that background-attachment: fixed triggers (Safari jank).
+
+   It is also the ground the plate falls back to. With plate.js blocked, or
+   before it has mounted, this is the whole background and the page looks the
+   way it always did; with the plate up it is simply covered. */
 html::before {
   content: "";
   position: fixed;
   inset: 0;
-  z-index: -1;
+  z-index: -2;
   background-color: var(--bg-base);
   background-image: var(--bg-gradient);
+}
+
+/* The plate: the canvas plate.js paints the tiling onto. Fixed to the
+   viewport and out of the pointer's way, so the page scrolls over a ground
+   that stays put — the tiling rearranges under the pointer instead. It sits
+   one layer above the gradient and every layer below the text. */
+#plate {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Forced colours replaces the palette wholesale, and print has no business
+   spending ink on a ground. Both fall back to the gradient underneath. */
+@media (forced-colors: active), print {
+  #plate { display: none; }
 }
 
 body {

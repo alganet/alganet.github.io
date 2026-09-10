@@ -186,11 +186,24 @@ write_header() {
 
     {
         echo '<!doctype html>'
-        echo '<link rel=stylesheet href=/style.css?23>'
+        # The one inline script on the site, and it has to stay inline and stay
+        # here, ahead of the stylesheet. It stamps data-theme on <html> before
+        # first paint; deferred — which is what script.js is — the reader gets
+        # a frame of the light theme first, and since the ground is now a
+        # full-bleed plate that frame is the whole viewport repainting.
+        # script.js owns the theme after this and reads the same key.
+        echo '<script>try{var t=localStorage.getItem("alganet-theme")}catch(e){}document.documentElement.dataset.theme=t==="dark"||t==="light"?t:matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"</script>'
+        echo '<link rel=stylesheet href=/style.css?24>'
         echo '<meta name="viewport" content="width=device-width, initial-scale=1">'
         if [ -n "$_page_title" ]; then echo "<title>$_page_title</title>"; else echo '<title>alganet</title>'; fi
-        echo '<script defer src="/script.js?23"></script>'
+        echo '<script defer src="/script.js?24"></script>'
+        # The tiling. Deferred and last of the two: it is enhancement, and with
+        # it blocked the page keeps the CSS ground gradient.
+        echo '<script defer src="/plate.js?24"></script>'
         [ -n "$_feed_link" ] && echo "$_feed_link" || :
+        # The canvas the tiling is painted on. First thing in the body, so
+        # everything that follows floats over it.
+        echo '<div id="plate"></div>'
         # `<a href= />` is the site's own tag-omission style for the root link;
         # every other target is written plainly. Reproduced exactly, so the
         # generated pages stay byte-comparable with what was there before.
