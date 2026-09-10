@@ -54,10 +54,24 @@ html::before {
 /* The plate: the canvas plate.js paints the tiling onto. Fixed to the
    viewport and out of the pointer's way, so the page scrolls over a ground
    that stays put — the tiling rearranges under the pointer instead. It sits
-   one layer above the gradient and every layer below the text. */
+   one layer above the gradient and every layer below the text.
+
+   Height, not `inset: 0`, and deliberately the LARGE viewport. A mobile
+   browser retracts its URL bar on the way down and brings it back on the way
+   up, and a bottom edge pinned with `inset` follows that: the box changes
+   height twice per scroll, the plate's ResizeObserver rebuilds the whole patch
+   each time, and the ground visibly drops and snaps back. 100lvh is the height
+   with the bar shown and never changes while it comes and goes, so the plate
+   simply runs under the bar and the scroll leaves it alone. The 100vh fallback
+   is the same size on every mobile engine — vh has always meant the large
+   viewport there — and identical to lvh on the desktop. */
 #plate {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100vh;
+  height: 100lvh;
   z-index: -1;
   pointer-events: none;
 }
