@@ -113,6 +113,26 @@ if (!DOM_ONLY) {
 fit.fit();
 window.__term = term;
 
+// ── Phones: a terminal, but not one you type into ───────────────────────────
+// xterm reads the keyboard through a hidden textarea, and focusing that
+// textarea is precisely what makes a phone throw up its on-screen keyboard.
+// Here that keyboard is pure loss: the reader takes single keys, taps and
+// swipes and never a line of text, so nothing can be typed into it — while it
+// covers half the screen, and the viewport it steals resizes the terminal and
+// re-wraps every post underneath it.
+//
+// inputmode="none" is the standard way to say "focusable, but do not raise a
+// keyboard"; readOnly is the belt-and-braces for WebKit builds that ignore it
+// on a textarea. NEITHER suppresses keydown, so a phone or tablet with a real
+// keyboard attached still drives the reader exactly as a desktop does — only
+// the on-screen one is gone. Scoped to a coarse PRIMARY pointer so a laptop
+// with a touchscreen keeps its normal input path (and its paste).
+const TOUCH_PRIMARY = matchMedia("(pointer: coarse)").matches;
+if (TOUCH_PRIMARY && term.textarea) {
+  term.textarea.inputMode = "none";
+  term.textarea.readOnly = true;
+}
+
 // ── Cross-origin isolation guard (spawn needs SharedArrayBuffer) ────────────
 if (!crossOriginIsolated) {
   const regs = navigator.serviceWorker ? await navigator.serviceWorker.getRegistrations() : [];
@@ -214,6 +234,122 @@ if (!crossOriginIsolated) {
 
   // Keyboard → the session, every key unmodified.
   term.onData((d) => { if (session) session.write(d); });
+
+  // ── Finger → wheel ─────────────────────────────────────────────────────
+  // The reader scrolls on wheel events — index.sh binds whup/wdown, which reach
+  // it as SGR-1006 mouse reports because it calls tuish_mouse_on. A touchscreen
+  // never produces one, and nothing in between makes one up: xterm's own
+  // touch-to-scroll moves the SCROLLBACK viewport, and this terminal has
+  // scrollback:0 on purpose (the shell paints its own scrolling, scrollbar
+  // included). So the shell's scroll was simply unreachable with a finger, and
+  // the only thing a swipe did reach was the browser's pan — now turned off in
+  // index.html's touch-action.
+  //
+  // What is synthesized here is a wheel, not a key: it is the same event the
+  // shell already handles, at the same coordinates, so hover and wheel-chaining
+  // (event.sh gives the wheel to the widget under the pointer) behave as they
+  // do under a mouse. The cursor-key path is the fallback for a guest that
+  // never enabled mouse tracking — index.sh always does, but a host that only
+  // works for one guest is a host that breaks silently for the next one.
+  const NOTCH_ROWS = 3;          // index.sh binds whup/wdown to _scroll_by ±3
+  const DRAG_SLOP = 8;           // px before a touch counts as a scroll, not a tap
+  const FLICK_MIN = 0.3;         // px/ms at liftoff below which there is no glide
+
+  // Geometry from the screen element rather than #term: it excludes the 10px
+  // padding, so a division by cols/rows lands on the cell the finger is over.
+  const screenBox = () => {
+    const r = document.querySelector(".xterm-screen")?.getBoundingClientRect();
+    return r && term.cols && term.rows
+      ? { r, w: r.width / term.cols, h: r.height / term.rows } : null;
+  };
+
+  function wheel(up, x, y) {
+    if (!session) return;
+    if (term.modes.mouseTrackingMode === "none") {
+      // No tracking: the guest is reading keys, so send the key.
+      const app = term.modes.applicationCursorKeysMode;
+      session.write(up ? (app ? "\x1bOA" : "\x1b[A") : (app ? "\x1bOB" : "\x1b[B"));
+      return;
+    }
+    const b = screenBox();
+    const clamp = (v, hi) => Math.min(hi, Math.max(1, v));
+    const col = b ? clamp(Math.floor((x - b.r.left) / b.w) + 1, term.cols) : 1;
+    const row = b ? clamp(Math.floor((y - b.r.top) / b.h) + 1, term.rows) : 1;
+    session.write(`\x1b[<${up ? 64 : 65};${col};${row}M`);
+  }
+
+  // Pixels dragged accumulate; every NOTCH_ROWS rows' worth spends one notch.
+  // Dragging down moves the content down, i.e. scrolls UP — the content follows
+  // the finger, as it does everywhere else on the device.
+  let touchId = null, lastY = 0, lastT = 0, startY = 0, dragged = 0;
+  let scrolling = false, velocity = 0, glide = 0;
+
+  function spend(x, y) {
+    const b = screenBox();
+    const step = (b ? b.h : 18) * NOTCH_ROWS;
+    // The cap keeps a wild flick (or a long-backgrounded rAF) from queueing
+    // hundreds of reports the shell would then have to chew through.
+    for (let n = 0; Math.abs(dragged) >= step && n < 40; n++) {
+      const up = dragged > 0;
+      dragged -= up ? step : -step;
+      wheel(up, x, y);
+    }
+  }
+
+  // A decayed glide after a flick, so a long post scrolls the way every other
+  // surface on the phone does. It feeds the same accumulator, so it stops
+  // itself once a frame no longer moves a whole notch.
+  function fling(x, y) {
+    if (Math.abs(velocity) < FLICK_MIN) return;
+    let v = Math.max(-3, Math.min(3, velocity)) * 16;   // px/ms → px per frame
+    const step = () => {
+      v *= 0.94;
+      dragged += v;
+      spend(x, y);
+      glide = Math.abs(v) > 0.5 ? requestAnimationFrame(step) : 0;
+    };
+    glide = requestAnimationFrame(step);
+  }
+
+  const touchOf = (e) => touchId === null ? null
+    : Array.from(e.changedTouches).find((t) => t.identifier === touchId) || null;
+
+  const termEl = document.getElementById("term");
+  termEl.addEventListener("touchstart", (e) => {
+    if (glide) { cancelAnimationFrame(glide); glide = 0; }   // a touch stops the glide
+    if (touchId !== null) return;                            // second finger: pinch-zoom's
+    const t = e.changedTouches[0];
+    touchId = t.identifier;
+    startY = lastY = t.clientY; lastT = e.timeStamp;
+    dragged = 0; velocity = 0; scrolling = false;
+  }, { passive: true });
+
+  termEl.addEventListener("touchmove", (e) => {
+    const t = touchOf(e); if (!t) return;
+    const dy = t.clientY - lastY, dt = e.timeStamp - lastT || 16;
+    lastY = t.clientY; lastT = e.timeStamp;
+    velocity = dy / dt;
+    if (!scrolling && Math.abs(t.clientY - startY) > DRAG_SLOP) scrolling = true;
+    if (scrolling) { dragged += dy; spend(t.clientX, t.clientY); }
+  }, { passive: true });
+
+  termEl.addEventListener("touchend", (e) => {
+    const t = touchOf(e); if (!t) return;
+    touchId = null;
+    if (!scrolling) return;   // a tap: let it synthesize the click the reader binds
+    // A drag must NOT end in a click, or scrolling a list of posts would open
+    // whichever one the finger came to rest on. Chromium already withholds the
+    // compatibility mouse events for a gesture it saw move (measured: a drag
+    // produces no mousedown/mouseup/click at all, a tap produces all three),
+    // and marks the touchend uncancelable to say so — hence the guard, which
+    // keeps that engine's console clean while the call still covers engines
+    // that would otherwise synthesize the click.
+    if (e.cancelable) e.preventDefault();
+    fling(t.clientX, t.clientY);
+  }, { passive: false });
+
+  termEl.addEventListener("touchcancel", () => { touchId = null; scrolling = false; },
+    { passive: true });
 
   // Resize: reflow, hand the live geometry to the guest (wasi-sh synthesizes
   // SIGWINCH; index.sh re-wraps in place — no respawn).

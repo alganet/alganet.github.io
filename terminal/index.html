@@ -49,8 +49,16 @@
 <style>
   :root { --bg:#171b20; }  /* match index.sh's C_BG so the terminal padding is seamless */
   html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);
-    font-family:ui-monospace,monospace;color:#c9d1d9}
-  #term{position:fixed;inset:0;padding:10px}
+    overscroll-behavior:none;font-family:ui-monospace,monospace;color:#c9d1d9}
+  /* touch-action is what makes the reader scrollable with a finger, by taking
+     the finger AWAY from the browser. The shell paints its own scrolling (the
+     terminal has scrollback:0), so there is nothing for a browser pan to move
+     here — all a pan does on a phone is rubber-band the page and retract the
+     URL bar, which resizes the terminal and re-wraps the whole reader. With
+     panning off, app.mjs gets the touchmove events and turns them into the
+     wheel reports the shell already understands. `pinch-zoom` rather than
+     `none` so two fingers can still magnify the type. */
+  #term{position:fixed;inset:0;padding:10px;touch-action:pinch-zoom}
   .xterm{height:100%}
   /* Boot splash — a calm centered line until the shell paints its first frame. */
   #boot{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
